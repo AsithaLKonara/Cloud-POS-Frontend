@@ -40,6 +40,9 @@ export const posService = {
     branchId: string;
     sessionId: string;
     customerId?: string;
+    customerName?: string;
+    customerPhone?: string;
+    shippingAddress?: any;
     items: any[];
     paymentMethod: string;
     appliedVouchers: string[];

@@ -86,7 +86,20 @@ export default function PosDispatchTicket({ isMobileCartOpen, setIsMobileCartOpe
         appliedVouchers: [],
         subtotal,
         total,
-        tax: 0
+        tax: 0,
+        customerName: customerName || undefined,
+        customerPhone: phone || undefined,
+        shippingAddress: {
+          firstName: customerName ? customerName.split(" ")[0] : "Guest",
+          lastName: customerName ? customerName.split(" ").slice(1).join(" ") : "",
+          phone: phone,
+          addressLine1: addressLine1,
+          addressLine2: addressLine2,
+          addressLine3: addressLine3,
+          city: city,
+          district: district,
+          nearestCity: nearestCity
+        }
       });
 
       // 2. Forward to 3PL if applicable
