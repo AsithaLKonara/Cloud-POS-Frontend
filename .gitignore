@@ -12,5 +12,3 @@ coverage/
 .vercel
 config.bat
 
-.env
-.env.production
