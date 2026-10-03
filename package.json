@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "Storefront, Admin and POS UI for Laural Clothing",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start -H 0.0.0.0",
+    "dev": "node api.js && next dev",
+    "build": "node api.js && next build",
+    "start": "node api.js && next start -H 0.0.0.0",
     "lint": "next lint"
   },
   "dependencies": {
