@@ -6,6 +6,7 @@ import { useBranches, useInventory, useTransfers, useAdjustStock, useCreateTrans
 import { Button } from '@/components/ui/Button';
 import StatCard from '@/components/dashboard/StatCard';
 import InventoryAdjustmentModal from '@/components/admin/InventoryAdjustmentModal';
+import StockTransferModal from '@/components/admin/StockTransferModal';
 
 export default function InventoryDashboard() {
   const [activeTab, setActiveTab] = useState<'STOCK' | 'TRANSFERS' | 'BRANCHES'>('STOCK');
@@ -15,6 +16,7 @@ export default function InventoryDashboard() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [adjustingVariant, setAdjustingVariant] = useState<{ item: any, type: 'receive' | 'deduct' } | null>(null);
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
 
   // Debounce search
   useEffect(() => {
@@ -169,6 +171,15 @@ export default function InventoryDashboard() {
 
       {activeTab === 'TRANSFERS' && (
         <div className="bg-white rounded shadow overflow-hidden">
+          <div className="p-4 border-b flex justify-between items-center bg-gray-50">
+            <div>
+              <h2 className="font-semibold text-gray-900">Inter-Branch Stock Movement</h2>
+              <p className="text-xs text-gray-500">Track and dispatch stock transfers between stores</p>
+            </div>
+            <Button size="sm" onClick={() => setIsTransferModalOpen(true)}>
+              + New Transfer Request
+            </Button>
+          </div>
            {transfersLoading ? (
             <div className="p-4">Loading transfers...</div>
           ) : (
@@ -187,10 +198,14 @@ export default function InventoryDashboard() {
                 {transfersData?.data?.map((t: any) => (
                   <tr key={t.id} className="border-t">
                     <td className="p-4">{new Date(t.createdAt).toLocaleDateString()}</td>
-                    <td className="p-4">{t.variant.name}</td>
-                    <td className="p-4">{t.fromBranch.name} → {t.toBranch.name}</td>
-                    <td className="p-4">{t.quantity}</td>
-                    <td className="p-4">{t.status}</td>
+                    <td className="p-4">{t.variant?.name || t.variant?.sku}</td>
+                    <td className="p-4">{t.fromBranch?.name} → {t.toBranch?.name}</td>
+                    <td className="p-4 font-bold">{t.quantity}</td>
+                    <td className="p-4">
+                      <span className="px-2 py-0.5 rounded text-xs font-bold bg-stone-100 text-stone-800">
+                        {t.status}
+                      </span>
+                    </td>
                     <td className="p-4 text-right">
                       {t.status === 'PENDING' && (
                         <Button size="sm" onClick={() => updateTransferStatus.mutate({ id: t.id, status: 'DISPATCHED' })}>Dispatch</Button>
@@ -231,6 +246,13 @@ export default function InventoryDashboard() {
           initialVariantData={adjustingVariant.item}
           onClose={() => setAdjustingVariant(null)}
           onSuccess={() => setAdjustingVariant(null)}
+        />
+      )}
+
+      {isTransferModalOpen && (
+        <StockTransferModal
+          onClose={() => setIsTransferModalOpen(false)}
+          onSuccess={() => setIsTransferModalOpen(false)}
         />
       )}
     </div>

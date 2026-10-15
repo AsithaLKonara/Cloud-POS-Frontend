@@ -14,3 +14,18 @@ export const useBusinessOverviewSuspense = (period: string, branch: string) => {
     queryFn: () => analyticsService.getBusinessOverview(period, branch),
   });
 };
+
+export const useExecutiveOverview = (period: string, branchId?: string) => {
+  return useQuery({
+    queryKey: ['analytics', 'executive', period, branchId],
+    queryFn: () => analyticsService.getExecutiveOverview(period, branchId),
+  });
+};
+
+export const useBranchDashboard = (branchId?: string) => {
+  return useQuery({
+    queryKey: ['analytics', 'branch-dashboard', branchId],
+    queryFn: () => analyticsService.getBranchDashboard(branchId),
+    refetchInterval: 30000, // Live poll every 30s
+  });
+};

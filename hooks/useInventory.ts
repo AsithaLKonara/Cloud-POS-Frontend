@@ -114,11 +114,13 @@ export const useInventoryTransactions = (branchId?: string) => {
 };
 
 // --- Transfers ---
-export const useTransfers = () => {
+export const useTransfers = (branchId?: string) => {
   return useQuery({
-    queryKey: ['stock-transfers'],
+    queryKey: ['stock-transfers', branchId],
     queryFn: async () => {
-      const res = await api.get('/inventory/transfers');
+      const params = new URLSearchParams();
+      if (branchId) params.append('branchId', branchId);
+      const res = await api.get(`/inventory/transfers?${params.toString()}`);
       return res.data;
     },
   });
