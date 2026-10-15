@@ -79,6 +79,32 @@ export const useProcessPosOrder = () => {
     mutationFn: posService.processPosOrder,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      queryClient.invalidateQueries({ queryKey: ['pos-customer-credit'] });
     }
   });
 };
+
+// --- Customer Credit Ledger & Debt Settlement ---
+export const useCustomerCredit = (customerId?: string) => {
+  return useQuery({
+    queryKey: ['pos-customer-credit', customerId],
+    queryFn: async () => {
+      if (!customerId) return null;
+      return await posService.getCustomerCredit(customerId);
+    },
+    enabled: !!customerId,
+  });
+};
+
+export const useSettleCustomerCredit = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ customerId, data }: { customerId: string; data: any }) =>
+      posService.settleCustomerCredit(customerId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pos-customer-credit'] });
+      queryClient.invalidateQueries({ queryKey: ['pos-session'] });
+    }
+  });
+};
+

@@ -178,11 +178,20 @@ export default function POSPage() {
     });
   };
 
-  const updateQty = (id: number, delta: number) => {
+  const updateQty = (id: any, delta: number) => {
     setCart(prev => prev.map(item => {
       if (item.id === id) {
-        const newQty = Math.max(0, item.qty + delta);
+        const newQty = Math.max(0, Math.round((item.qty + delta) * 10) / 10);
         return { ...item, qty: newQty };
+      }
+      return item;
+    }).filter(item => item.qty > 0));
+  };
+
+  const setExactQty = (id: any, exactVal: number) => {
+    setCart(prev => prev.map(item => {
+      if (item.id === id) {
+        return { ...item, qty: Math.max(0, exactVal) };
       }
       return item;
     }).filter(item => item.qty > 0));
@@ -363,7 +372,7 @@ export default function POSPage() {
             </div>
           </Link>
           <h1 className="font-bold text-lg tracking-widest uppercase flex items-center gap-2">
-            <LayoutGrid size={18} /> LAURAL POS
+            <LayoutGrid size={18} /> OIL RETAIL POS
           </h1>
           
           {/* Mode Switcher */}
@@ -639,13 +648,53 @@ export default function POSPage() {
                   </button>
                   Current Order
                 </h2>
-                <button 
-                  onClick={() => setIsCustomerModalOpen(true)}
-                  className={`flex items-center gap-2 text-sm font-inter px-3 py-1.5 rounded-lg transition-colors ${selectedCustomer ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100' : 'text-primary bg-primary-soft hover:bg-primary/20'}`}
-                >
-                  <UserPlus size={16} /> {selectedCustomer ? selectedCustomer.name : 'Add Customer'}
-                </button>
+                <div className="flex items-center gap-2">
+                  {selectedCustomer && (
+                    <button
+                      onClick={() => setSelectedCustomer(null)}
+                      className="text-xs text-muted hover:text-foreground font-semibold px-2 py-1 rounded hover:bg-surface"
+                      title="Clear Customer"
+                    >
+                      Clear
+                    </button>
+                  )}
+                  <button 
+                    onClick={() => setIsCustomerModalOpen(true)}
+                    className={`flex items-center gap-2 text-xs font-inter px-3 py-1.5 rounded-lg transition-colors ${
+                      selectedCustomer 
+                        ? 'bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 font-bold' 
+                        : 'text-primary bg-primary-soft hover:bg-primary/20 font-semibold'
+                    }`}
+                  >
+                    <UserPlus size={15} /> 
+                    {selectedCustomer 
+                      ? (selectedCustomer.companyName || selectedCustomer.name) 
+                      : 'Add Workshop / Customer'}
+                  </button>
+                </div>
               </div>
+
+              {/* Selected Customer Credit Banner */}
+              {selectedCustomer && (
+                <div className="px-4 py-2 bg-amber-50/70 border-b border-amber-200/60 flex items-center justify-between text-xs font-inter shrink-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-amber-900 truncate max-w-[170px]">
+                      {selectedCustomer.companyName || selectedCustomer.name}
+                    </span>
+                    {selectedCustomer.vehicleNumber && (
+                      <span className="font-mono text-[10px] bg-white px-1.5 py-0.5 rounded border border-amber-200 font-semibold text-stone-700">
+                        {selectedCustomer.vehicleNumber}
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[10px] text-stone-500 block">Balance Owed</span>
+                    <span className="font-mono font-bold text-amber-800">
+                      Rs. {(selectedCustomer.creditBalance || 0).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              )}
 
               {/* Cart Items */}
               <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
@@ -654,27 +703,67 @@ export default function POSPage() {
                     <p className="font-inter text-sm">Cart is empty</p>
                   </div>
                 ) : (
-                  cart.map(item => (
-                    <div key={item.id} className="flex flex-col bg-background border border-border rounded-lg p-3 relative group">
-                      <div className="flex justify-between items-start mb-1">
-                        <span className="font-inter font-bold text-foreground leading-snug pr-8">{item.name}</span>
-                        <button onClick={() => updateQty(item.id, -item.qty)} className="absolute top-3 right-3 text-muted hover:text-error transition-colors opacity-0 group-hover:opacity-100">
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                      <div className="text-xs font-inter text-muted mb-3">
-                        Color: {item.color || 'Default'} | Size: {item.size || 'Default'}
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-3">
-                          <button onClick={() => updateQty(item.id, -1)} className="w-8 h-8 rounded-full bg-surface border border-border font-bold text-muted flex items-center justify-center hover:bg-background">-</button>
-                          <span className="font-inter font-bold text-lg w-4 text-center text-foreground">{item.qty}</span>
-                          <button onClick={() => updateQty(item.id, 1)} className="w-8 h-8 rounded-full bg-surface border border-border font-bold text-muted flex items-center justify-center hover:bg-background">+</button>
+                  cart.map(item => {
+                    const isLooseOrDrum = item.packUnit?.toLowerCase().includes("drum") || 
+                                          item.packUnit?.toLowerCase().includes("loose") || 
+                                          item.name?.toLowerCase().includes("loose") ||
+                                          (item.qty % 1 !== 0);
+
+                    return (
+                      <div key={item.id} className="flex flex-col bg-background border border-border rounded-xl p-3.5 relative group shadow-sm">
+                        <div className="flex justify-between items-start mb-1">
+                          <span className="font-inter font-bold text-foreground text-sm leading-snug pr-8">{item.name}</span>
+                          <button onClick={() => updateQty(item.id, -item.qty)} className="absolute top-3 right-3 text-muted hover:text-error transition-colors opacity-0 group-hover:opacity-100 p-1">
+                            <Trash2 size={15} />
+                          </button>
                         </div>
-                        <span className="font-inter font-bold text-foreground">{(item.price * item.qty).toFixed(2)}</span>
+                        <div className="text-xs font-inter text-muted mb-3 flex items-center gap-2">
+                          <span className="px-1.5 py-0.5 rounded bg-surface border border-border font-medium text-[11px]">
+                            {item.packUnit || item.size || 'Standard Unit'}
+                          </span>
+                          {(item.viscosity || item.partNumber) && (
+                            <span className="font-mono text-[11px] font-bold text-stone-700">
+                              {item.viscosity || item.partNumber}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex justify-between items-center pt-1 border-t border-border/50">
+                          {isLooseOrDrum ? (
+                            /* Fractional Loose Oil Dispenser Controls */
+                            <div className="flex items-center gap-1.5 bg-surface border border-border rounded-lg p-1">
+                              <button 
+                                type="button" 
+                                onClick={() => updateQty(item.id, -0.5)} 
+                                className="px-2 py-1 text-xs font-bold font-mono hover:bg-background rounded"
+                              >
+                                -0.5L
+                              </button>
+                              <span className="font-mono font-black text-sm px-2 text-stone-900">
+                                {item.qty} L
+                              </span>
+                              <button 
+                                type="button" 
+                                onClick={() => updateQty(item.id, 0.5)} 
+                                className="px-2 py-1 text-xs font-bold font-mono hover:bg-background rounded"
+                              >
+                                +0.5L
+                              </button>
+                            </div>
+                          ) : (
+                            /* Standard Unit Increments */
+                            <div className="flex items-center gap-2.5">
+                              <button onClick={() => updateQty(item.id, -1)} className="w-7 h-7 rounded-lg bg-surface border border-border font-bold text-muted flex items-center justify-center hover:bg-background">-</button>
+                              <span className="font-mono font-bold text-base w-5 text-center text-foreground">{item.qty}</span>
+                              <button onClick={() => updateQty(item.id, 1)} className="w-7 h-7 rounded-lg bg-surface border border-border font-bold text-muted flex items-center justify-center hover:bg-background">+</button>
+                            </div>
+                          )}
+                          <span className="font-mono font-bold text-base text-foreground">
+                            Rs. {(item.price * item.qty).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
 
@@ -781,6 +870,12 @@ export default function POSPage() {
 
       {isVariantModalOpen && <VariantSelectionModal product={selectedProduct} onClose={() => setIsVariantModalOpen(false)} onAdd={addToCart} allowOutOfStock={posMode !== 'SALES'} />}
       {isPaymentModalOpen && <PaymentModal 
+        total={Math.max(0, cart.reduce((sum, item) => sum + (item.price * item.qty), 0) - cartVouchers.reduce((sum, v) => sum + v.amount, 0)).toFixed(2)} 
+        selectedCustomer={selectedCustomer}
+        onOpenCustomerModal={() => {
+          setIsPaymentModalOpen(false);
+          setIsCustomerModalOpen(true);
+        }}
         onClose={() => setIsPaymentModalOpen(false)} 
         onSuccess={async (method: string) => {
           setIsPaymentModalOpen(false);
@@ -792,7 +887,11 @@ export default function POSPage() {
               branchId,
               sessionId: activeSession?.id || undefined,
               customerId: selectedCustomer?.id,
-              items: cart.map(item => ({ variantId: item.id, qty: item.qty })),
+              items: cart.map(item => ({ 
+                variantId: item.id, 
+                qty: item.qty,
+                dispensedVolumeLiters: (item.packUnit?.toLowerCase().includes("drum") || item.packUnit?.toLowerCase().includes("loose") || item.qty % 1 !== 0) ? item.qty : undefined
+              })),
               paymentMethod: method,
               appliedVouchers: cartVouchers.map(v => v.code),
               subtotal,
@@ -811,30 +910,32 @@ export default function POSPage() {
               discount: voucherAmount,
               total,
               paymentMethod: method,
-              tendered: total, // we don't have tendered from PaymentModal yet, assume exact change for now
+              tendered: total,
               change: 0,
               branchName: activeBranch?.name,
               branchAddress: activeBranch?.address,
-              branchPhone: activeBranch?.phone
+              branchPhone: activeBranch?.phone,
+              customer: selectedCustomer
             };
 
-            if (method.toLowerCase() === 'koko') {
-               setPollingOrder(newOrderData);
-            } else {
-               setLastOrderData(newOrderData);
-               clearCart();
-               setSelectedCustomer(null);
-               setIsSuccessModalOpen(true);
-            }
+            setLastOrderData(newOrderData);
+            clearCart();
+            setSelectedCustomer(null);
+            setIsSuccessModalOpen(true);
           } catch (err: any) {
             console.error(err);
             const serverMsg = err?.response?.data?.error?.message || err?.response?.data?.error || err?.response?.data?.message;
             globalDialog.alert(serverMsg || (err?.isAxiosError ? "Network error. Please try again." : err?.message) || "Failed to process payment. Please try again.");
           }
         }}  
-        total={Math.max(0, cart.reduce((sum, item) => sum + (item.price * item.qty), 0) - cartVouchers.reduce((sum, v) => sum + v.amount, 0)).toFixed(2)} 
       />}
-      {isCustomerModalOpen && <CustomerSelectionModal onClose={() => setIsCustomerModalOpen(false)} onSelect={(c) => setSelectedCustomer(c)} />}
+      {isCustomerModalOpen && (
+        <CustomerSelectionModal 
+          activeSessionId={activeSession?.id}
+          onClose={() => setIsCustomerModalOpen(false)} 
+          onSelect={(c) => setSelectedCustomer(c)} 
+        />
+      )}
       {isSuccessModalOpen && <OrderSuccessModal onClose={() => setIsSuccessModalOpen(false)} orderData={lastOrderData} />}
       
       {pollingOrder && (

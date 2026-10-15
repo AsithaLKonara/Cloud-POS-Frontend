@@ -86,18 +86,26 @@ const Receipt = forwardRef<HTMLDivElement, ReceiptProps>((props, ref) => {
 
       {/* Items */}
       <div style={{ marginBottom: "3px" }}>
-        {items.map((item, idx) => (
-          <div key={idx} style={{ marginBottom: "4px" }}>
-            <div style={{ fontSize: "10px" }}>{truncate(item.name)}</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 30px 60px", gap: "4px", fontSize: "10px" }}>
-              <span style={{ color: "#555", fontSize: "9px" }}>
-                {[item.color, item.size].filter(Boolean).join(" / ")}
-              </span>
-              <span style={{ textAlign: "center" }}>x{item.qty}</span>
-              <span style={{ textAlign: "right" }}>{fmt(item.price * item.qty)}</span>
+        {items.map((item, idx) => {
+          const pack = item.packUnit || item.size || (item.dispensedVolumeLiters ? `${item.dispensedVolumeLiters}L Loose` : '');
+          const spec = item.viscosity || item.partNumber || item.color || '';
+          const subInfo = [spec, pack].filter(Boolean).join(" • ");
+
+          return (
+            <div key={idx} style={{ marginBottom: "4px" }}>
+              <div style={{ fontSize: "10px", fontWeight: "bold" }}>{truncate(item.name)}</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 30px 60px", gap: "4px", fontSize: "10px" }}>
+                <span style={{ color: "#555", fontSize: "9px" }}>
+                  {subInfo || 'Standard Unit'}
+                </span>
+                <span style={{ textAlign: "center" }}>
+                  {item.dispensedVolumeLiters ? `${item.dispensedVolumeLiters}L` : `x${item.qty}`}
+                </span>
+                <span style={{ textAlign: "right", fontWeight: "bold" }}>{fmt(item.price * item.qty)}</span>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {divider}
@@ -120,23 +128,34 @@ const Receipt = forwardRef<HTMLDivElement, ReceiptProps>((props, ref) => {
 
       {/* Payment */}
       <div style={{ fontSize: "10px", marginBottom: "4px" }}>
-        {row("Method:", paymentMethod)}
-        {tendered !== undefined && tendered > 0 && row("Tendered:", `Rs. ${fmt(tendered)}`)}
-        {change !== undefined && change >= 0 && row("Change:", `Rs. ${fmt(change)}`, true)}
+        {paymentMethod === "CREDIT_ACCOUNT" || paymentMethod === "GARAGE_CREDIT" ? (
+          <div>
+            {row("Payment:", "WORKSHOP ACCOUNT CREDIT")}
+            <div style={{ color: "#444", fontSize: "9px", marginTop: "2px", fontWeight: "bold" }}>
+              * CHARGED TO CUSTOMER CREDIT LEDGER *
+            </div>
+          </div>
+        ) : (
+          <>
+            {row("Method:", paymentMethod)}
+            {tendered !== undefined && tendered > 0 && row("Tendered:", `Rs. ${fmt(tendered)}`)}
+            {change !== undefined && change >= 0 && row("Change:", `Rs. ${fmt(change)}`, true)}
+          </>
+        )}
       </div>
 
       {divider}
 
       {/* Footer */}
       <div style={{ textAlign: "center", fontSize: "10px", marginTop: "4px" }}>
-        <div style={{ fontWeight: "bold" }}>Thank you for shopping!</div>
+        <div style={{ fontWeight: "bold" }}>Thank you for your business!</div>
         <div style={{ fontSize: "9px", marginTop: "2px", lineHeight: "1.3" }}>
-          Returns within 14 days with<br />original tags and receipt.
+          Genuine Oils & Parts Guaranteed.<br />Unsealed containers cannot be returned.
         </div>
-        <div style={{ marginTop: "6px", fontFamily: "monospace", fontSize: "9px", letterSpacing: "2px", wordBreak: "break-all" }}>
-          {orderId}
+        <div style={{ marginTop: "6px", fontFamily: "monospace", fontSize: "9px", letterSpacing: "1px", wordBreak: "break-all" }}>
+          #{orderId}
         </div>
-        <div style={{ fontSize: "8px", color: "#888", marginTop: "6px" }}>Powered by SERAMAADUWEN.LK POS</div>
+        <div style={{ fontSize: "8px", color: "#888", marginTop: "4px" }}>Cloud POS System</div>
       </div>
     </div>
   );

@@ -6,8 +6,18 @@ export const posService = {
     return res.data;
   },
 
-  async closeSession(data: { sessionId: string; actualClosing: number }) {
+  async closeSession(data: { sessionId: string; actualClosing: number; closingNotes?: string }) {
     const res = await api.post('/pos/sessions/close', data);
+    return res.data;
+  },
+
+  async getCustomerCredit(customerId: string) {
+    const res = await api.get(`/pos/customers/${customerId}/credit`);
+    return res.data;
+  },
+
+  async settleCustomerCredit(customerId: string, data: { amount: number; paymentMethod: string; reference?: string; notes?: string; sessionId?: string }) {
+    const res = await api.post(`/pos/customers/${customerId}/settle-credit`, data);
     return res.data;
   },
 

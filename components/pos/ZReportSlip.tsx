@@ -1,3 +1,5 @@
+"use client";
+
 import { forwardRef } from "react";
 
 export interface ZReportProps {
@@ -6,11 +8,19 @@ export interface ZReportProps {
     openedAt: string;
     closedAt?: string;
     openingFloat: number;
-    terminal: { name: string };
-    branch: { name: string };
-    userId: string;
+    terminal?: { name: string };
+    branch?: { name: string; address?: string; phone?: string };
+    user?: { name?: string; firstName?: string; lastName?: string };
+    userId?: string;
+    actualClosing?: number;
+    expectedClosing?: number;
+    variance?: number;
+    closingNotes?: string;
+    totalCashSales?: number;
+    totalCardSales?: number;
+    totalCreditSales?: number;
   };
-  summary: {
+  summary?: {
     totalSales: number;
     totalReturns: number;
     netTotal: number;
@@ -20,98 +30,136 @@ export interface ZReportProps {
 
 const ZReportSlip = forwardRef<HTMLDivElement, ZReportProps>((props, ref) => {
   const { session, summary } = props;
-  
+
+  const branchName = session.branch?.name || "OIL RETAIL STORE";
+  const branchPhone = session.branch?.phone || "";
+  const terminalName = session.terminal?.name || "Register Terminal";
+  const cashierName = session.user?.name || `${session.user?.firstName || ''} ${session.user?.lastName || ''}`.trim() || session.userId || "Cashier";
+
+  const openingFloat = session.openingFloat || 0;
+  const actualClosing = session.actualClosing || 0;
+  const expectedClosing = session.expectedClosing || (openingFloat + (session.totalCashSales || 0));
+  const variance = session.variance !== undefined && session.variance !== null 
+    ? session.variance 
+    : (actualClosing - expectedClosing);
+
+  const totalCash = session.totalCashSales ?? (summary?.paymentMethods?.['Cash'] || summary?.paymentMethods?.['CASH'] || 0);
+  const totalCard = session.totalCardSales ?? (summary?.paymentMethods?.['Card'] || summary?.paymentMethods?.['CARD'] || 0);
+  const totalCredit = session.totalCreditSales ?? (summary?.paymentMethods?.['CREDIT_ACCOUNT'] || summary?.paymentMethods?.['GARAGE_CREDIT'] || 0);
+  const netSales = (summary?.netTotal) || (totalCash + totalCard + totalCredit);
+
   return (
-    <div ref={ref} className="print-receipt w-[300px] bg-white text-black p-4 font-mono text-sm leading-snug mx-auto shadow-md">
+    <div 
+      ref={ref} 
+      className="w-[80mm] bg-white text-black p-4 font-mono text-xs leading-tight mx-auto"
+      style={{ fontFamily: 'Courier New, Courier, monospace', color: '#000000', backgroundColor: '#ffffff' }}
+    >
       {/* Header */}
-      <div className="text-center flex flex-col items-center gap-1 mb-4">
-        <img src="/logo.png" alt="LAURAL" className="h-6 object-contain grayscale brightness-0" />
-        <h2 className="font-bold text-xl tracking-widest mt-1">Z-REPORT</h2>
-        <span className="text-xs">{session.branch.name}</span>
-        <span className="text-[10px]">Session: {session.id}</span>
+      <div className="text-center flex flex-col items-center gap-1 mb-3">
+        <h1 className="font-bold text-base uppercase tracking-wider">{branchName}</h1>
+        {branchPhone && <span className="text-[10px]">Tel: {branchPhone}</span>}
+        <div className="border-t border-b border-black py-1 my-1 w-full text-center">
+          <span className="font-bold text-sm tracking-widest">DAY-END SHIFT Z-REPORT</span>
+        </div>
+        <span className="text-[10px]">Session Ref: {session.id.substring(0, 16)}</span>
       </div>
 
-      <div className="border-t border-dashed border-black my-2"></div>
-
-      {/* Info */}
-      <div className="flex flex-col gap-1 text-xs mb-2">
+      {/* Register Info */}
+      <div className="flex flex-col gap-1 text-[11px] mb-2 border-b border-dashed border-black pb-2">
         <div className="flex justify-between">
           <span>Terminal:</span>
-          <span>{session.terminal.name}</span>
+          <span className="font-bold">{terminalName}</span>
         </div>
         <div className="flex justify-between">
           <span>Cashier:</span>
-          <span>{session.userId}</span>
+          <span className="font-bold">{cashierName}</span>
         </div>
         <div className="flex justify-between">
-          <span>Opened:</span>
+          <span>Shift Opened:</span>
           <span>{new Date(session.openedAt).toLocaleString()}</span>
         </div>
         {session.closedAt && (
           <div className="flex justify-between">
-            <span>Closed:</span>
+            <span>Shift Closed:</span>
             <span>{new Date(session.closedAt).toLocaleString()}</span>
           </div>
         )}
       </div>
 
-      <div className="border-t border-dashed border-black my-2"></div>
-
-      {/* Sales Summary */}
-      <div className="text-center font-bold mb-1">SALES SUMMARY</div>
-      <div className="flex flex-col gap-1 text-xs mb-2">
+      {/* Sales Summary Breakdown */}
+      <div className="text-center font-bold text-xs uppercase mb-1.5 tracking-wider">Tender Breakdown</div>
+      <div className="flex flex-col gap-1 text-[11px] border-b border-dashed border-black pb-2 mb-2">
         <div className="flex justify-between">
-          <span>Gross Sales:</span>
-          <span>{summary.totalSales.toFixed(2)}</span>
+          <span>Cash Sales:</span>
+          <span>Rs. {totalCash.toFixed(2)}</span>
         </div>
         <div className="flex justify-between">
-          <span>Returns:</span>
-          <span>{summary.totalReturns.toFixed(2)}</span>
+          <span>Card / Terminal:</span>
+          <span>Rs. {totalCard.toFixed(2)}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>Workshop Account Credit:</span>
+          <span>Rs. {totalCredit.toFixed(2)}</span>
+        </div>
+        <div className="flex justify-between font-bold border-t border-dotted border-black pt-1 mt-0.5 text-xs">
+          <span>TOTAL GROSS SALES:</span>
+          <span>Rs. {netSales.toFixed(2)}</span>
         </div>
       </div>
-      
-      <div className="border-t border-dashed border-black my-2"></div>
 
-      <div className="flex justify-between font-bold text-sm my-1">
-        <span>NET SALES:</span>
-        <span>Rs. {summary.netTotal.toFixed(2)}</span>
-      </div>
-
-      <div className="border-t border-dashed border-black my-2"></div>
-
-      {/* Tender Types */}
-      <div className="text-center font-bold my-1">PAYMENT METHODS</div>
-      <div className="flex flex-col gap-1 text-xs mb-4">
-        {Object.entries(summary.paymentMethods).map(([method, amount]) => (
-          <div key={method} className="flex justify-between">
-            <span>{method}</span>
-            <span>{amount.toFixed(2)}</span>
-          </div>
-        ))}
-      </div>
-
-      <div className="border-t border-dashed border-black my-2"></div>
-      
-      {/* Drawer */}
-      <div className="flex flex-col gap-1 text-xs mb-4 mt-2">
+      {/* Cash Drawer Reconciliation */}
+      <div className="text-center font-bold text-xs uppercase mb-1.5 tracking-wider">Cash Drawer Balancing</div>
+      <div className="flex flex-col gap-1 text-[11px] border-b border-dashed border-black pb-2 mb-2">
         <div className="flex justify-between">
-          <span>Opening Float:</span>
-          <span>{session.openingFloat.toFixed(2)}</span>
+          <span>(+) Opening Cash Float:</span>
+          <span>Rs. {openingFloat.toFixed(2)}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>(+) Cash Sales Received:</span>
+          <span>Rs. {totalCash.toFixed(2)}</span>
+        </div>
+        <div className="flex justify-between font-bold border-t border-dotted border-black pt-1">
+          <span>(=) Expected Cash In Drawer:</span>
+          <span>Rs. {expectedClosing.toFixed(2)}</span>
         </div>
         <div className="flex justify-between font-bold">
-          <span>Expected Cash in Drawer:</span>
+          <span>(★) Actual Counted Cash:</span>
+          <span>Rs. {actualClosing.toFixed(2)}</span>
+        </div>
+        <div className="flex justify-between font-bold text-xs border-t border-black pt-1 mt-0.5">
+          <span>VARIANCE (OVER / SHORT):</span>
           <span>
-            {(session.openingFloat + (summary.paymentMethods['CASH'] || 0)).toFixed(2)}
+            {variance === 0 
+              ? "BALANCED (0.00)" 
+              : variance > 0 
+                ? `+ OVER Rs. ${variance.toFixed(2)}` 
+                : `- SHORT Rs. ${Math.abs(variance).toFixed(2)}`}
           </span>
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="text-center flex flex-col items-center gap-2 text-[10px] mt-6">
-        <span>--- END OF REPORT ---</span>
-        <span className="text-stone-400">Powered by SERAMAADUWEN.LK POS</span>
+      {/* Closing Notes */}
+      {session.closingNotes && (
+        <div className="text-[10px] mb-3 border-b border-dashed border-black pb-2">
+          <span className="font-bold">Shift Notes:</span> {session.closingNotes}
+        </div>
+      )}
+
+      {/* Signatures */}
+      <div className="flex justify-between pt-6 text-[10px]">
+        <div className="flex flex-col items-center">
+          <span className="border-t border-black w-24 mb-1"></span>
+          <span>Cashier Signature</span>
+        </div>
+        <div className="flex flex-col items-center">
+          <span className="border-t border-black w-24 mb-1"></span>
+          <span>Manager Verified</span>
+        </div>
       </div>
 
+      <div className="text-center text-[9px] text-stone-600 mt-4">
+        Printed on {new Date().toLocaleString()}
+      </div>
     </div>
   );
 });
