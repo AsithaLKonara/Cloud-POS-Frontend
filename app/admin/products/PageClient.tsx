@@ -28,6 +28,7 @@ export default function ProductsPage() {
   const take = 12;
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [productTypeFilter, setProductTypeFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
@@ -35,6 +36,7 @@ export default function ProductsPage() {
     skip: (page - 1) * take,
     take: take,
     search: searchQuery || undefined,
+    productType: productTypeFilter === "All Types" ? undefined : (productTypeFilter || undefined),
     category: categoryFilter === "All Categories" ? undefined : (categoryFilter || undefined),
     status: statusFilter === "All Status" ? undefined : (statusFilter || undefined)
   } as any);
@@ -103,33 +105,74 @@ export default function ProductsPage() {
       accessor: (row: any) => <input type="checkbox" checked={selectedProducts.includes(row.id)} onChange={() => handleSelectOne(row.id)} onClick={e => e.stopPropagation()} className="rounded text-stone-900 focus:ring-stone-900 border-stone-300" />
     },
     { 
-      header: "SKU", 
-      accessor: (row: any) => row.sku || 'N/A', 
+      header: "SKU / Code", 
+      accessor: (row: any) => row.variants?.[0]?.sku || row.sku || row.variants?.[0]?.barcode || 'N/A', 
       className: "font-mono text-stone-500 text-xs" 
     },
     {
-      header: "Product",
+      header: "Product & Spec",
       accessor: (row: any) => (
-        <button onClick={() => handleEdit(row)} className="font-semibold text-stone-900 hover:text-accent transition-colors text-left">
-          {row.name}
-        </button>
+        <div className="flex flex-col text-left">
+          <button onClick={() => handleEdit(row)} className="font-semibold text-stone-900 hover:text-amber-600 transition-colors text-left text-sm">
+            {row.name}
+          </button>
+          <div className="flex items-center gap-1.5 mt-0.5 text-xs text-stone-500">
+            {row.brand && <span className="font-medium text-stone-700">{row.brand}</span>}
+            {row.brand && (row.viscosity || row.partNumber) && <span>·</span>}
+            {row.viscosity && <span className="px-1.5 py-0.5 bg-amber-50 text-amber-700 font-mono font-bold rounded text-[10px]">{row.viscosity}</span>}
+            {row.partNumber && <span className="font-mono text-stone-500 text-[11px]">#{row.partNumber}</span>}
+          </div>
+        </div>
       ),
     },
-    { header: "Category", accessor: (row: any) => row.category?.name || <span className="text-stone-400">Uncategorized</span> },
+    {
+      header: "Type",
+      accessor: (row: any) => {
+        const type = row.productType || "LUBRICANT";
+        const badgeStyles: Record<string, string> = {
+          LUBRICANT: "bg-amber-100 text-amber-800 border-amber-200",
+          FILTER: "bg-blue-100 text-blue-800 border-blue-200",
+          BATTERY: "bg-purple-100 text-purple-800 border-purple-200",
+          CAR_CARE: "bg-emerald-100 text-emerald-800 border-emerald-200",
+          SPARE_PART: "bg-orange-100 text-orange-800 border-orange-200",
+          ACCESSORY: "bg-stone-100 text-stone-800 border-stone-200",
+          SERVICE: "bg-cyan-100 text-cyan-800 border-cyan-200",
+        };
+        const style = badgeStyles[type] || "bg-stone-100 text-stone-700 border-stone-200";
+        return (
+          <span className={`px-2 py-0.5 text-[11px] font-semibold rounded-full border ${style}`}>
+            {type.replace('_', ' ')}
+          </span>
+        );
+      }
+    },
     { 
-      header: "Price", 
+      header: "Pack / Unit", 
+      accessor: (row: any) => row.variants?.[0]?.packUnit || <span className="text-stone-400">Unit</span>,
+      className: "text-xs text-stone-600"
+    },
+    { 
+      header: "Cost (COGS)", 
+      accessor: (row: any) => {
+        const cost = row.variants?.[0]?.costPrice || 0;
+        return `Rs ${cost.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+      },
+      className: "text-xs text-stone-500 font-mono" 
+    },
+    { 
+      header: "Retail Price", 
       accessor: (row: any) => {
         const price = row.variants?.[0]?.price || 0;
         return `Rs ${price.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
       },
-      className: "font-semibold text-stone-800" 
+      className: "font-semibold text-stone-900 font-mono text-sm" 
     },
     { 
       header: "Stock", 
       accessor: (row: any) => {
         const totalQuantity = row.variants?.reduce((sum: number, v: any) => sum + (v.quantity || 0), 0) || 0;
         return (
-          <span className={totalQuantity === 0 ? "text-red-600 font-bold" : totalQuantity <= 10 ? "text-amber-600 font-bold" : "text-stone-900"}>
+          <span className={totalQuantity === 0 ? "text-red-600 font-bold" : totalQuantity <= 10 ? "text-amber-600 font-bold" : "text-stone-900 font-semibold"}>
             {totalQuantity}
           </span>
         );
@@ -168,21 +211,23 @@ export default function ProductsPage() {
   const filters = (
     <>
       <select 
-        value={categoryFilter}
-        onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }}
-        className="bg-stone-50 border border-stone-200 rounded-lg py-2 px-3 text-sm font-inter text-stone-700 outline-none focus:ring-1 focus:ring-accent/50"
+        value={productTypeFilter}
+        onChange={(e) => { setProductTypeFilter(e.target.value); setPage(1); }}
+        className="bg-stone-50 border border-stone-200 rounded-lg py-2 px-3 text-sm font-inter text-stone-700 outline-none focus:ring-1 focus:ring-amber-500/50"
       >
-        <option value="">All Categories</option>
-        {/* In reality, you'd map from useCategories here, but hardcoding for now as it was before */}
-        <option value="T-Shirts">T-Shirts</option>
-        <option value="Shirts">Shirts</option>
-        <option value="Dresses">Dresses</option>
-        <option value="Pants">Pants</option>
+        <option value="">All Item Types</option>
+        <option value="LUBRICANT">Oils & Lubricants</option>
+        <option value="FILTER">Filters (Non-Oil)</option>
+        <option value="BATTERY">Batteries (Non-Oil)</option>
+        <option value="CAR_CARE">Car Care & Fluids</option>
+        <option value="SPARE_PART">Spares & Plugs</option>
+        <option value="ACCESSORY">Tools & Accessories</option>
+        <option value="SERVICE">Labor & Service</option>
       </select>
       <select 
         value={statusFilter}
         onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-        className="bg-stone-50 border border-stone-200 rounded-lg py-2 px-3 text-sm font-inter text-stone-700 outline-none focus:ring-1 focus:ring-accent/50"
+        className="bg-stone-50 border border-stone-200 rounded-lg py-2 px-3 text-sm font-inter text-stone-700 outline-none focus:ring-1 focus:ring-amber-500/50"
       >
         <option value="">All Status</option>
         <option value="ACTIVE">Active</option>
@@ -193,9 +238,9 @@ export default function ProductsPage() {
       </select>
       <button
         onClick={handleAdd}
-        className="bg-stone-900 text-white hover:bg-stone-800 active:scale-95 px-5 py-2 rounded-lg font-inter text-sm font-semibold transition-all whitespace-nowrap ml-auto shadow-md shadow-stone-900/20 flex items-center gap-2"
+        className="bg-amber-600 text-white hover:bg-amber-500 active:scale-95 px-5 py-2 rounded-lg font-inter text-sm font-semibold transition-all whitespace-nowrap ml-auto shadow-md shadow-amber-600/20 flex items-center gap-2"
       >
-        + Add Product
+        + Add Item
       </button>
     </>
   );

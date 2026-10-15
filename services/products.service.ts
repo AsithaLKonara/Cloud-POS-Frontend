@@ -7,6 +7,10 @@ export interface GetProductsParams {
   take?: number;
   search?: string;
   category?: string;
+  productType?: string;
+  brand?: string;
+  viscosity?: string;
+  oilType?: string;
   color?: string;
   size?: string;
   minPrice?: number;

@@ -130,44 +130,63 @@ export default function VariantSelectionModal({ product, onClose, onAdd, allowOu
             </div>
           )}
 
-          {/* Size Selection */}
-          {hasSizes && (
+          {/* Pack / Variant Selection */}
+          {variants.length > 1 ? (
             <div className="flex flex-col gap-3">
-              <label className="font-inter font-semibold text-sm text-foreground">Size: {selectedSize}</label>
+              <label className="font-inter font-semibold text-sm text-foreground">Select Pack / Volume Unit</label>
+              <div className="flex flex-col gap-2">
+                {variants.map((v: any) => {
+                  const isSelected = selectedVariant?.id === v.id;
+                  const label = v.packUnit || v.name || v.size || v.sku || "Standard Unit";
+                  const vStock = v.quantity ?? 0;
+                  return (
+                    <button
+                      key={v.id}
+                      type="button"
+                      onClick={() => { 
+                        setSelectedVariantId(v.id); 
+                        if (v.size) setSelectedSize(v.size); 
+                        if (v.color) setSelectedColor(v.color); 
+                      }}
+                      className={`p-3 rounded-xl border flex items-center justify-between text-left transition-all ${
+                        isSelected 
+                          ? "border-amber-600 bg-amber-500/10 shadow-sm ring-1 ring-amber-500" 
+                          : "border-border bg-surface hover:bg-background"
+                      }`}
+                    >
+                      <div className="flex flex-col">
+                        <span className="font-inter font-bold text-sm text-foreground">{label}</span>
+                        <span className="text-[11px] text-muted font-mono">{v.sku || v.barcode || ""}</span>
+                      </div>
+                      <div className="flex flex-col items-end">
+                        <span className="font-mono font-bold text-amber-600 text-sm">
+                          Rs {(v.price || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                        </span>
+                        <span className={`text-[10px] font-semibold ${vStock > 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                          {vStock > 0 ? `${vStock} in stock` : "Out of stock"}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : hasSizes && (
+            <div className="flex flex-col gap-3">
+              <label className="font-inter font-semibold text-sm text-foreground">Size / Spec: {selectedSize}</label>
               <div className="flex gap-2 flex-wrap">
                 {uniqueSizes.map(size => (
                   <button 
                     key={size}
+                    type="button"
                     onClick={() => setSelectedSize(size)}
                     className={`min-w-[50px] h-[40px] px-4 rounded-lg flex items-center justify-center font-inter font-semibold text-sm transition-colors border ${
                       selectedSize === size 
-                        ? 'border-primary text-primary bg-primary-soft' 
+                        ? 'border-amber-600 text-amber-600 bg-amber-50' 
                         : 'border-border text-foreground hover:border-muted bg-surface'
                     }`}
                   >
                     {size}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Direct Variant Selection (Fallback) */}
-          {showDirectVariants && (
-            <div className="flex flex-col gap-3">
-              <label className="font-inter font-semibold text-sm text-foreground">Variant</label>
-              <div className="flex gap-2 flex-wrap">
-                {variants.map((v: any) => (
-                  <button 
-                    key={v.id}
-                    onClick={() => setSelectedVariantId(v.id)}
-                    className={`px-4 py-2 rounded-lg font-inter font-semibold text-sm transition-colors border ${
-                      selectedVariantId === v.id 
-                        ? 'border-primary text-primary bg-primary-soft' 
-                        : 'border-border text-foreground hover:border-muted bg-surface'
-                    }`}
-                  >
-                    {v.name || v.sku || 'Variant'}
                   </button>
                 ))}
               </div>

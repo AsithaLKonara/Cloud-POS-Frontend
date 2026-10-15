@@ -6,23 +6,19 @@ import {
   ImagePlus,
   Trash2,
   Plus,
-  ChevronDown,
   Info,
   AlertCircle,
   Package,
-  Tag,
   Layers,
   DollarSign,
   Box,
-  Ruler,
-  CreditCard,
-  Globe,
-  Barcode,
+  Wrench,
   Printer,
+  Sparkles,
 } from "lucide-react";
 import BarcodeLib from "react-barcode";
 import { useReactToPrint } from "react-to-print";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createProductSchema, CreateProductFormData } from "@/lib/validations";
 import { useCreateProduct, useUpdateProduct } from "@/hooks/useProducts";
@@ -35,65 +31,82 @@ import Image from "next/image";
 
 interface Variant {
   id: string;
-  size: string;
-  color: string;
+  size: string; // Pack Unit e.g. "4L Can", "1L Can", "Piece"
+  color: string; // Spec/Grade/Type e.g. "0W-20", "Standard"
   sku: string;
   barcode: string;
   stock: { [branch: string]: number };
   price: string;
   compareAtPrice: string;
+  costPrice?: string;
+  wholesalePrice?: string;
+  packUnit?: string;
+  unitVolumeLiters?: string;
 }
 
 interface ProductFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  productToEdit?: any; // any because we might pass a full Product with nested variants
+  productToEdit?: any;
 }
 
-const SIZES = ["XS", "S", "M", "L", "XL", "XXL", "3XL", "28", "30", "32", "34", "36", "38"];
-const COLORS = ["Black", "White", "Navy", "Grey", "Brown", "Beige", "Olive", "Burgundy", "Sky Blue", "Pink"];
-const PAYMENT_GATEWAYS = ["Koko", "Mintpay", "OnePay", "Payzy", "COD"];
+const PRODUCT_TYPES = [
+  { value: "LUBRICANT", label: "🛢️ Lubricant / Engine Oil", desc: "Engine oil, Gear oil, ATF, Hydraulic fluid" },
+  { value: "FILTER", label: "⚙️ Oil / Air / Cabin Filter", desc: "Spin-on, Cartridge, Air, Cabin, Fuel filters" },
+  { value: "BATTERY", label: "🔋 Automotive Battery", desc: "Maintenance-free, AGM, EFB automotive batteries" },
+  { value: "CAR_CARE", label: "🧪 Coolant & Car Care Fluid", desc: "Radiator coolant, Brake fluid, Additives, Flushes" },
+  { value: "SPARE_PART", label: "⚡ Spare Part & Spark Plug", desc: "Spark plugs, Belts, Wiper blades, Bulbs" },
+  { value: "ACCESSORY", label: "🚗 Vehicle Accessory", desc: "Car accessories and maintenance tools" },
+  { value: "SERVICE", label: "🔧 Labor & Service Package", desc: "Oil change labor, Filter replacement, Inspection" },
+  { value: "GENERAL", label: "📦 General Merchandise", desc: "Other retail items" },
+];
+
+const COMMON_VISCOSITIES = [
+  "0W-16", "0W-20", "5W-20", "5W-30", "5W-40",
+  "10W-30", "10W-40", "15W-40", "20W-50",
+  "ATF WS", "ATF T-IV", "CVTF", "75W-90", "80W-90", "85W-140"
+];
+
+const OIL_TYPES = ["Fully Synthetic", "Semi-Synthetic", "Mineral", "Hydrocracked Synthetic"];
+
+const API_STANDARDS = ["API SP", "API SN Plus", "API SN/CF", "API CK-4", "API CI-4", "API GL-5", "JASO MA2", "JASO DL-1"];
+
+const PACK_PRESETS_BY_TYPE: Record<string, string[]> = {
+  LUBRICANT: ["1L Can", "4L Can", "5L Can", "20L Pail", "208L Drum"],
+  FILTER: ["Single Piece", "Pack of 10"],
+  BATTERY: ["Single Unit"],
+  CAR_CARE: ["1L Bottle", "4L Can", "500ml Bottle", "300ml Spray"],
+  SPARE_PART: ["Single Piece", "Set of 4 (Plugs)"],
+  ACCESSORY: ["Single Piece"],
+  SERVICE: ["Standard Service Job"],
+  GENERAL: ["Single Unit"],
+};
 
 const SECTION_TABS = [
   { id: "basic", label: "Basic Info", icon: Package },
-  { id: "media", label: "Media", icon: ImagePlus },
-  { id: "variants", label: "Variants", icon: Layers },
-  { id: "pricing", label: "Pricing", icon: DollarSign },
-  { id: "inventory", label: "Inventory", icon: Box },
-  { id: "sizeguide", label: "Size Guide", icon: Ruler },
-  { id: "payment", label: "Payment Methods", icon: CreditCard },
-  { id: "seo", label: "SEO & Visibility", icon: Globe },
+  { id: "specs", label: "Specifications & Fitment", icon: Wrench },
+  { id: "variants", label: "Pack Units & Pricing", icon: Layers },
+  { id: "pricing", label: "Base Margins & COGS", icon: DollarSign },
+  { id: "inventory", label: "Branch Stock Matrix", icon: Box },
+  { id: "media", label: "Product Media", icon: ImagePlus },
 ];
 
 function generateSlug(name: string) {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 
-function generateSKU(name: string, size: string, color: string) {
-  const prefix = name ? name.toUpperCase().split(" ").map(w => w[0]).join("").slice(0, 3) : "PRD";
-  const s = size.toUpperCase().slice(0, 2);
-  const c = color.toUpperCase().slice(0, 2);
-  return `LC-${prefix}-${s}-${c}`;
+function generateSKU(name: string, type: string, pack: string) {
+  const prefix = type ? type.slice(0, 3).toUpperCase() : "PRD";
+  const nameCode = name ? name.replace(/[^A-Za-z0-9]/g, "").slice(0, 4).toUpperCase() : "ITEM";
+  const packCode = pack.replace(/[^A-Za-z0-9]/g, "").slice(0, 3).toUpperCase() || "STD";
+  return `${prefix}-${nameCode}-${packCode}`;
 }
 
 export default function ProductFormModal({ isOpen, onClose, productToEdit }: ProductFormModalProps) {
   const [activeTab, setActiveTab] = useState("basic");
   const [slugEdited, setSlugEdited] = useState(false);
-  const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
-  const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [variants, setVariants] = useState<Variant[]>([]);
-  const [selectedPaymentMethods, setSelectedPaymentMethods] = useState<string[]>([...PAYMENT_GATEWAYS]);
-  const [sizeGuideEnabled, setSizeGuideEnabled] = useState(false);
-  const [sizeGuideContent, setSizeGuideContent] = useState("S — Chest: 36\", Waist: 30\"\nM — Chest: 38\", Waist: 32\"\nL — Chest: 40\", Waist: 34\"\nXL — Chest: 42\", Waist: 36\"");
-  const [sizeGuideImageUrl, setSizeGuideImageUrl] = useState("");
-  
-  const [customSizes, setCustomSizes] = useState<string[]>([]);
-  const [customColors, setCustomColors] = useState<{name: string, hex: string}[]>([]);
-  const [newSize, setNewSize] = useState("");
-  const [newColorName, setNewColorName] = useState("");
-  const [newColorHex, setNewColorHex] = useState("#000000");
-  const [isAddingSize, setIsAddingSize] = useState(false);
-  const [isAddingColor, setIsAddingColor] = useState(false);
+  const [newPackUnit, setNewPackUnit] = useState("");
   const [images, setImages] = useState<string[]>(["", "", "", ""]);
   const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
   const [activeImageSlot, setActiveImageSlot] = useState<number | null>(null);
@@ -112,32 +125,35 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
   const branchCodes = (branchesData || []).map((b: any) => b.code);
 
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<CreateProductFormData>({
-    resolver: zodResolver(createProductSchema),
+    resolver: zodResolver(createProductSchema) as any,
     defaultValues: {
       name: "",
       slug: "",
       description: "",
+      productType: "LUBRICANT",
+      brand: "",
+      viscosity: "",
+      oilType: "",
+      apiStandard: "",
+      partNumber: "",
+      compatibleVehicles: "",
       category: "",
       collection: "",
       basePrice: "",
       compareAtPrice: "",
       costPrice: "",
+      wholesalePrice: "",
       tags: "",
       metaTitle: "",
       metaDesc: "",
-      sizeGuideEnabled: false,
-      sizeGuideContent: "",
-      sizeGuideImageUrl: ""
     }
   });
 
   const productName = watch("name");
-  const slug = watch("slug");
-  const metaTitle = watch("metaTitle");
-  const metaDesc = watch("metaDesc");
+  const currentProductType = watch("productType") || "LUBRICANT";
   const basePrice = watch("basePrice");
-  const compareAtPrice = watch("compareAtPrice");
   const costPrice = watch("costPrice");
+  const wholesalePrice = watch("wholesalePrice");
 
   // Keep slug in sync unless manually edited
   useEffect(() => {
@@ -152,26 +168,27 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
       setValue("name", productToEdit.name || "");
       setValue("slug", productToEdit.slug || "");
       setValue("description", productToEdit.description || "");
-      setValue("category", productToEdit.categoryId || ""); // Note: might need ID to Name mapping depending on select
+      setValue("category", productToEdit.categoryId || "");
+      setValue("productType", (productToEdit.productType as any) || "LUBRICANT");
+      setValue("brand", productToEdit.brand || "");
+      setValue("viscosity", productToEdit.viscosity || "");
+      setValue("oilType", productToEdit.oilType || "");
+      setValue("apiStandard", productToEdit.apiStandard || "");
+      setValue("partNumber", productToEdit.partNumber || "");
+      setValue("compatibleVehicles", productToEdit.compatibleVehicles || "");
       setSlugEdited(true);
-      setSizeGuideEnabled(productToEdit.sizeGuideEnabled || false);
-      setSizeGuideContent(productToEdit.sizeGuideContent || "S — Chest: 36\", Waist: 30\"\nM — Chest: 38\", Waist: 32\"\nL — Chest: 40\", Waist: 34\"\nXL — Chest: 42\", Waist: 36\"");
-      setSizeGuideImageUrl(productToEdit.sizeGuideImageUrl || "");
-      if (productToEdit.allowedPaymentMethods) {
-        setSelectedPaymentMethods(productToEdit.allowedPaymentMethods);
-      } else {
-        setSelectedPaymentMethods([...PAYMENT_GATEWAYS]);
-      }
-      
+
       if (productToEdit.variants && productToEdit.variants.length > 0) {
         const firstVariant = productToEdit.variants[0];
-        setValue("basePrice", (firstVariant.price).toString());
-        if (firstVariant.salePrice) setValue("compareAtPrice", (firstVariant.salePrice).toString());
+        setValue("basePrice", firstVariant.price.toString());
+        if (firstVariant.salePrice) setValue("compareAtPrice", firstVariant.salePrice.toString());
+        if (firstVariant.costPrice) setValue("costPrice", firstVariant.costPrice.toString());
+        if (firstVariant.wholesalePrice) setValue("wholesalePrice", firstVariant.wholesalePrice.toString());
 
-        const loadedVariants = productToEdit.variants.map((v: any) => ({
+        const loadedVariants: Variant[] = productToEdit.variants.map((v: any) => ({
           id: v.id,
-          size: v.size || "",
-          color: v.color || "",
+          size: v.packUnit || v.size || "Standard",
+          color: v.color || "Standard",
           sku: v.sku || "",
           barcode: v.barcode || `20${Math.floor(10000000000 + Math.random() * 89999999999)}`,
           stock: branchCodes.reduce((acc: any, code: string) => {
@@ -181,6 +198,10 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
           }, {}),
           price: v.price.toString(),
           compareAtPrice: v.salePrice ? v.salePrice.toString() : "",
+          costPrice: v.costPrice ? v.costPrice.toString() : "",
+          wholesalePrice: v.wholesalePrice ? v.wholesalePrice.toString() : "",
+          packUnit: v.packUnit || v.size || "Standard",
+          unitVolumeLiters: v.unitVolumeLiters ? v.unitVolumeLiters.toString() : "",
         }));
 
         if (firstVariant.featuredImage) {
@@ -188,90 +209,61 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
           setImages(newImages);
         }
 
-        const sizes = Array.from(new Set(loadedVariants.map((v: any) => v.size).filter(Boolean))) as string[];
-        const colors = Array.from(new Set(loadedVariants.map((v: any) => v.color).filter(Boolean))) as string[];
-        
-        setSelectedSizes(sizes);
-        setSelectedColors(colors);
         setVariants(loadedVariants);
       }
     } else if (!productToEdit && isOpen) {
-      // Reset form for new product
       setValue("name", "");
       setValue("slug", "");
       setValue("description", "");
+      setValue("productType", "LUBRICANT");
+      setValue("brand", "");
+      setValue("viscosity", "");
+      setValue("oilType", "");
+      setValue("apiStandard", "");
+      setValue("partNumber", "");
+      setValue("compatibleVehicles", "");
       setValue("basePrice", "");
       setValue("compareAtPrice", "");
+      setValue("costPrice", "");
+      setValue("wholesalePrice", "");
       setSlugEdited(false);
-      setSizeGuideEnabled(false);
-      setSizeGuideContent("S — Chest: 36\", Waist: 30\"\nM — Chest: 38\", Waist: 32\"\nL — Chest: 40\", Waist: 34\"\nXL — Chest: 42\", Waist: 36\"");
-      setSizeGuideImageUrl("");
-      setSelectedSizes([]);
-      setSelectedColors([]);
       setVariants([]);
       setImages(["", "", "", ""]);
       setActiveTab("basic");
     }
   }, [productToEdit, isOpen, setValue]);
 
-  if (!isOpen) return null;
-
-  function handleAddCustomSize() {
-    if (newSize.trim() && !SIZES.includes(newSize.trim()) && !customSizes.includes(newSize.trim())) {
-      setCustomSizes(prev => [...prev, newSize.trim()]);
-      setSelectedSizes(prev => [...prev, newSize.trim()]);
+  // Quick add variant for a pack unit
+  function handleAddPackUnit(packUnitName: string) {
+    if (!packUnitName.trim()) return;
+    const existing = variants.find(v => v.size.toLowerCase() === packUnitName.toLowerCase());
+    if (existing) {
+      toast.error(`Pack unit "${packUnitName}" already exists`);
+      return;
     }
-    setNewSize("");
-    setIsAddingSize(false);
-  }
 
-  function handleAddCustomColor() {
-    const name = newColorName.trim();
-    if (name && !COLORS.includes(name) && !customColors.some(c => c.name === name)) {
-      setCustomColors(prev => [...prev, { name, hex: newColorHex || "#000000" }]);
-      setSelectedColors(prev => [...prev, name]);
-    }
-    setNewColorName("");
-    setNewColorHex("#000000");
-    setIsAddingColor(false);
-  }
+    const defaultPrice = basePrice || "0";
+    const defaultCost = costPrice || "0";
+    const defaultWholesale = wholesalePrice || "0";
 
-  function toggleSize(size: string) {
-    setSelectedSizes(prev => prev.includes(size) ? prev.filter(s => s !== size) : [...prev, size]);
-  }
+    const newVar: Variant = {
+      id: `temp_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      size: packUnitName.trim(),
+      color: "Standard",
+      sku: generateSKU(productName, currentProductType, packUnitName.trim()),
+      barcode: `20${Math.floor(10000000000 + Math.random() * 89999999999)}`,
+      stock: Object.fromEntries(branchCodes.map((b: string) => [b, initialGlobalStock])),
+      price: defaultPrice,
+      compareAtPrice: "",
+      costPrice: defaultCost,
+      wholesalePrice: defaultWholesale,
+      packUnit: packUnitName.trim(),
+      unitVolumeLiters: packUnitName.includes("1L") ? "1" : packUnitName.includes("4L") ? "4" : packUnitName.includes("5L") ? "5" : packUnitName.includes("20L") ? "20" : packUnitName.includes("208L") ? "208" : "",
+    };
 
-  function toggleColor(color: string) {
-    setSelectedColors(prev => prev.includes(color) ? prev.filter(c => c !== color) : [...prev, color]);
-  }
-
-  function generateUniqueBarcode(): string {
-    return `20${Math.floor(10000000000 + Math.random() * 89999999999)}`;
-  }
-
-  function generateVariants() {
-    const newVariants: Variant[] = [];
-    for (const size of selectedSizes) {
-      for (const color of selectedColors) {
-        const existingVariant = variants.find(v => v.size === size && v.color === color);
-        if (!existingVariant) {
-          newVariants.push({
-            id: `${size}-${color}`,
-            size,
-            color,
-            sku: generateSKU(productName || "PROD", size, color),
-            barcode: generateUniqueBarcode(), // Auto-generate barcode on creation
-            stock: Object.fromEntries(branchCodes.map((b: string) => [b, initialGlobalStock])),
-            price: basePrice || "",
-            compareAtPrice: compareAtPrice || "",
-          });
-        }
-      }
-    }
-    setVariants(prev => {
-      const existing = prev.filter(v => selectedSizes.includes(v.size) && selectedColors.includes(v.color));
-      return [...existing, ...newVariants];
-    });
-    setActiveTab("variants");
+    setVariants(prev => [...prev, newVar]);
+    setNewPackUnit("");
+    toast.success(`Added ${packUnitName} pack unit`);
   }
 
   function updateVariantStock(id: string, branch: string, val: number) {
@@ -287,7 +279,7 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
   }
 
   function applyStockToAll() {
-    if (variants.length === 0) return toast.error("Generate variants first");
+    if (variants.length === 0) return toast.error("Add pack units/variants first");
     setVariants(prev => prev.map(v => ({
       ...v,
       stock: Object.fromEntries(branchCodes.map((b: string) => [b, initialGlobalStock]))
@@ -295,18 +287,19 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
     toast.success(`Applied ${initialGlobalStock} stock to all variants`);
   }
 
-  function togglePayment(gw: string) {
-    setSelectedPaymentMethods(prev => prev.includes(gw) ? prev.filter(g => g !== gw) : [...prev, gw]);
-  }
-
   const onSubmit = async (data: CreateProductFormData) => {
     try {
+      if (variants.length === 0) {
+        toast.error("Please add at least one pack unit or variant before saving.");
+        setActiveTab("variants");
+        return;
+      }
+
+      const branchCodeToId = Object.fromEntries(
+        (branchesData || []).map((b: any) => [b.code, b.id])
+      );
+
       const formatVariantPayload = (v: Variant, isUpdate: boolean = false) => {
-        const branchCodeToId = Object.fromEntries(
-          (branchesData || []).map((b: any) => [b.code, b.id])
-        );
-        
-        // Find existing variant to know which inventory items already exist
         const existingVariant = isUpdate && productToEdit 
           ? productToEdit.variants?.find((pv: any) => pv.id === v.id) 
           : null;
@@ -338,12 +331,16 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
         if (inventoryUpdate.length > 0) inventoryItems.update = inventoryUpdate;
 
         return {
-          size: v.size,
-          color: v.color,
+          size: v.size || v.packUnit || "Standard",
+          color: v.color || "Standard",
           sku: v.sku || null,
           barcode: v.barcode || null,
           price: parseFloat(v.price || "0"),
           salePrice: v.compareAtPrice ? parseFloat(v.compareAtPrice) : null,
+          costPrice: v.costPrice ? parseFloat(v.costPrice) : (data.costPrice ? parseFloat(data.costPrice) : null),
+          wholesalePrice: v.wholesalePrice ? parseFloat(v.wholesalePrice) : (data.wholesalePrice ? parseFloat(data.wholesalePrice) : null),
+          packUnit: v.packUnit || v.size || null,
+          unitVolumeLiters: v.unitVolumeLiters ? parseFloat(v.unitVolumeLiters) : null,
           quantity: Object.values(v.stock).reduce((sum, qty) => sum + qty, 0),
           stockStatus: "instock",
           featuredImage: images[0] || null,
@@ -359,9 +356,6 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
 
         const variantsToUpdate = variants.filter(v => productToEdit.variants?.find((pv: any) => pv.id === v.id));
         const variantsToCreate = variants.filter(v => !productToEdit.variants?.find((pv: any) => pv.id === v.id));
-        
-        // Instead of hard-deleting variants (which crashes Prisma due to FK constraints on Orders/Transactions),
-        // we "soft-delete" them by setting stock to 0 and marking them out of stock.
         const variantsToDelete = productToEdit.variants?.filter((pv: any) => !variants.find(v => v.id === pv.id)) || [];
 
         return {
@@ -389,12 +383,15 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
         name: data.name,
         slug: data.slug || undefined,
         description: data.description,
+        productType: data.productType || "LUBRICANT",
+        brand: data.brand || null,
+        viscosity: data.viscosity || null,
+        oilType: data.oilType || null,
+        apiStandard: data.apiStandard || null,
+        partNumber: data.partNumber || null,
+        compatibleVehicles: data.compatibleVehicles || null,
         categoryId: data.category || undefined,
         collectionId: data.collection || undefined,
-        sizeGuideEnabled,
-        sizeGuideContent: sizeGuideEnabled ? sizeGuideContent : undefined,
-        sizeGuideImageUrl: sizeGuideEnabled ? sizeGuideImageUrl : undefined,
-        allowedPaymentMethods: selectedPaymentMethods,
         variants: getVariantsPayload()
       };
       
@@ -410,9 +407,10 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
       toast.error(error.response?.data?.error || "Failed to save product. Please try again.");
     }
   };
-  const onError = (errors: any) => {
-    console.error("Form Validation Errors:", errors);
-    const errorKeys = Object.keys(errors);
+
+  const onError = (formErrors: any) => {
+    console.error("Form Validation Errors:", formErrors);
+    const errorKeys = Object.keys(formErrors);
     if (errorKeys.length > 0) {
       toast.error(`Please check required fields: ${errorKeys.join(', ')}`);
     } else {
@@ -428,13 +426,22 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
       <div className="absolute inset-0 bg-stone-950/60 backdrop-blur-sm" onClick={onClose} />
 
       {/* Full-height Panel */}
-      <div className="relative ml-auto w-full max-w-[920px] h-full bg-white flex flex-col shadow-2xl overflow-hidden">
+      <div className="relative ml-auto w-full max-w-[960px] h-full bg-white flex flex-col shadow-2xl overflow-hidden">
         
         {/* Header */}
         <div className="flex items-center justify-between px-8 py-5 border-b border-stone-200 bg-stone-50 shrink-0">
           <div>
-            <h2 className="font-inter font-bold text-xl text-stone-900">{productToEdit ? "Edit Product" : "Add New Product"}</h2>
-            <p className="font-inter text-sm text-stone-500 mt-0.5">{productToEdit ? "Update product details and variations." : "Fill in all sections to publish a complete product listing."}</p>
+            <div className="flex items-center gap-2">
+              <h2 className="font-inter font-bold text-xl text-stone-900">
+                {productToEdit ? "Edit Item" : "Add Oil or Non-Oil Item"}
+              </h2>
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-100 text-amber-800">
+                {currentProductType}
+              </span>
+            </div>
+            <p className="font-inter text-sm text-stone-500 mt-0.5">
+              Configure lubricants, filters, batteries, car care fluids, or spare parts with live COGS tracking.
+            </p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-stone-200 rounded-lg text-stone-600 transition-colors">
             <X size={20} />
@@ -452,7 +459,7 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-5 py-3.5 text-sm font-medium font-inter whitespace-nowrap border-b-2 transition-all ${
                   activeTab === tab.id
-                    ? "border-stone-900 text-stone-900"
+                    ? "border-stone-900 text-stone-900 bg-stone-50/50"
                     : "border-transparent text-stone-400 hover:text-stone-700 hover:border-stone-300"
                 }`}
               >
@@ -469,302 +476,366 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
 
             {/* ────────── BASIC INFO ────────── */}
             {activeTab === "basic" && (
-              <div className="flex flex-col gap-6 max-w-[700px]">
+              <div className="flex flex-col gap-6 max-w-[760px]">
+                {/* Product Type Selector */}
                 <div className="flex flex-col gap-2">
-                  <label className="label">Product Name <span className="text-red-500">*</span></label>
+                  <label className="label">Item Category & Classification <span className="text-red-500">*</span></label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    {PRODUCT_TYPES.map(type => (
+                      <button
+                        key={type.value}
+                        type="button"
+                        onClick={() => setValue("productType", type.value as any)}
+                        className={`p-3 text-left rounded-xl border transition-all flex flex-col justify-between ${
+                          currentProductType === type.value
+                            ? "border-stone-900 bg-stone-900 text-white shadow-sm"
+                            : "border-stone-200 bg-white hover:border-stone-300 text-stone-800 hover:bg-stone-50"
+                        }`}
+                      >
+                        <span className="text-xs font-bold leading-tight">{type.label}</span>
+                        <span className={`text-[10px] mt-1 line-clamp-2 ${currentProductType === type.value ? "text-stone-300" : "text-stone-400"}`}>
+                          {type.desc}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Product Name */}
+                <div className="flex flex-col gap-2">
+                  <label className="label">Item Title / Product Name <span className="text-red-500">*</span></label>
                   <input
                     type="text"
                     {...register("name")}
-                    placeholder="e.g. Black Oversized T-Shirt"
+                    placeholder={
+                      currentProductType === "LUBRICANT" ? "e.g. Mobil 1 0W-20 Advanced Fuel Economy" :
+                      currentProductType === "FILTER" ? "e.g. Toyota Genuine Oil Filter #15601-BZ010" :
+                      currentProductType === "BATTERY" ? "e.g. Amaron Hi-Life 65B24L Maintenance Free" :
+                      currentProductType === "CAR_CARE" ? "e.g. Toyota Super Long Life Coolant Pre-mixed" :
+                      "e.g. NGK Laser Iridium Spark Plug FK20HR11"
+                    }
                     className={`input ${errors.name ? 'border-red-500' : ''}`}
                   />
                   {errors.name && <span className="text-red-500 text-xs">{errors.name.message}</span>}
                 </div>
 
+                {/* Brand & Category */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-2">
+                    <label className="label">Brand / Manufacturer</label>
+                    <input
+                      type="text"
+                      {...register("brand")}
+                      placeholder="e.g. Mobil, Toyota, Denso, NGK, Amaron, Castrol"
+                      className="input"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="label">System Category <span className="text-red-500">*</span></label>
+                    <select {...register("category")} className={`input ${errors.category ? 'border-red-500' : ''}`}>
+                      <option value="">Select Category</option>
+                      {categories.map((c: any) => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+                    {errors.category && <span className="text-red-500 text-xs">{errors.category.message}</span>}
+                  </div>
+                </div>
+
+                {/* Product Slug */}
                 <div className="flex flex-col gap-2">
-                  <label className="label">Product Slug</label>
+                  <label className="label">Item Slug / SKU Code</label>
                   <div className={`flex items-center bg-stone-50 border ${errors.slug ? 'border-red-500' : 'border-stone-200'} rounded-lg overflow-hidden`}>
-                    <span className="px-3 text-stone-400 text-sm font-mono border-r border-stone-200 h-full py-2.5">/products/</span>
+                    <span className="px-3 text-stone-400 text-xs font-mono border-r border-stone-200 h-full py-2.5">/item/</span>
                     <input
                       type="text"
                       {...register("slug", { onChange: () => setSlugEdited(true) })}
-                      className="flex-1 bg-transparent px-3 py-2.5 text-sm font-mono outline-none text-stone-900"
+                      className="flex-1 bg-transparent px-3 py-2.5 text-xs font-mono outline-none text-stone-900"
                     />
                   </div>
-                  {errors.slug && <span className="text-red-500 text-xs">{errors.slug.message}</span>}
-                  <p className="text-xs text-stone-400 font-inter">Auto-generated from product name. Edit only if needed.</p>
                 </div>
 
+                {/* Description */}
                 <div className="flex flex-col gap-2">
-                  <label className="label">Description</label>
+                  <label className="label">Item Description & Specifications</label>
                   <textarea
                     {...register("description")}
-                    rows={5}
-                    placeholder="Describe the product — fabric, fit, key features..."
+                    rows={4}
+                    placeholder="Technical specifications, base oils, OEM approvals, and usage guidelines..."
                     className="input resize-none"
                   />
-                  {errors.description && <span className="text-red-500 text-xs">{errors.description.message}</span>}
-                </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="flex flex-col gap-2">
-                      <label className="label">Category</label>
-                      <select {...register("category")} className={`input ${errors.category ? 'border-red-500' : ''}`}>
-                        <option value="">Select Category</option>
-                        {categories.map((c: any) => (
-                          <option key={c.id} value={c.id}>{c.name}</option>
-                        ))}
-                      </select>
-                      {errors.category && <span className="text-red-500 text-xs">{errors.category.message}</span>}
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <label className="label">Collection</label>
-                      <select {...register("collection")} className={`input ${errors.collection ? 'border-red-500' : ''}`}>
-                        <option value="">Select Collection</option>
-                        {collections.map((c: any) => (
-                          <option key={c.id} value={c.id}>{c.name}</option>
-                        ))}
-                      </select>
-                      {errors.collection && <span className="text-red-500 text-xs">{errors.collection.message}</span>}
-                    </div>
-                  </div>
-
-                <div className="flex flex-col gap-2">
-                  <label className="label">Tags</label>
-                  <input
-                    type="text"
-                    {...register("tags")}
-                    placeholder="oversized, cotton, unisex (comma-separated)"
-                    className={`input ${errors.tags ? 'border-red-500' : ''}`}
-                  />
-                  {errors.tags && <span className="text-red-500 text-xs">{errors.tags.message}</span>}
-                </div>
-
-                <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-xl p-4">
-                  <Info size={16} className="text-blue-500 shrink-0" />
-                  <p className="text-sm font-inter text-blue-700">After saving Basic Info, proceed to <strong>Media</strong> to upload product images.</p>
                 </div>
               </div>
             )}
 
-            {/* ────────── MEDIA ────────── */}
-            {activeTab === "media" && (
-              <div className="flex flex-col gap-6">
-                <div className="grid grid-cols-4 gap-4">
-                  {[...Array(4)].map((_, i) => (
-                    <div 
-                      key={i} 
-                      onClick={() => { setActiveImageSlot(i); setIsMediaModalOpen(true); }}
-                      className={`relative aspect-square border-2 border-dashed border-stone-300 rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-stone-50 hover:border-accent transition-all group overflow-hidden ${i === 0 ? "col-span-2 row-span-2" : ""}`}
-                    >
-                      {images[i] ? (
-                        <>
-                          <Image src={images[i]} alt={`Product Image ${i + 1}`} fill className="object-cover" />
-                          <div className="absolute inset-0 bg-stone-900/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                            <p className="font-inter text-white text-xs font-medium">Change Image</p>
-                          </div>
-                          <button 
-                            onClick={(e) => { 
-                              e.stopPropagation(); 
-                              setImages(prev => { const n = [...prev]; n[i] = ""; return n; });
-                            }}
-                            className="absolute top-2 right-2 bg-white/80 backdrop-blur-sm rounded-full p-1 text-stone-700 hover:bg-white transition-colors z-20"
-                          >
-                            <X size={14} />
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <ImagePlus size={i === 0 ? 32 : 20} className="text-stone-300 group-hover:text-accent transition-colors" />
-                          <span className="font-inter text-xs text-stone-400 group-hover:text-accent transition-colors">{i === 0 ? "Main Image" : "Image " + (i + 1)}</span>
-                        </>
-                      )}
-                    </div>
-                  ))}
-                </div>
-                <p className="text-xs text-stone-400 font-inter">Upload high-quality images. First image will be the primary product photo. Recommended: 800×1000px, JPG/PNG/WEBP.</p>
-
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3">
-                  <AlertCircle size={16} className="text-amber-600 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-inter font-bold text-amber-800">File Size Recommendation</p>
-                    <p className="text-xs font-inter text-amber-700 mt-0.5">Keep images under 2MB for fast loading. Use WebP format where possible.</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* ────────── VARIANTS ────────── */}
-            {activeTab === "variants" && (
-              <div className="flex flex-col gap-8">
-                <div className="grid grid-cols-2 gap-8">
-                  <div className="flex flex-col gap-3">
-                    <label className="label">Available Sizes</label>
-                    <div className="flex flex-wrap gap-2">
-                      {[...SIZES, ...customSizes].map(size => (
-                        <button
-                          key={size}
-                          type="button"
-                          onClick={() => toggleSize(size)}
-                          className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${
-                            selectedSizes.includes(size)
-                              ? "bg-stone-900 text-white border-stone-900"
-                              : "bg-white text-stone-700 border-stone-200 hover:border-stone-400"
-                          }`}
-                        >
-                          {size}
-                        </button>
-                      ))}
-                      {!isAddingSize ? (
-                        <button type="button" onClick={() => setIsAddingSize(true)} className="px-3 py-1.5 rounded-lg text-sm font-medium border border-dashed border-stone-300 text-stone-500 hover:text-stone-700 hover:border-stone-400 flex items-center gap-1 transition-all">
-                          <Plus size={14} /> Add Size
-                        </button>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <input type="text" value={newSize} onChange={e => setNewSize(e.target.value)} placeholder="e.g. 40" className="px-3 py-1.5 bg-white rounded-lg text-sm border border-stone-200 outline-none w-20 focus:border-stone-400" autoFocus onKeyDown={e => e.key === 'Enter' && handleAddCustomSize()} />
-                          <button type="button" onClick={handleAddCustomSize} className="px-3 py-1.5 bg-stone-900 text-white rounded-lg text-xs font-medium hover:bg-stone-800">Add</button>
-                          <button type="button" onClick={() => setIsAddingSize(false)} className="p-1.5 text-stone-400 hover:text-stone-600 bg-stone-100 rounded-lg"><X size={14} /></button>
-                        </div>
-                      )}
-                    </div>
+            {/* ────────── SPECIFICATIONS & FITMENT ────────── */}
+            {activeTab === "specs" && (
+              <div className="flex flex-col gap-6 max-w-[760px]">
+                <div className="bg-stone-50 border border-stone-200 rounded-xl p-5 flex flex-col gap-5">
+                  <div className="flex items-center justify-between border-b border-stone-200 pb-3">
+                    <h3 className="font-inter font-bold text-stone-900 text-sm">
+                      {currentProductType === "LUBRICANT" ? "Oil & Lubricant Technical Data" :
+                       currentProductType === "FILTER" ? "Filter Specifications & OEM Cross-Reference" :
+                       currentProductType === "BATTERY" ? "Battery Electrical & Fitment Specs" :
+                       "Part Number & Vehicle Compatibility"}
+                    </h3>
+                    <span className="text-xs text-stone-500 font-mono">Type: {currentProductType}</span>
                   </div>
 
-                  <div className="flex flex-col gap-3">
-                    <label className="label">Available Colors</label>
-                    <div className="flex flex-wrap gap-2 items-center">
-                      {[...COLORS, ...customColors.map(c => c.name)].map(color => {
-                        const isCustom = customColors.find(c => c.name === color);
-                        return (
-                          <button
-                            key={color}
-                            type="button"
-                            onClick={() => toggleColor(color)}
-                            className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-all flex items-center gap-2 ${
-                              selectedColors.includes(color)
-                                ? "bg-stone-900 text-white border-stone-900"
-                                : "bg-white text-stone-700 border-stone-200 hover:border-stone-400"
-                            }`}
-                          >
-                            {isCustom && <span className="w-3 h-3 rounded-full border border-stone-200" style={{ backgroundColor: isCustom.hex }} />}
-                            {color}
-                          </button>
-                        );
-                      })}
-                      
-                      {!isAddingColor ? (
-                        <button type="button" onClick={() => setIsAddingColor(true)} className="px-3 py-1.5 rounded-lg text-sm font-medium border border-dashed border-stone-300 text-stone-500 hover:text-stone-700 hover:border-stone-400 flex items-center gap-1 transition-all">
-                          <Plus size={14} /> Add Color
-                        </button>
-                      ) : (
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 bg-stone-50 border border-stone-200 rounded-lg p-2 w-full sm:w-auto">
-                          <div className="flex items-center gap-2">
-                             <div className="relative w-7 h-7 rounded-md border border-stone-200 shrink-0 overflow-hidden">
-                               <input 
-                                 type="color" 
-                                 value={newColorHex.match(/^#([0-9a-fA-F]{6})$/i) ? newColorHex : '#000000'}
-                                 onChange={e => setNewColorHex(e.target.value.toUpperCase())}
-                                 className="absolute -top-2 -left-2 w-12 h-12 cursor-pointer"
-                               />
-                             </div>
-                             <input type="text" value={newColorHex} onChange={e => setNewColorHex(e.target.value)} placeholder="#HEX" className="px-2 py-1.5 bg-white rounded-md text-sm border border-stone-200 outline-none w-24 focus:border-stone-400 font-mono uppercase" />
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <input type="text" value={newColorName} onChange={e => setNewColorName(e.target.value)} placeholder="Color Name" className="px-2 py-1.5 bg-white rounded-md text-sm border border-stone-200 outline-none w-32 focus:border-stone-400" onKeyDown={e => e.key === 'Enter' && handleAddCustomColor()} />
-                            <button type="button" onClick={handleAddCustomColor} className="px-3 py-1.5 bg-stone-900 text-white rounded-md text-xs font-medium hover:bg-stone-800 transition-colors">Add</button>
-                            <button type="button" onClick={() => setIsAddingColor(false)} className="p-1.5 text-stone-400 hover:text-stone-600 bg-stone-100 rounded-md transition-colors"><X size={14} /></button>
+                  {/* LUBRICANT SPECIFICATIONS */}
+                  {currentProductType === "LUBRICANT" && (
+                    <div className="flex flex-col gap-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="flex flex-col gap-2">
+                          <label className="label">Viscosity Grade (SAE)</label>
+                          <input
+                            type="text"
+                            {...register("viscosity")}
+                            placeholder="e.g. 0W-20, 5W-30, 15W-40, ATF"
+                            className="input font-mono uppercase"
+                            list="viscosity-suggestions"
+                          />
+                          <datalist id="viscosity-suggestions">
+                            {COMMON_VISCOSITIES.map(v => <option key={v} value={v} />)}
+                          </datalist>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {["0W-20", "5W-30", "10W-40", "15W-40", "ATF WS"].map(v => (
+                              <button
+                                key={v}
+                                type="button"
+                                onClick={() => setValue("viscosity", v)}
+                                className="px-2 py-0.5 rounded text-[11px] bg-white border border-stone-200 hover:bg-stone-100 font-mono text-stone-600"
+                              >
+                                {v}
+                              </button>
+                            ))}
                           </div>
                         </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
 
-                <div className="flex items-center gap-4 flex-wrap">
-                  <button
-                    type="button"
-                    onClick={generateVariants}
-                    disabled={selectedSizes.length === 0 || selectedColors.length === 0}
-                    className="w-fit bg-stone-900 text-white px-6 py-3 rounded-lg font-inter font-medium text-sm hover:bg-stone-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
-                  >
-                    <Plus size={16} />
-                    Generate {selectedSizes.length * selectedColors.length} Variant{selectedSizes.length * selectedColors.length !== 1 ? "s" : ""}
-                  </button>
-                  {variants.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => setShowBulkBarcodePrint(true)}
-                      className="w-fit bg-stone-100 text-stone-700 border border-stone-200 px-6 py-3 rounded-lg font-inter font-medium text-sm hover:bg-stone-200 transition-colors flex items-center gap-2"
-                    >
-                      <Printer size={16} />
-                      Print All Barcodes ({variants.length})
-                    </button>
+                        <div className="flex flex-col gap-2">
+                          <label className="label">Base Oil Formulation</label>
+                          <select {...register("oilType")} className="input">
+                            <option value="">Select Formulation</option>
+                            {OIL_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="flex flex-col gap-2">
+                          <label className="label">API Standard / Performance Rating</label>
+                          <input
+                            type="text"
+                            {...register("apiStandard")}
+                            placeholder="e.g. API SP/CF, ILSAC GF-6A, CK-4"
+                            className="input font-mono uppercase"
+                            list="api-suggestions"
+                          />
+                          <datalist id="api-suggestions">
+                            {API_STANDARDS.map(s => <option key={s} value={s} />)}
+                          </datalist>
+                        </div>
+
+                        <div className="flex flex-col gap-2">
+                          <label className="label">Recommended Vehicle Applications</label>
+                          <input
+                            type="text"
+                            {...register("compatibleVehicles")}
+                            placeholder="e.g. Japanese Hybrids (Aqua, Axio, Prius, Vitz)"
+                            className="input"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* FILTER / NON-OIL SPECIFICATIONS */}
+                  {currentProductType !== "LUBRICANT" && (
+                    <div className="flex flex-col gap-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="flex flex-col gap-2">
+                          <label className="label">OEM / Manufacturer Part Number</label>
+                          <input
+                            type="text"
+                            {...register("partNumber")}
+                            placeholder={
+                              currentProductType === "FILTER" ? "e.g. #15601-BZ010 or C-110" :
+                              currentProductType === "BATTERY" ? "e.g. DIN55, 65B24L, 46B24L" :
+                              "e.g. FK20HR11, BKR6E-11"
+                            }
+                            className="input font-mono uppercase font-bold text-stone-900"
+                          />
+                          <p className="text-[11px] text-stone-400">Essential for fast search lookup on POS checkout terminals.</p>
+                        </div>
+
+                        <div className="flex flex-col gap-2">
+                          <label className="label">Specification / Model Details</label>
+                          <input
+                            type="text"
+                            {...register("oilType")}
+                            placeholder={
+                              currentProductType === "BATTERY" ? "e.g. 45Ah, 430 CCA, 18 Months Warranty" :
+                              currentProductType === "CAR_CARE" ? "e.g. Pre-mixed 50/50, Pink Organic Acid" :
+                              "e.g. Laser Iridium, 0.4mm Tip"
+                            }
+                            className="input"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col gap-2">
+                        <label className="label">Compatible Vehicles & Engine Models</label>
+                        <textarea
+                          {...register("compatibleVehicles")}
+                          rows={3}
+                          placeholder="e.g. Toyota Aqua NHP10 (1NZ-FXE), Axio NKE165, Prius ZVW30, Vitz KSP130, Honda Fit GP5"
+                          className="input resize-none"
+                        />
+                        <p className="text-[11px] text-stone-400">Cashiers can search by car model to find matching parts instantly.</p>
+                      </div>
+                    </div>
                   )}
                 </div>
+              </div>
+            )}
 
-                {variants.length > 0 && (
-                  <div className="border border-stone-200 rounded-xl overflow-hidden">
+            {/* ────────── PACK UNITS & VARIANTS ────────── */}
+            {activeTab === "variants" && (
+              <div className="flex flex-col gap-6">
+                {/* Pack Unit Presets */}
+                <div className="bg-stone-50 border border-stone-200 rounded-xl p-5 flex flex-col gap-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-inter font-bold text-stone-900 text-sm">Quick Add Pack Units</h3>
+                      <p className="text-xs text-stone-500 mt-0.5">Click a preset below or type a custom pack unit to add to this item.</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={newPackUnit}
+                        onChange={e => setNewPackUnit(e.target.value)}
+                        placeholder="Custom pack e.g. 10L Pail"
+                        className="px-3 py-1.5 text-xs border border-stone-200 rounded-lg outline-none w-44"
+                        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddPackUnit(newPackUnit); } }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleAddPackUnit(newPackUnit)}
+                        className="px-3 py-1.5 bg-stone-900 text-white rounded-lg text-xs font-semibold hover:bg-stone-800 transition-colors"
+                      >
+                        Add Pack
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 pt-2 border-t border-stone-200">
+                    {(PACK_PRESETS_BY_TYPE[currentProductType] || PACK_PRESETS_BY_TYPE.LUBRICANT).map(preset => (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => handleAddPackUnit(preset)}
+                        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-stone-200 hover:border-stone-900 hover:bg-stone-100 transition-all flex items-center gap-1.5 text-stone-800"
+                      >
+                        <Plus size={12} /> {preset}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Variants Table */}
+                {variants.length > 0 ? (
+                  <div className="border border-stone-200 rounded-xl overflow-hidden shadow-sm">
                     <table className="w-full text-left text-sm">
-                      <thead className="bg-stone-50 border-b border-stone-200">
+                      <thead className="bg-stone-100 border-b border-stone-200">
                         <tr>
-                          <th className="px-4 py-3 font-semibold text-xs text-stone-500 uppercase tracking-wide">Variant</th>
-                          <th className="px-4 py-3 font-semibold text-xs text-stone-500 uppercase tracking-wide">SKU</th>
-                          <th className="px-4 py-3 font-semibold text-xs text-stone-500 uppercase tracking-wide">Barcode</th>
-                          <th className="px-4 py-3 font-semibold text-xs text-stone-500 uppercase tracking-wide">Price (Rs.)</th>
+                          <th className="px-3.5 py-3 font-semibold text-xs text-stone-600 uppercase tracking-wide">Pack Unit / Size</th>
+                          <th className="px-3.5 py-3 font-semibold text-xs text-stone-600 uppercase tracking-wide">SKU</th>
+                          <th className="px-3.5 py-3 font-semibold text-xs text-stone-600 uppercase tracking-wide">Barcode</th>
+                          <th className="px-3.5 py-3 font-semibold text-xs text-amber-700 uppercase tracking-wide">Cost (COGS)</th>
+                          <th className="px-3.5 py-3 font-semibold text-xs text-emerald-700 uppercase tracking-wide">Retail (Rs.)</th>
+                          <th className="px-3.5 py-3 font-semibold text-xs text-blue-700 uppercase tracking-wide">Wholesale</th>
                           {branchCodes.map((b: string) => (
-                            <th key={b} className="px-4 py-3 font-semibold text-xs text-stone-500 uppercase tracking-wide">{b}</th>
+                            <th key={b} className="px-3.5 py-3 font-semibold text-xs text-stone-600 uppercase tracking-wide text-center">{b}</th>
                           ))}
-                          <th className="px-4 py-3"></th>
+                          <th className="px-3.5 py-3"></th>
                         </tr>
                       </thead>
-                      <tbody>
+                      <tbody className="divide-y divide-stone-100">
                         {variants.map(v => (
-                          <tr key={v.id} className="border-b border-stone-100 last:border-0 hover:bg-stone-50 transition-colors">
-                            <td className="px-4 py-3 font-medium text-stone-900">{v.size} / {v.color}</td>
-                            <td className="px-4 py-3">
+                          <tr key={v.id} className="hover:bg-stone-50 transition-colors">
+                            <td className="px-3.5 py-3 font-bold text-stone-900">
+                              <span className="px-2 py-1 rounded bg-stone-100 border border-stone-200 text-xs font-mono">
+                                {v.size}
+                              </span>
+                            </td>
+                            <td className="px-3.5 py-3">
                               <input
-                                className="font-mono text-xs border border-stone-200 rounded px-2 py-1 w-36 outline-none focus:border-stone-400"
+                                className="font-mono text-xs border border-stone-200 rounded px-2 py-1 w-32 outline-none focus:border-stone-400 bg-white"
                                 value={v.sku}
                                 onChange={e => updateVariantField(v.id, "sku", e.target.value)}
                               />
                             </td>
-                            <td className="px-4 py-3">
+                            <td className="px-3.5 py-3">
                               <div className="flex items-center gap-1.5">
-                                <span className="font-mono text-xs bg-stone-50 border border-stone-200 rounded px-2 py-1 text-stone-600 select-all cursor-text min-w-[7rem]">
+                                <span className="font-mono text-[11px] bg-stone-50 border border-stone-200 rounded px-1.5 py-1 text-stone-600 select-all cursor-text">
                                   {v.barcode || '—'}
                                 </span>
                                 {v.barcode && (
                                   <button
                                     type="button"
                                     title="Print barcode"
-                                    onClick={() => setPrintingVariant({ barcode: v.barcode, label: `${productName} — ${v.size}/${v.color}` })}
-                                    className="p-1 text-stone-400 hover:text-stone-800 hover:bg-stone-100 rounded transition-colors"
+                                    onClick={() => setPrintingVariant({ barcode: v.barcode, label: `${productName} (${v.size})` })}
+                                    className="p-1 text-stone-400 hover:text-stone-800 hover:bg-stone-200 rounded transition-colors"
                                   >
                                     <Printer size={13} />
                                   </button>
                                 )}
                               </div>
                             </td>
-                            <td className="px-4 py-3">
+                            {/* Cost Price */}
+                            <td className="px-3.5 py-3">
                               <input
-                                className="text-sm border border-stone-200 rounded px-2 py-1 w-24 outline-none focus:border-stone-400"
+                                type="number"
+                                className="text-xs font-mono font-semibold border border-amber-300 rounded px-2 py-1 w-24 outline-none focus:border-amber-500 bg-amber-50/50 text-amber-900"
+                                value={v.costPrice || ""}
+                                placeholder="0.00"
+                                onChange={e => updateVariantField(v.id, "costPrice", e.target.value)}
+                              />
+                            </td>
+                            {/* Retail Price */}
+                            <td className="px-3.5 py-3">
+                              <input
+                                type="number"
+                                className="text-xs font-mono font-bold border border-emerald-300 rounded px-2 py-1 w-24 outline-none focus:border-emerald-500 bg-emerald-50/50 text-emerald-900"
                                 value={v.price}
                                 onChange={e => updateVariantField(v.id, "price", e.target.value)}
                               />
                             </td>
+                            {/* Wholesale Price */}
+                            <td className="px-3.5 py-3">
+                              <input
+                                type="number"
+                                className="text-xs font-mono border border-blue-200 rounded px-2 py-1 w-24 outline-none focus:border-blue-400 bg-blue-50/30 text-blue-900"
+                                value={v.wholesalePrice || ""}
+                                placeholder="Optional"
+                                onChange={e => updateVariantField(v.id, "wholesalePrice", e.target.value)}
+                              />
+                            </td>
+                            {/* Branch Stocks */}
                             {branchCodes.map((b: string) => (
-                              <td key={b} className="px-4 py-3">
+                              <td key={b} className="px-3.5 py-3 text-center">
                                 <input
                                   type="number"
-                                  className="text-sm border border-stone-200 rounded px-2 py-1 w-16 outline-none focus:border-stone-400 text-center"
-                                  value={v.stock[b]}
+                                  className="text-xs font-mono font-bold border border-stone-200 rounded px-1.5 py-1 w-16 outline-none focus:border-stone-400 text-center bg-white"
+                                  value={v.stock[b] || 0}
                                   min={0}
                                   onChange={e => updateVariantStock(v.id, b, parseInt(e.target.value) || 0)}
                                 />
                               </td>
                             ))}
-                            <td className="px-4 py-3">
-                              <button type="button" onClick={() => removeVariant(v.id)} className="text-red-400 hover:text-red-600 transition-colors">
-                                <Trash2 size={14} />
+                            <td className="px-3.5 py-3 text-right">
+                              <button type="button" onClick={() => removeVariant(v.id)} className="text-stone-400 hover:text-red-600 transition-colors p-1">
+                                <Trash2 size={15} />
                               </button>
                             </td>
                           </tr>
@@ -772,57 +843,75 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
                       </tbody>
                     </table>
                   </div>
-                )}
-
-                {variants.length === 0 && (
-                  <div className="border-2 border-dashed border-stone-200 rounded-xl p-12 flex flex-col items-center gap-3 text-center">
-                    <Layers size={32} className="text-stone-300" />
-                    <p className="font-inter text-stone-500 font-medium">No variants generated yet</p>
-                    <p className="font-inter text-xs text-stone-400">Select sizes and colors above, then click Generate Variants</p>
+                ) : (
+                  <div className="border-2 border-dashed border-stone-200 rounded-xl p-10 flex flex-col items-center gap-3 text-center bg-stone-50/50">
+                    <Layers size={36} className="text-stone-300" />
+                    <div>
+                      <p className="font-inter text-stone-700 font-semibold text-sm">No Pack Units or Variants Added</p>
+                      <p className="font-inter text-xs text-stone-400 mt-0.5">Click a preset above (e.g. &quot;4L Can&quot; or &quot;Single Piece&quot;) to configure pricing and stock.</p>
+                    </div>
                   </div>
                 )}
               </div>
             )}
 
-            {/* ────────── PRICING ────────── */}
+            {/* ────────── PRICING & COGS ────────── */}
             {activeTab === "pricing" && (
-              <div className="flex flex-col gap-6 max-w-[500px]">
-                <div className="bg-stone-50 border border-stone-200 rounded-xl p-5 flex flex-col gap-4">
-                  <h3 className="font-inter font-bold text-stone-900">Base Pricing</h3>
-                  <p className="text-xs text-stone-400 font-inter">These prices apply to all variants by default. You can override per-variant pricing in the Variants tab.</p>
-
-                  <div className="flex flex-col gap-2">
-                    <label className="label">Selling Price (Rs.)</label>
-                    <div className={`flex items-center border ${errors.basePrice ? 'border-red-500' : 'border-stone-200'} rounded-lg overflow-hidden bg-white`}>
-                      <span className="px-3 py-2.5 text-stone-500 text-sm border-r border-stone-200">Rs.</span>
-                      <input type="number" {...register("basePrice")} placeholder="0.00" className="flex-1 px-3 py-2.5 text-sm outline-none" />
-                    </div>
-                    {errors.basePrice && <span className="text-red-500 text-xs">{errors.basePrice.message}</span>}
+              <div className="flex flex-col gap-6 max-w-[560px]">
+                <div className="bg-stone-50 border border-stone-200 rounded-xl p-6 flex flex-col gap-5">
+                  <div>
+                    <h3 className="font-inter font-bold text-stone-900">Default Base Pricing & Gross Margin</h3>
+                    <p className="text-xs text-stone-500 font-inter mt-0.5">
+                      Sets the default pricing for newly added variants. Drives the Superadmin Executive P&L Engine.
+                    </p>
                   </div>
 
-                  <div className="flex flex-col gap-2">
-                    <label className="label">Compare-At Price (Rs.) <span className="text-stone-400 font-normal">(Original / MRP)</span></label>
-                    <div className={`flex items-center border ${errors.compareAtPrice ? 'border-red-500' : 'border-stone-200'} rounded-lg overflow-hidden bg-white`}>
-                      <span className="px-3 py-2.5 text-stone-500 text-sm border-r border-stone-200">Rs.</span>
-                      <input type="number" {...register("compareAtPrice")} placeholder="0.00" className="flex-1 px-3 py-2.5 text-sm outline-none" />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-2">
+                      <label className="label">Default Selling Price (Rs.) <span className="text-red-500">*</span></label>
+                      <div className="flex items-center border border-stone-300 rounded-lg overflow-hidden bg-white">
+                        <span className="px-3 py-2 text-stone-500 text-xs font-mono border-r border-stone-200">Rs.</span>
+                        <input type="number" {...register("basePrice")} placeholder="0.00" className="flex-1 px-3 py-2 text-sm outline-none font-mono font-bold" />
+                      </div>
                     </div>
-                    {errors.compareAtPrice && <span className="text-red-500 text-xs">{errors.compareAtPrice.message}</span>}
-                    <p className="text-xs text-stone-400 font-inter">Shown with strikethrough to indicate discount.</p>
+
+                    <div className="flex flex-col gap-2">
+                      <label className="label">Purchase Cost / COGS (Rs.)</label>
+                      <div className="flex items-center border border-stone-300 rounded-lg overflow-hidden bg-white">
+                        <span className="px-3 py-2 text-stone-500 text-xs font-mono border-r border-stone-200">Rs.</span>
+                        <input type="number" {...register("costPrice")} placeholder="0.00" className="flex-1 px-3 py-2 text-sm outline-none font-mono" />
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="flex flex-col gap-2">
-                    <label className="label">Cost Per Item (Rs.) <span className="text-stone-400 font-normal">(Not shown to customers)</span></label>
-                    <div className={`flex items-center border ${errors.costPrice ? 'border-red-500' : 'border-stone-200'} rounded-lg overflow-hidden bg-white`}>
-                      <span className="px-3 py-2.5 text-stone-500 text-sm border-r border-stone-200">Rs.</span>
-                      <input type="number" {...register("costPrice")} placeholder="0.00" className="flex-1 px-3 py-2.5 text-sm outline-none" />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-2">
+                      <label className="label">Wholesale Price (Rs.)</label>
+                      <div className="flex items-center border border-stone-300 rounded-lg overflow-hidden bg-white">
+                        <span className="px-3 py-2 text-stone-500 text-xs font-mono border-r border-stone-200">Rs.</span>
+                        <input type="number" {...register("wholesalePrice")} placeholder="Optional" className="flex-1 px-3 py-2 text-sm outline-none font-mono" />
+                      </div>
                     </div>
-                    {errors.costPrice && <span className="text-red-500 text-xs">{errors.costPrice.message}</span>}
+
+                    <div className="flex flex-col gap-2">
+                      <label className="label">Compare-At / MRP Price (Rs.)</label>
+                      <div className="flex items-center border border-stone-300 rounded-lg overflow-hidden bg-white">
+                        <span className="px-3 py-2 text-stone-500 text-xs font-mono border-r border-stone-200">Rs.</span>
+                        <input type="number" {...register("compareAtPrice")} placeholder="Optional" className="flex-1 px-3 py-2 text-sm outline-none font-mono" />
+                      </div>
+                    </div>
                   </div>
 
-                  {basePrice && costPrice && !isNaN(Number(basePrice)) && !isNaN(Number(costPrice)) && (
-                    <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
-                      <p className="font-inter text-sm font-bold text-emerald-800">Estimated Margin</p>
-                      <p className="font-inter text-2xl font-bold text-emerald-700 mt-1">
+                  {/* Gross Margin Card */}
+                  {basePrice && costPrice && !isNaN(Number(basePrice)) && !isNaN(Number(costPrice)) && Number(basePrice) > 0 && (
+                    <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center justify-between">
+                      <div>
+                        <p className="font-inter text-xs font-bold text-emerald-800 uppercase tracking-wide">Estimated Gross Profit Margin</p>
+                        <p className="font-inter text-xs text-emerald-600 mt-0.5">
+                          Profit: Rs. {(parseFloat(basePrice) - parseFloat(costPrice)).toLocaleString()} per unit
+                        </p>
+                      </div>
+                      <p className="font-inter text-2xl font-black text-emerald-700">
                         {Math.round(((parseFloat(basePrice) - parseFloat(costPrice)) / parseFloat(basePrice)) * 100)}%
                       </p>
                     </div>
@@ -831,266 +920,104 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
               </div>
             )}
 
-            {/* ────────── INVENTORY ────────── */}
+            {/* ────────── INVENTORY MATRIX ────────── */}
             {activeTab === "inventory" && (
               <div className="flex flex-col gap-6 max-w-[700px]">
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3">
-                  <AlertCircle size={16} className="text-amber-600 shrink-0 mt-0.5" />
-                  <p className="text-sm font-inter text-amber-700">Per-variant stock is managed in the <strong>Variants tab</strong>. You can use this section to set an initial stock amount and apply it globally to all generated variants.</p>
-                </div>
-
-                <div className="flex flex-col gap-4 bg-white border border-stone-200 rounded-xl p-5">
-                  <h3 className="font-inter font-bold text-stone-900">Initial Stock Configuration</h3>
-                  <div className="flex items-end gap-4">
-                    <div className="flex flex-col gap-2 flex-1">
-                      <label className="label">Initial Global Stock</label>
-                      <input 
-                        type="number" 
-                        value={initialGlobalStock} 
-                        onChange={e => setInitialGlobalStock(parseInt(e.target.value) || 0)} 
-                        min={0}
-                        className="input" 
-                      />
-                      <p className="text-xs text-stone-400 font-inter">This amount will be applied to all new variants when generated.</p>
-                    </div>
-                    <button 
-                      type="button" 
-                      onClick={applyStockToAll}
-                      className="h-[42px] px-6 bg-stone-900 text-white rounded-lg text-sm font-medium hover:bg-stone-800 transition-colors whitespace-nowrap mb-[22px]"
-                    >
-                      Apply to all existing variants
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-4 bg-white border border-stone-200 rounded-xl p-5">
-                  <h3 className="font-inter font-bold text-stone-900">Stock Tracking</h3>
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input type="checkbox" defaultChecked className="w-4 h-4 accent-stone-900" />
-                    <span className="font-inter text-sm text-stone-700">Track inventory for this product</span>
-                  </label>
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input type="checkbox" className="w-4 h-4 accent-stone-900" />
-                    <span className="font-inter text-sm text-stone-700">Allow purchases when out of stock (backorder)</span>
-                  </label>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex flex-col gap-2">
-                    <label className="label">Low Stock Threshold</label>
-                    <input type="number" defaultValue={5} className="input" />
-                    <p className="text-xs text-stone-400 font-inter">Get alerted when stock falls below this level.</p>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <label className="label">Reorder Quantity</label>
-                    <input type="number" defaultValue={50} className="input" />
-                    <p className="text-xs text-stone-400 font-inter">Suggested qty for stock transfer requests.</p>
-                  </div>
-                </div>
-
-                <div className="bg-white border border-stone-200 rounded-xl p-5">
-                  <h3 className="font-inter font-bold text-stone-900 mb-4">Branch Availability</h3>
-                  <div className="flex flex-col gap-3">
-                    {branchCodes.map((branch: string) => (
-                      <label key={branch} className="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" defaultChecked className="w-4 h-4 accent-stone-900" />
-                        <span className="font-inter text-sm text-stone-700 font-medium">{branch}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* ────────── SIZE GUIDE ────────── */}
-            {activeTab === "sizeguide" && (
-              <div className="flex flex-col gap-6 max-w-[700px]">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={sizeGuideEnabled}
-                    onChange={e => setSizeGuideEnabled(e.target.checked)}
-                    className="w-4 h-4 accent-stone-900"
-                  />
-                  <div>
-                    <span className="font-inter text-sm font-semibold text-stone-900">Enable Size Guide for this product</span>
-                    <p className="font-inter text-xs text-stone-400">Shows a size guide button on the product page.</p>
-                  </div>
-                </label>
-
-                {sizeGuideEnabled && (
-                  <div className="flex flex-col gap-6">
-                    <div className="flex flex-col gap-2">
-                      <label className="label">Size Guide Image (Optional)</label>
-                      <div className="flex items-center gap-4">
-                        <div 
-                          onClick={() => { setActiveImageSlot(99); setIsMediaModalOpen(true); }}
-                          className="relative w-32 h-32 border-2 border-dashed border-stone-300 rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-stone-50 hover:border-accent transition-all group overflow-hidden shrink-0"
-                        >
-                          {sizeGuideImageUrl ? (
-                            <>
-                              <Image src={sizeGuideImageUrl} alt="Size Guide" fill className="object-cover" />
-                              <div className="absolute inset-0 bg-stone-900/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                                <p className="font-inter text-white text-xs font-medium">Change</p>
-                              </div>
-                              <button 
-                                onClick={(e) => { 
-                                  e.stopPropagation(); 
-                                  setSizeGuideImageUrl("");
-                                }}
-                                className="absolute top-2 right-2 bg-white/80 backdrop-blur-sm rounded-full p-1 text-stone-700 hover:bg-white transition-colors z-20"
-                              >
-                                <X size={14} />
-                              </button>
-                            </>
-                          ) : (
-                            <>
-                              <ImagePlus size={24} className="text-stone-300 group-hover:text-accent transition-colors" />
-                              <span className="font-inter text-xs text-stone-400 group-hover:text-accent text-center px-2">Upload visual guide</span>
-                            </>
-                          )}
-                        </div>
-                        <p className="text-xs text-stone-400 max-w-[250px] font-inter">Upload a visual guide showing how to measure the garment.</p>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col gap-2">
-                      <label className="label">Size Guide Content</label>
-                      <textarea
-                        value={sizeGuideContent}
-                        onChange={e => setSizeGuideContent(e.target.value)}
-                        rows={8}
-                        className="input font-mono text-sm resize-none"
-                      />
-                      <p className="text-xs text-stone-400 font-inter">Each line becomes a row in the size guide. Format: Size — Measurement</p>
-                    </div>
-
-                    <div className="bg-white border border-stone-200 rounded-xl p-5">
-                      <h3 className="font-inter font-bold text-stone-900 mb-3 text-sm">Preview</h3>
-                      <div className="flex flex-col gap-2">
-                        {sizeGuideContent.split("\n").filter(Boolean).map((line, i) => (
-                          <div key={i} className="flex justify-between py-2 border-b border-stone-100 last:border-0">
-                            <span className="font-inter text-sm font-bold text-stone-900">{line.split("—")[0]?.trim()}</span>
-                            <span className="font-inter text-sm text-stone-600">{line.split("—")[1]?.trim()}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* ────────── PAYMENT METHODS ────────── */}
-            {activeTab === "payment" && (
-              <div className="flex flex-col gap-6 max-w-[500px]">
-                <div className="flex flex-col gap-2">
-                  <h3 className="font-inter font-bold text-stone-900">Allowed Payment Methods</h3>
-                  <p className="font-inter text-sm text-stone-500">Control which payment gateways are available at checkout for this product.</p>
-                </div>
-
-                <div className="flex flex-col gap-3">
-                  {PAYMENT_GATEWAYS.map(gw => (
-                    <label key={gw} className="flex items-center justify-between p-4 bg-white border border-stone-200 rounded-xl cursor-pointer hover:bg-stone-50 transition-colors group">
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="checkbox"
-                          checked={selectedPaymentMethods.includes(gw)}
-                          onChange={() => togglePayment(gw)}
-                          className="w-4 h-4 accent-stone-900"
-                        />
-                        <span className="font-inter text-sm font-semibold text-stone-900">{gw}</span>
-                      </div>
-                      <span className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${
-                        gw === "COD" ? "bg-stone-100 text-stone-600" :
-                        gw === "Koko" || gw === "Mintpay" ? "bg-violet-100 text-violet-700" :
-                        "bg-blue-100 text-blue-700"
-                      }`}>
-                        {gw === "Koko" || gw === "Mintpay" ? "Installments" : gw === "COD" ? "Cash on Delivery" : "Online"}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex gap-3">
-                  <Info size={16} className="text-blue-500 shrink-0 mt-0.5" />
-                  <p className="text-sm font-inter text-blue-700">By default, all payment methods are enabled. Disable specific gateways for restricted or custom products only.</p>
-                </div>
-              </div>
-            )}
-
-            {/* ────────── SEO ────────── */}
-            {activeTab === "seo" && (
-              <div className="flex flex-col gap-6 max-w-[700px]">
-                <div className="flex flex-col gap-2">
-                  <h3 className="font-inter font-bold text-stone-900">SEO & Search Visibility</h3>
-                  <p className="font-inter text-sm text-stone-500">Optimise how this product appears in search engines.</p>
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <label className="label">Meta Title</label>
-                  <input
-                    type="text"
-                    {...register("metaTitle")}
-                    placeholder="Product name for search engines"
-                    className={`input ${errors.metaTitle ? 'border-red-500' : ''}`}
-                    maxLength={70}
-                  />
-                  {errors.metaTitle && <span className="text-red-500 text-xs">{errors.metaTitle.message}</span>}
-                  <p className="text-xs text-stone-400 font-inter">{(metaTitle || productName || "").length}/70 characters</p>
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <label className="label">Meta Description</label>
-                  <textarea
-                    {...register("metaDesc")}
-                    rows={3}
-                    placeholder="Brief product description for search snippets..."
-                    className={`input resize-none ${errors.metaDesc ? 'border-red-500' : ''}`}
-                    maxLength={160}
-                  />
-                  {errors.metaDesc && <span className="text-red-500 text-xs">{errors.metaDesc.message}</span>}
-                  <p className="text-xs text-stone-400 font-inter">{(metaDesc || "").length}/160 characters</p>
-                </div>
-
-                <div className="bg-white border border-stone-200 rounded-xl p-5 flex flex-col gap-1.5">
-                  <p className="text-[10px] text-stone-400 font-inter uppercase tracking-wider">Google Preview</p>
-                  <a href="#" className="font-medium text-blue-700 text-base hover:underline truncate">
-                    {metaTitle || productName || "Product Name"} — SERAMAADUWEN.LK
-                  </a>
-                  <p className="text-sm text-stone-600 font-inter line-clamp-2">
-                    {metaDesc || "Product description will appear here in search results. Write a compelling summary to improve click-through rates."}
+                  <AlertCircle size={16} className="text-amber-700 shrink-0 mt-0.5" />
+                  <p className="text-xs font-inter text-amber-800 leading-relaxed">
+                    Stock is tracked independently per branch. Spillage and oil wastage transactions will adjust these quantities directly.
                   </p>
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <label className="label">Product Visibility</label>
-                  <select className="input">
-                    <option>Published — Visible to all customers</option>
-                    <option>Draft — Not visible on storefront</option>
-                    <option>Unlisted — Only accessible via direct link</option>
-                  </select>
+                <div className="bg-white border border-stone-200 rounded-xl p-5 flex flex-col gap-4">
+                  <h3 className="font-inter font-bold text-stone-900 text-sm">Quick Stock Initialization</h3>
+                  <div className="flex items-center gap-3">
+                    <input 
+                      type="number" 
+                      value={initialGlobalStock} 
+                      onChange={e => setInitialGlobalStock(parseInt(e.target.value) || 0)} 
+                      min={0}
+                      className="input w-36 font-mono font-bold" 
+                      placeholder="Qty"
+                    />
+                    <button 
+                      type="button" 
+                      onClick={applyStockToAll}
+                      className="px-4 py-2.5 bg-stone-900 text-white rounded-lg text-xs font-semibold hover:bg-stone-800 transition-colors whitespace-nowrap"
+                    >
+                      Apply to All Existing Variants
+                    </button>
+                  </div>
                 </div>
+              </div>
+            )}
+
+            {/* ────────── PRODUCT MEDIA ────────── */}
+            {activeTab === "media" && (
+              <div className="flex flex-col gap-6">
+                <div className="grid grid-cols-4 gap-4">
+                  {[...Array(4)].map((_, i) => (
+                    <div 
+                      key={i} 
+                      onClick={() => { setActiveImageSlot(i); setIsMediaModalOpen(true); }}
+                      className={`relative aspect-square border-2 border-dashed border-stone-300 rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-stone-50 hover:border-amber-500 transition-all group overflow-hidden ${i === 0 ? "col-span-2 row-span-2" : ""}`}
+                    >
+                      {images[i] ? (
+                        <>
+                          <Image src={images[i]} alt={`Product Image ${i + 1}`} fill className="object-cover" />
+                          <div className="absolute inset-0 bg-stone-900/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                            <p className="font-inter text-white text-xs font-medium">Change Image</p>
+                          </div>
+                          <button 
+                            type="button"
+                            onClick={(e) => { 
+                              e.stopPropagation(); 
+                              setImages(prev => { const n = [...prev]; n[i] = ""; return n; });
+                            }}
+                            className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm rounded-full p-1 text-stone-700 hover:bg-white transition-colors z-20"
+                          >
+                            <X size={14} />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <ImagePlus size={i === 0 ? 32 : 20} className="text-stone-300 group-hover:text-amber-600 transition-colors" />
+                          <span className="font-inter text-xs text-stone-400 group-hover:text-stone-700 transition-colors">
+                            {i === 0 ? "Primary Photo" : "Photo " + (i + 1)}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-stone-400 font-inter">Recommended: High quality can/bottle product images with legible brand and viscosity grade.</p>
               </div>
             )}
           </div>
 
           {/* Footer */}
-          <div className="border-t border-stone-200 px-8 py-5 bg-stone-50 shrink-0 flex items-center justify-end gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-5 py-2.5 bg-white border border-stone-300 rounded-lg font-inter font-medium text-sm text-stone-700 hover:bg-stone-50 transition-colors shadow-sm"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={createProductMutation.isPending || updateProductMutation.isPending}
-              className="px-8 py-2.5 bg-stone-900 text-white rounded-lg font-inter font-medium text-sm hover:bg-stone-800 transition-colors shadow-md shadow-stone-900/20 disabled:opacity-50 flex items-center gap-2"
-            >
-              {(createProductMutation.isPending || updateProductMutation.isPending) ? "Saving..." : "Save Product"}
-            </button>
+          <div className="border-t border-stone-200 px-8 py-4 bg-stone-50 shrink-0 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-xs text-stone-500">
+              <Sparkles size={14} className="text-amber-500" />
+              <span>Multi-Branch Inventory & COGS Sync Enabled</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-5 py-2.5 bg-white border border-stone-300 rounded-lg font-inter font-medium text-sm text-stone-700 hover:bg-stone-50 transition-colors shadow-sm"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={createProductMutation.isPending || updateProductMutation.isPending}
+                className="px-8 py-2.5 bg-stone-900 text-white rounded-lg font-inter font-semibold text-sm hover:bg-stone-800 transition-colors shadow-md shadow-stone-900/20 disabled:opacity-50 flex items-center gap-2"
+              >
+                {(createProductMutation.isPending || updateProductMutation.isPending) ? "Saving..." : (productToEdit ? "Update Item" : "Create Item")}
+              </button>
+            </div>
           </div>
         </form>
       </div>
@@ -1114,8 +1041,8 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
           transition: border-color 0.15s;
         }
         .input:focus {
-          border-color: #a8a29e;
-          box-shadow: 0 0 0 2px rgba(168, 162, 158, 0.15);
+          border-color: #1c1917;
+          box-shadow: 0 0 0 2px rgba(28, 25, 23, 0.1);
         }
       `}</style>
       
@@ -1123,9 +1050,7 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
         <MediaPickerModal
           onClose={() => { setIsMediaModalOpen(false); setActiveImageSlot(null); }}
           onSelect={(url) => {
-            if (activeImageSlot === 99) {
-              setSizeGuideImageUrl(url);
-            } else if (activeImageSlot !== null) {
+            if (activeImageSlot !== null) {
               setImages(prev => { const n = [...prev]; n[activeImageSlot] = url; return n; });
             }
             setIsMediaModalOpen(false);
@@ -1140,17 +1065,6 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
           barcode={printingVariant.barcode}
           label={printingVariant.label}
           onClose={() => setPrintingVariant(null)}
-        />
-      )}
-
-      {/* Bulk Barcode Print Modal */}
-      {showBulkBarcodePrint && (
-        <BulkBarcodePrintModal
-          variants={variants.filter(v => v.barcode).map(v => ({
-            barcode: v.barcode,
-            label: `${productName} — ${v.size}/${v.color}`
-          }))}
-          onClose={() => setShowBulkBarcodePrint(false)}
         />
       )}
     </div>
@@ -1192,46 +1106,3 @@ function VariantBarcodePrintModal({ barcode, label, onClose }: { barcode: string
     </div>
   );
 }
-
-// ── Bulk Barcode Print Modal ─────────────────────────────────────────────────
-function BulkBarcodePrintModal({ variants, onClose }: { variants: { barcode: string; label: string }[]; onClose: () => void }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const handlePrint = useReactToPrint({
-    contentRef: ref,
-    documentTitle: "Bulk-Barcodes",
-    pageStyle: `@page { size: A4 portrait; margin: 10mm; } body { visibility: visible !important; } body * { visibility: visible !important; }`,
-  });
-  return (
-    <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200 max-h-[90vh]">
-        <div className="flex items-center justify-between p-4 border-b border-stone-200 bg-stone-50 shrink-0">
-          <div>
-            <h3 className="font-inter font-bold text-base text-stone-900">Bulk Barcode Print</h3>
-            <p className="text-xs text-stone-500 font-inter mt-0.5">{variants.length} barcode{variants.length !== 1 ? "s" : ""} will be printed</p>
-          </div>
-          <button onClick={onClose} className="p-1.5 text-stone-400 hover:text-stone-900 hover:bg-stone-200 rounded-lg transition-colors"><X size={18} /></button>
-        </div>
-        <div className="flex-1 overflow-y-auto p-6 bg-stone-100">
-          <div ref={ref} className="grid grid-cols-3 gap-4 bg-stone-100 p-2" style={{ printColorAdjust: "exact" }}>
-            {variants.map((v, i) => {
-              const displayCode = v.barcode.length > 12 ? v.barcode.substring(0, 12) : v.barcode;
-              return (
-                <div key={i} className="bg-white p-3 rounded-lg border border-stone-200 flex flex-col items-center">
-                  <p className="font-sans font-semibold text-[10px] text-center leading-tight mb-1 text-stone-800">{v.label}</p>
-                  <BarcodeLib value={displayCode} format="CODE128" width={1.2} height={40} displayValue fontSize={10} margin={2} />
-                </div>
-              );
-            })}
-          </div>
-        </div>
-        <div className="p-4 border-t border-stone-200 bg-stone-50 flex justify-end gap-3 shrink-0">
-          <button onClick={onClose} className="px-4 py-2 bg-white border border-stone-200 text-stone-700 font-inter font-medium text-sm rounded-lg hover:bg-stone-50 transition-colors">Cancel</button>
-          <button onClick={() => handlePrint()} className="px-5 py-2 bg-stone-900 text-white font-inter font-medium text-sm rounded-lg hover:bg-stone-800 transition-colors flex items-center gap-2">
-            <Printer size={15} /> Print All {variants.length} Labels
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-

@@ -1,12 +1,13 @@
 "use client";
 
 import PageHeader from "@/components/dashboard/PageHeader";
-import { BarChart3, TrendingUp, Users, ShoppingBag, Box, MapPin, CreditCard, MonitorSmartphone, Tag } from "lucide-react";
+import { BarChart3, TrendingUp, Users, ShoppingBag, Box, MapPin, CreditCard, MonitorSmartphone, Tag, DollarSign } from "lucide-react";
 import Link from "next/link";
 import AdminStatCards from "@/components/admin/AdminStatCards";
 
 export default function ReportsPage() {
   const reportCards = [
+    { title: "Profit & Loss (P&L)", description: "Authoritative Gross Profit, COGS, Operating Expenses, and Net Retail Profit across all branches.", icon: DollarSign, href: "/admin/reports/pnl" },
     { title: "Sales & Revenue", description: "Comprehensive breakdown of online and POS sales, AOV, and revenue trends.", icon: TrendingUp, href: "/admin/reports/sales" },
     { title: "Payments", description: "Payment gateway performance, success rates, and fee analysis.", icon: CreditCard, href: "/admin/reports/payments" },
     { title: "Inventory", description: "Stock health, valuation, low stock alerts, and transfer logs.", icon: Box, href: "/admin/reports/inventory" },

@@ -57,7 +57,8 @@ export default function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean, setIs
       label: "Overview",
       items: [
         { name: "Executive Dashboard", icon: LayoutDashboard, href: "/admin", permission: ["reports:view_dashboard", "reports:view_financial"] },
-        { name: "Profit & Loss Reports", icon: BarChart3, href: "/admin/reports", permission: ["reports:view_dashboard", "reports:view_financial"] },
+        { name: "Executive P&L Statement", icon: BarChart3, href: "/admin/reports/pnl", permission: ["reports:view_dashboard", "reports:view_financial"] },
+        { name: "Analytics & Reports", icon: FileText, href: "/admin/reports", permission: ["reports:view_dashboard", "reports:view_financial"] },
       ]
     },
     {
@@ -77,9 +78,9 @@ export default function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean, setIs
       ]
     },
     {
-      label: "Oil Catalog",
+      label: "Item Catalog",
       items: [
-        { name: "Oil Products & Fluids", icon: Box, href: "/admin/products", permission: "products:view" },
+        { name: "Oil & Non-Oil Items", icon: Box, href: "/admin/products", permission: "products:view" },
         { name: "Categories & Grades", icon: Tags, href: "/admin/categories", permission: ["categories:manage", "products:view"] },
       ]
     },

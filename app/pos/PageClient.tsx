@@ -241,6 +241,8 @@ export default function POSPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedType, setSelectedType] = useState("ALL");
+  const [selectedViscosity, setSelectedViscosity] = useState("ALL");
 
   const { 
     data: productsPages, 
@@ -249,9 +251,11 @@ export default function POSPage() {
     hasNextPage, 
     isFetchingNextPage 
   } = useInfiniteProducts({
-    search: debouncedSearchTerm,
+    search: debouncedSearchTerm || undefined,
     category: selectedCategory !== "All" ? selectedCategory : undefined,
-    take: 12
+    productType: selectedType !== "ALL" ? selectedType : undefined,
+    viscosity: selectedViscosity !== "ALL" ? selectedViscosity : undefined,
+    take: 16
   });
 
   const products = productsPages?.pages.flatMap(page => page.data) || [];
@@ -464,7 +468,7 @@ export default function POSPage() {
           <div className="flex-1 flex flex-col bg-surface overflow-hidden border-r border-border">
             
             {/* Search Bar */}
-            <div className="p-4 border-b border-border shrink-0">
+            <div className="p-4 border-b border-border shrink-0 bg-surface">
               <div className="relative">
                 <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
                 <input 
@@ -472,35 +476,56 @@ export default function POSPage() {
                   value={searchTerm}
                   onChange={handleSearchChange}
                   onKeyDown={handleKeyDown}
-                  placeholder="Search products, scan barcode..."
-                  className="w-full bg-background border border-border rounded-xl py-4 pl-12 pr-4 text-lg font-inter text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+                  placeholder="Search brand, grade (0W-20, 15W-40), filter part #, scan barcode..."
+                  className="w-full bg-background border border-border rounded-xl py-3.5 pl-12 pr-4 text-base font-inter text-foreground focus:outline-none focus:ring-2 focus:ring-amber-500"
                   autoFocus
                 />
               </div>
             </div>
 
-            {/* Categories */}
-            <div className="px-4 py-3 border-b border-border flex gap-2 overflow-x-auto shrink-0 scrollbar-hide">
-              <button 
-                onClick={() => setSelectedCategory("All")}
-                className={`px-6 py-3 rounded-lg font-inter font-semibold text-sm whitespace-nowrap transition-colors border ${
-                  selectedCategory === "All" ? "bg-primary-soft text-primary border-primary shadow-sm" : "bg-surface text-muted border-border hover:bg-background"
-                }`}
-              >
-                All
-              </button>
-              {categories.map((cat: any) => (
-                <button 
-                  key={cat.id}
-                  onClick={() => setSelectedCategory(cat.slug)}
-                  className={`px-6 py-3 rounded-lg font-inter font-semibold text-sm whitespace-nowrap transition-colors border ${
-                    selectedCategory === cat.slug ? "bg-primary-soft text-primary border-primary shadow-sm" : "bg-surface text-muted border-border hover:bg-background"
+            {/* Quick Item Type Filter Bar */}
+            <div className="px-4 py-2.5 border-b border-border flex gap-2 overflow-x-auto shrink-0 scrollbar-hide bg-surface/50">
+              {[
+                { id: "ALL", label: "All Items" },
+                { id: "LUBRICANT", label: "🛢️ Oils & Lubricants" },
+                { id: "FILTER", label: "⚙️ Filters (Non-Oil)" },
+                { id: "BATTERY", label: "🔋 Batteries" },
+                { id: "CAR_CARE", label: "🧪 Coolants & Fluids" },
+                { id: "SPARE_PART", label: "⚡ Plugs & Spares" },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => { setSelectedType(tab.id); setSelectedViscosity("ALL"); }}
+                  className={`px-4 py-1.5 rounded-lg font-inter font-semibold text-xs whitespace-nowrap transition-all border ${
+                    selectedType === tab.id
+                      ? "bg-amber-600 text-white border-amber-600 shadow-sm"
+                      : "bg-background text-muted border-border hover:bg-surface hover:text-foreground"
                   }`}
                 >
-                  {cat.name}
+                  {tab.label}
                 </button>
               ))}
             </div>
+
+            {/* Viscosity / Oil Grade Fast Filter (Active when Lubricants or All selected) */}
+            {(selectedType === "ALL" || selectedType === "LUBRICANT") && (
+              <div className="px-4 py-2 border-b border-border flex gap-1.5 overflow-x-auto shrink-0 scrollbar-hide bg-stone-900/5">
+                <span className="text-[11px] font-bold text-muted self-center uppercase tracking-wider mr-1">Grade:</span>
+                {["ALL", "0W-20", "5W-30", "5W-40", "10W-30", "10W-40", "15W-40", "20W-50", "ATF", "80W-90"].map((grade) => (
+                  <button
+                    key={grade}
+                    onClick={() => setSelectedViscosity(grade)}
+                    className={`px-2.5 py-1 rounded font-mono font-bold text-xs whitespace-nowrap transition-colors border ${
+                      selectedViscosity === grade
+                        ? "bg-stone-900 text-white border-stone-900 shadow-sm"
+                        : "bg-surface text-stone-600 border-border hover:bg-background"
+                    }`}
+                  >
+                    {grade === "ALL" ? "All Grades" : grade}
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* Product Grid */}
             <div className="flex-1 overflow-y-auto p-4 bg-background pb-24 lg:pb-4">
@@ -515,6 +540,7 @@ export default function POSPage() {
                   }
                   
                   const price = p.variants?.[0]?.price || 0;
+                  const packUnit = p.variants?.[0]?.packUnit || (p.productType === 'LUBRICANT' ? 'Can/Bottle' : 'Piece');
                   const inStock = p.variants?.some((v: any) => v.stockStatus === 'instock') ?? true;
 
                   return (
@@ -524,18 +550,40 @@ export default function POSPage() {
                         setSelectedProduct(p); 
                         setIsVariantModalOpen(true); 
                       }}
-                      className="bg-surface border border-border rounded-xl flex flex-col hover:border-accent hover:shadow-md transition-all text-left active:scale-95 overflow-hidden"
+                      className="bg-surface border border-border rounded-xl flex flex-col hover:border-amber-500 hover:shadow-md transition-all text-left active:scale-95 overflow-hidden group"
                     >
-                      <div className="relative w-full aspect-square bg-stone-100">
-                        <Image src={imageUrl} alt={p.name} fill sizes="150px" className="object-cover" />
+                      <div className="relative w-full aspect-square bg-stone-100 flex items-center justify-center overflow-hidden">
+                        <Image src={imageUrl} alt={p.name} fill sizes="150px" className="object-cover group-hover:scale-105 transition-transform" />
+                        <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
+                          {p.viscosity && (
+                            <span className="px-2 py-0.5 bg-amber-500 text-white font-mono font-bold text-[10px] rounded shadow-sm">
+                              {p.viscosity}
+                            </span>
+                          )}
+                          {p.partNumber && (
+                            <span className="px-2 py-0.5 bg-blue-600 text-white font-mono font-bold text-[10px] rounded shadow-sm">
+                              #{p.partNumber}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div className="p-3 flex flex-col justify-between flex-1">
-                        <span className="font-inter font-bold text-foreground text-sm leading-snug line-clamp-2 mb-2">
-                          {p.name}
-                        </span>
-                        <div className="flex justify-between items-end w-full">
-                          <span className="font-inter font-bold text-primary text-lg">
-                            {price.toFixed(2)}
+                        <div>
+                          {p.brand && (
+                            <span className="text-[11px] font-semibold text-stone-500 uppercase tracking-wider">
+                              {p.brand}
+                            </span>
+                          )}
+                          <span className="font-inter font-bold text-foreground text-sm leading-snug line-clamp-2 mt-0.5 mb-1">
+                            {p.name}
+                          </span>
+                          <span className="text-[11px] text-muted font-medium">
+                            Pack: {packUnit}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-end w-full mt-2.5 pt-2 border-t border-border/50">
+                          <span className="font-mono font-bold text-amber-600 text-base">
+                            Rs {price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                           </span>
                           <span className={`font-inter text-[10px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded border ${
                             (inStock || posMode === 'DISPATCH') ? "text-muted bg-background border-border" : "text-error bg-error/10 border-error/20"

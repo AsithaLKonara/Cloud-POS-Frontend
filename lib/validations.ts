@@ -115,16 +115,35 @@ export const posCustomerSchema = z.object({
 
 export type POSCustomerFormData = z.infer<typeof posCustomerSchema>;
 
-// Admin Create Product Schema
+// Admin Create Product Schema (Oil & Non-Oil Retail)
 export const createProductSchema = z.object({
   name: z.string().min(2, "Product name is required"),
   slug: z.string().min(2, "Slug is required").regex(/^[a-z0-9-]+$/, "Slug must contain only lowercase letters, numbers, and hyphens"),
   description: z.string().optional(),
+  productType: z.enum([
+    "LUBRICANT",
+    "FILTER",
+    "BATTERY",
+    "CAR_CARE",
+    "SPARE_PART",
+    "ACCESSORY",
+    "SERVICE",
+    "GENERAL"
+  ]).default("LUBRICANT"),
+  brand: z.string().optional(),
+  viscosity: z.string().optional(),
+  oilType: z.string().optional(),
+  apiStandard: z.string().optional(),
+  partNumber: z.string().optional(),
+  compatibleVehicles: z.string().optional(),
   category: z.string().min(1, "Category is required"),
   collection: z.string().optional(),
   basePrice: z.string().min(1, "Base price is required").refine((val) => !isNaN(Number(val)) && Number(val) > 0, "Must be a valid positive number"),
   compareAtPrice: z.string().optional().refine((val) => !val || (!isNaN(Number(val)) && Number(val) > 0), "Must be a valid positive number or empty"),
   costPrice: z.string().optional().refine((val) => !val || (!isNaN(Number(val)) && Number(val) > 0), "Must be a valid positive number or empty"),
+  wholesalePrice: z.string().optional().refine((val) => !val || (!isNaN(Number(val)) && Number(val) > 0), "Must be a valid positive number or empty"),
+  packUnit: z.string().optional(),
+  unitVolumeLiters: z.string().optional(),
   tags: z.string().optional(),
   metaTitle: z.string().optional(),
   metaDesc: z.string().optional(),
@@ -134,3 +153,4 @@ export const createProductSchema = z.object({
 }).strip();
 
 export type CreateProductFormData = z.infer<typeof createProductSchema>;
+
