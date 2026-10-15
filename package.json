@@ -15,6 +15,7 @@
     "@tanstack/react-query": "^5.0.0",
     "autoprefixer": "^10.5.4",
     "axios": "^1.19.0",
+    "csstype": "^3.2.3",
     "date-fns": "^4.4.0",
     "embla-carousel-autoplay": "^8.6.0",
     "embla-carousel-react": "^8.6.0",
@@ -26,16 +27,17 @@
     "react": "^19.0.0",
     "react-barcode": "^1.6.1",
     "react-dom": "^19.0.0",
-    "react-hook-form": "^7.0.0",
+    "react-hook-form": "^7.90.0",
     "react-phone-number-input": "^3.4.17",
+    "react-redux": "^9.3.0",
     "react-to-print": "^3.3.0",
-    "recharts": "^3.10.1",
+    "recharts": "^2.15.4",
     "sl-address": "^1.1.1",
     "tailwindcss": "^3.4.0",
     "use-debounce": "^10.1.1",
     "uuid": "^14.0.1",
     "zod": "^3.23.8",
-    "zustand": "^5.0.15"
+    "zustand": "^4.5.7"
   },
   "devDependencies": {
     "@next/bundle-analyzer": "^16.3.2",

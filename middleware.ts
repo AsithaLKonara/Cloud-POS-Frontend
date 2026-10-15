@@ -18,7 +18,7 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
   const token = request.cookies.get("laural_access_token")?.value;
-  let role = "PUBLIC_USER";
+  let roles: string[] = [];
   let isExpired = false;
 
   if (token) {
@@ -26,27 +26,20 @@ export function middleware(request: NextRequest) {
     if (payload) {
       if (payload.exp && Date.now() >= payload.exp * 1000) {
         isExpired = true;
-      } else if (payload.roles && payload.roles.length > 0) {
-        role = payload.roles[0];
+      } else if (payload.roles && Array.isArray(payload.roles)) {
+        roles = payload.roles.map((r: string) => r.toUpperCase());
       }
     }
   }
 
-  const isAdminRoute = pathname.startsWith("/admin");
-  const isBranchAdminRoute = pathname.startsWith("/branch-admin");
-  const isPosRoute = pathname.startsWith("/pos");
-  const isAccountRoute = pathname.startsWith("/account");
-  const isAuthRoute = pathname === "/login" || pathname === "/register";
+  const isAuthRoute = pathname === "/login";
+  const isProtectedRoute = pathname.startsWith("/admin") || pathname.startsWith("/branch-admin") || pathname.startsWith("/pos");
 
-  const isStaffRoute = isAdminRoute || isBranchAdminRoute || isPosRoute;
-
-  // 1. Unauthenticated or expired user trying to access protected routes
-  if (isStaffRoute || isAccountRoute) {
+  // 1. Unauthenticated or expired user accessing protected routes
+  if (isProtectedRoute) {
     if (!token || isExpired) {
-      // All users log in through the same /login page
       const loginUrl = new URL("/login", request.url);
       loginUrl.searchParams.set("redirect", pathname);
-      // Clear invalid cookies if expired
       const response = NextResponse.redirect(loginUrl);
       if (isExpired) {
         response.cookies.delete("laural_access_token");
@@ -54,23 +47,23 @@ export function middleware(request: NextRequest) {
       }
       return response;
     }
-  }
 
-  // 2. Strict isolation: PUBLIC_USER attempting to access Admin, Branch Admin, or POS routes
-  if (isStaffRoute && token && !isExpired) {
-    const isPublicUser = role === "PUBLIC_USER" || role === "Public User" || role.toUpperCase() === "CUSTOMER";
-    if (isPublicUser) {
-      // Forbidden: redirect to customer account area
-      const forbiddenUrl = new URL("/account", request.url);
-      forbiddenUrl.searchParams.set("error", "unauthorized_area");
-      return NextResponse.redirect(forbiddenUrl);
+    // Role-based route guard
+    const isCashier = roles.includes("CASHIER") || roles.includes("POS_OPERATOR");
+    const isBranchManager = roles.includes("BRANCH_MANAGER");
+    const isAdmin = roles.includes("SUPER_ADMIN") || roles.includes("ADMIN");
+
+    // Cashiers attempting to access Admin dashboard get redirected to POS
+    if (isCashier && !isAdmin && pathname.startsWith("/admin")) {
+      return NextResponse.redirect(new URL("/pos", request.url));
     }
   }
 
-  // 3. Authenticated user visiting /login
+  // 2. Authenticated user visiting /login
   if (isAuthRoute && token && !isExpired) {
-    const isPublicUser = role === "PUBLIC_USER" || role === "Public User";
-    const redirectTarget = isPublicUser ? "/account" : "/admin";
+    const isCashier = roles.includes("CASHIER") || roles.includes("POS_OPERATOR");
+    const isBranchManager = roles.includes("BRANCH_MANAGER");
+    const redirectTarget = isCashier ? "/pos" : isBranchManager ? "/branch-admin" : "/admin";
     return NextResponse.redirect(new URL(redirectTarget, request.url));
   }
 
@@ -82,8 +75,6 @@ export const config = {
     "/admin/:path*",
     "/branch-admin/:path*",
     "/pos/:path*",
-    "/account/:path*",
     "/login",
-    "/register",
   ],
 };

@@ -28,36 +28,16 @@ const urbanist = Urbanist({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://seramaaduwen.lk'),
   title: {
-    template: '%s | SERAMAADUWEN.LK',
-    default: 'SERAMAADUWEN.LK',
+    template: "%s | Cloud POS & ERP",
+    default: "Cloud POS & ERP | Inter-Branch Oil Retail System",
   },
-  description: 'Pieces edited for quiet luxury — cut clean, worn easy.',
-  openGraph: {
-    title: 'SERAMAADUWEN.LK',
-    description: 'Pieces edited for quiet luxury — cut clean, worn easy.',
-    url: '/',
-    siteName: 'SERAMAADUWEN.LK',
-    images: [
-      {
-        url: '/og-image.jpg',
-        width: 1200,
-        height: 630,
-        alt: 'SERAMAADUWEN.LK',
-      },
-    ],
-    locale: 'en_LK',
-    type: 'website',
-  },
+  description: "Enterprise Inter-Branch POS, ERP, and CRM System for Oil & Lubricant Retail.",
 };
 
 import Providers from "./providers";
-import OrganizationSchema from "@/components/seo/OrganizationSchema";
 import GlobalDialog from "@/components/ui/GlobalDialog";
 import GlobalToast from "@/components/ui/GlobalToast";
-import { MetaPixel } from "@/components/MetaPixel";
-import { Suspense } from "react";
 
 export default function RootLayout({
   children,
@@ -67,13 +47,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${poppins.variable} ${orangeAvenue.variable} ${inriaSerif.variable} ${urbanist.variable} antialiased`}
+        className={`${poppins.variable} ${orangeAvenue.variable} ${inriaSerif.variable} ${urbanist.variable} antialiased bg-slate-950 text-slate-100`}
       >
-        <Suspense fallback={null}>
-          <MetaPixel />
-        </Suspense>
         <Providers>
-          <OrganizationSchema />
           {children}
           <GlobalDialog />
           <GlobalToast />

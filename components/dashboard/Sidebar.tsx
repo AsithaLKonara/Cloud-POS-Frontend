@@ -56,58 +56,46 @@ export default function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean, setIs
     {
       label: "Overview",
       items: [
-        { name: "Dashboard", icon: LayoutDashboard, href: "/admin", permission: ["reports:view_dashboard", "reports:view_financial"] },
-        { name: "Reports", icon: BarChart3, href: "/admin/reports", permission: ["reports:view_dashboard", "reports:view_financial"] },
+        { name: "Executive Dashboard", icon: LayoutDashboard, href: "/admin", permission: ["reports:view_dashboard", "reports:view_financial"] },
+        { name: "Profit & Loss Reports", icon: BarChart3, href: "/admin/reports", permission: ["reports:view_dashboard", "reports:view_financial"] },
       ]
     },
     {
-      label: "Sales & Fulfillment",
-      items: [
-        { name: "Orders", icon: ShoppingCart, href: "/admin/orders", permission: "orders:view" },
-        { name: "Returns", icon: RotateCcw, href: "/admin/returns", permission: "returns:view" },
-        { name: "Shipping", icon: Truck, href: "/admin/shipping", permission: "shipping:view_queue" },
-        { name: "Payments", icon: CreditCard, href: "/admin/payments", permission: "payments:view_transactions" },
-      ]
-    },
-    {
-      label: "Catalog",
-      items: [
-        { name: "Products", icon: Box, href: "/admin/products", permission: "products:view" },
-        { name: "Categories", icon: Tags, href: "/admin/categories", permission: ["categories:manage", "products:view"] },
-        { name: "Collections", icon: Layers, href: "/admin/collections", permission: ["collections:manage", "products:view"] },
-        { name: "Inventory", icon: ArchiveRestore, href: "/admin/inventory", permission: "inventory:view_stock" },
-      ]
-    },
-    {
-      label: "Retail",
+      label: "Retail & POS",
       items: [
         { name: "POS Terminal", icon: MonitorSmartphone, href: "/pos", permission: "pos:sales_mode" },
-        { name: "POS Sales", icon: MonitorSmartphone, href: "/admin/pos-sales", permission: ["pos:view_sales_history", "pos:sales_mode"] },
-        { name: "Branches", icon: Store, href: "/admin/branches", permission: "branches:view" },
+        { name: "POS Sales & Orders", icon: ShoppingCart, href: "/admin/orders", permission: "orders:view" },
+        { name: "Returns & Exchanges", icon: RotateCcw, href: "/admin/returns", permission: "returns:view" },
+        { name: "Cash & Payments", icon: CreditCard, href: "/admin/payments", permission: "payments:view_transactions" },
       ]
     },
     {
-      label: "Customers",
+      label: "Inventory & Outlets",
       items: [
-        { name: "Customers", icon: Users, href: "/admin/customers", permission: "customers:view" },
-        { name: "Reviews", icon: MessageSquare, href: "/admin/reviews", permission: "reviews:view" },
-        { name: "Loyalty", icon: Gift, href: "/admin/loyalty", permission: "loyalty:view_points" },
-        { name: "Promotions", icon: Megaphone, href: "/admin/promotions", permission: "promotions:view" },
+        { name: "Branch Stock", icon: ArchiveRestore, href: "/admin/inventory", permission: "inventory:view_stock" },
+        { name: "Branches & Outlets", icon: Store, href: "/admin/branches", permission: "branches:view" },
       ]
     },
     {
-      label: "Content",
+      label: "Oil Catalog",
       items: [
-        { name: "CMS", icon: PanelsTopLeft, href: "/admin/cms", permission: "cms:view" },
-        { name: "Media", icon: HardDrive, href: "/admin/media", permission: "media:view_library" },
+        { name: "Oil Products & Fluids", icon: Box, href: "/admin/products", permission: "products:view" },
+        { name: "Categories & Grades", icon: Tags, href: "/admin/categories", permission: ["categories:manage", "products:view"] },
       ]
     },
     {
-      label: "System",
+      label: "CRM & Accounts",
       items: [
-        { name: "Access Control", icon: Shield, href: "/admin/system/roles", permission: ["system:manage_roles", "system:manage_users"] },
-        { name: "Settings", icon: Settings, href: "/admin/system/settings", permission: "system:platform_settings" },
-        { name: "Audit Logs", icon: FileText, href: "/admin/system/audit", permission: "system:view_audit_logs" },
+        { name: "Customers & Garages", icon: Users, href: "/admin/customers", permission: "customers:view" },
+      ]
+    },
+    {
+      label: "System & Security",
+      items: [
+        { name: "Access Control (RBAC)", icon: Shield, href: "/admin/system/roles", permission: ["system:manage_roles", "system:manage_users"] },
+        { name: "Staff Management", icon: UserCog, href: "/admin/system/users", permission: "system:manage_users" },
+        { name: "System Settings", icon: Settings, href: "/admin/system/settings", permission: "system:platform_settings" },
+        { name: "Audit Trail", icon: FileText, href: "/admin/system/audit", permission: "system:view_audit_logs" },
       ]
     }
   ];
@@ -147,8 +135,11 @@ export default function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean, setIs
     <aside className={`fixed left-0 top-0 bottom-0 w-[240px] bg-surface border-r border-border flex flex-col z-50 text-text-secondary transition-transform duration-300 md:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
       {/* Logo Area */}
       <div className="h-[67px] flex items-center justify-between px-6 border-b border-border shrink-0 bg-surface">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="font-inter font-bold tracking-widest text-foreground text-sm uppercase">SERAMAADUWEN.LK</span>
+        <Link href="/admin" className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
+            <Box size={18} />
+          </div>
+          <span className="font-inter font-bold tracking-wider text-foreground text-sm uppercase">OIL POS & ERP</span>
         </Link>
         {setIsOpen && (
           <button className="md:hidden text-muted hover:text-foreground" onClick={() => setIsOpen(false)}>
