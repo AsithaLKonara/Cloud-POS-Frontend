@@ -1,7 +1,34 @@
 "use client";
 "use client";
 
-import { Maximize, Search, Trash2, CreditCard, Banknote, LayoutGrid, UserPlus, X, ChevronRight, CheckCircle2, ShoppingBag, Lock } from "lucide-react";
+import {
+  Maximize,
+  Search,
+  Trash2,
+  CreditCard,
+  Banknote,
+  LayoutGrid,
+  List,
+  UserPlus,
+  X,
+  ChevronRight,
+  CheckCircle2,
+  ShoppingBag,
+  Lock,
+  RotateCcw,
+  ShoppingCart,
+  Zap,
+  ArrowLeft,
+  Clock,
+  History,
+  ArrowRightLeft,
+  Droplets,
+  Wrench,
+  FlaskConical,
+  Sparkles,
+  Plus,
+  Layers,
+} from "lucide-react";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import VariantSelectionModal from "@/components/pos/VariantSelectionModal";
@@ -12,7 +39,6 @@ import PosReturnsMode from "@/components/pos/PosReturnsMode";
 import PosDispatchTicket from "@/components/pos/PosDispatchTicket";
 import PosExchangeTicket from "@/components/pos/PosExchangeTicket";
 import PosShiftModal from "@/components/pos/PosShiftModal";
-import { RotateCcw, ShoppingCart, Zap, ArrowLeft, Clock, History, ArrowRightLeft } from "lucide-react";
 import Link from "next/link";
 import { useInfiniteProducts, useScanBarcode } from "@/hooks/useProducts";
 import { useIntersection } from "@/hooks/useIntersection";
@@ -40,6 +66,21 @@ export default function POSPage() {
   
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [posMode, setPosMode] = useState<"SALES" | "RETURNS" | "DISPATCH" | "EXCHANGE">("SALES");
+  const [posViewMode, setPosViewMode] = useState<"GRID" | "LIST">("GRID");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("pos_view_mode") as "GRID" | "LIST" | null;
+      if (saved) setPosViewMode(saved);
+    }
+  }, []);
+
+  const handleViewModeChange = (mode: "GRID" | "LIST") => {
+    setPosViewMode(mode);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("pos_view_mode", mode);
+    }
+  };
   
   const { data: activeSession, isLoading: sessionLoading } = useCurrentSession(terminalId);
   const { data: branchesResponse } = useBranches();
@@ -476,58 +517,97 @@ export default function POSPage() {
           {/* Left Side: Products (2/3 width) */}
           <div className="flex-1 flex flex-col bg-surface overflow-hidden border-r border-border">
             
-            {/* Search Bar */}
-            <div className="p-4 border-b border-border shrink-0 bg-surface">
-              <div className="relative">
-                <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
+            {/* Search Bar + Grid/List View Toggle */}
+            <div className="p-3.5 border-b border-border shrink-0 bg-surface flex items-center gap-3">
+              <div className="relative flex-1">
+                <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
                 <input 
                   type="text" 
                   value={searchTerm}
                   onChange={handleSearchChange}
                   onKeyDown={handleKeyDown}
-                  placeholder="Search brand, grade (0W-20, 15W-40), filter part #, scan barcode..."
-                  className="w-full bg-background border border-border rounded-xl py-3.5 pl-12 pr-4 text-base font-inter text-foreground focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  placeholder="Search brand, grade (0W-20, 15W-40), part #, scan barcode..."
+                  className="w-full bg-background border border-border rounded-xl py-2.5 pl-10 pr-4 text-sm font-inter text-foreground focus:outline-none focus:ring-2 focus:ring-amber-500 transition-colors"
                   autoFocus
                 />
               </div>
+
+              {/* View Mode Toggle (Grid / List) */}
+              <div className="flex items-center gap-1 bg-background border border-border p-1 rounded-xl shrink-0">
+                <button
+                  type="button"
+                  onClick={() => handleViewModeChange("GRID")}
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    posViewMode === "GRID"
+                      ? "bg-amber-500 text-slate-950 shadow-sm"
+                      : "text-muted hover:text-foreground"
+                  }`}
+                  title="Grid Card View"
+                  aria-label="Grid Card View"
+                >
+                  <LayoutGrid size={15} />
+                  <span className="hidden sm:inline">Grid</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleViewModeChange("LIST")}
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    posViewMode === "LIST"
+                      ? "bg-amber-500 text-slate-950 shadow-sm"
+                      : "text-muted hover:text-foreground"
+                  }`}
+                  title="Dense List / Table View"
+                  aria-label="Dense List / Table View"
+                >
+                  <List size={15} />
+                  <span className="hidden sm:inline">List</span>
+                </button>
+              </div>
             </div>
 
-            {/* Quick Item Type Filter Bar */}
-            <div className="px-4 py-2.5 border-b border-border flex gap-2 overflow-x-auto shrink-0 scrollbar-hide bg-surface/50">
+            {/* Quick Item Type Filter Bar (Zero Emojis, Clean Vector Icons) */}
+            <div className="px-4 py-2 border-b border-border flex gap-2 overflow-x-auto shrink-0 scrollbar-hide bg-surface/50">
               {[
-                { id: "ALL", label: "All Items" },
-                { id: "LUBRICANT", label: "🛢️ Oils & Lubricants" },
-                { id: "FILTER", label: "⚙️ Filters (Non-Oil)" },
-                { id: "BATTERY", label: "🔋 Batteries" },
-                { id: "CAR_CARE", label: "🧪 Coolants & Fluids" },
-                { id: "SPARE_PART", label: "⚡ Plugs & Spares" },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => { setSelectedType(tab.id); setSelectedViscosity("ALL"); }}
-                  className={`px-4 py-1.5 rounded-lg font-inter font-semibold text-xs whitespace-nowrap transition-all border ${
-                    selectedType === tab.id
-                      ? "bg-amber-600 text-white border-amber-600 shadow-sm"
-                      : "bg-background text-muted border-border hover:bg-surface hover:text-foreground"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
+                { id: "ALL", label: "All Items", icon: Layers },
+                { id: "LUBRICANT", label: "Oils & Lubricants", icon: Droplets },
+                { id: "FILTER", label: "Filters (Non-Oil)", icon: Wrench },
+                { id: "BATTERY", label: "Batteries", icon: Zap },
+                { id: "CAR_CARE", label: "Coolants & Fluids", icon: FlaskConical },
+                { id: "SPARE_PART", label: "Plugs & Spares", icon: Sparkles },
+              ].map((tab) => {
+                const TabIcon = tab.icon;
+                const isSelected = selectedType === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => { setSelectedType(tab.id); setSelectedViscosity("ALL"); }}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-inter font-semibold text-xs whitespace-nowrap transition-all border ${
+                      isSelected
+                        ? "bg-amber-500 text-slate-950 border-amber-500 shadow-sm"
+                        : "bg-background text-muted border-border hover:bg-surface hover:text-foreground"
+                    }`}
+                  >
+                    <TabIcon size={14} className={isSelected ? "text-slate-950" : "text-muted"} />
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
             </div>
 
             {/* Viscosity / Oil Grade Fast Filter (Active when Lubricants or All selected) */}
             {(selectedType === "ALL" || selectedType === "LUBRICANT") && (
-              <div className="px-4 py-2 border-b border-border flex gap-1.5 overflow-x-auto shrink-0 scrollbar-hide bg-stone-900/5">
+              <div className="px-4 py-2 border-b border-border flex gap-1.5 overflow-x-auto shrink-0 scrollbar-hide bg-background/60">
                 <span className="text-[11px] font-bold text-muted self-center uppercase tracking-wider mr-1">Grade:</span>
                 {["ALL", "0W-20", "5W-30", "5W-40", "10W-30", "10W-40", "15W-40", "20W-50", "ATF", "80W-90"].map((grade) => (
                   <button
                     key={grade}
                     onClick={() => setSelectedViscosity(grade)}
-                    className={`px-2.5 py-1 rounded font-mono font-bold text-xs whitespace-nowrap transition-colors border ${
+                    className={`px-2.5 py-1 rounded-lg font-mono font-bold text-xs whitespace-nowrap transition-colors border ${
                       selectedViscosity === grade
-                        ? "bg-stone-900 text-white border-stone-900 shadow-sm"
-                        : "bg-surface text-stone-600 border-border hover:bg-background"
+                        ? "bg-amber-500 text-slate-950 border-amber-500 shadow-sm"
+                        : "bg-surface text-foreground border-border hover:bg-background"
                     }`}
                   >
                     {grade === "ALL" ? "All Grades" : grade}
@@ -536,75 +616,161 @@ export default function POSPage() {
               </div>
             )}
 
-            {/* Product Grid */}
+            {/* Products Container: Grid or List */}
             <div className="flex-1 overflow-y-auto p-4 bg-background pb-24 lg:pb-4">
-              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-                {filteredProducts.map((p: any) => {
-                  let imageUrl = "/placeholder.png";
-                  if (p.variants && p.variants.length > 0) {
-                    for (const v of p.variants) {
-                      if (v.featuredImage) { imageUrl = v.featuredImage; break; }
-                      if (v.gallery && v.gallery.length > 0) { imageUrl = v.gallery[0]; break; }
+              {posViewMode === "GRID" ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {filteredProducts.map((p: any) => {
+                    let imageUrl = "/placeholder.png";
+                    if (p.variants && p.variants.length > 0) {
+                      for (const v of p.variants) {
+                        if (v.featuredImage) { imageUrl = v.featuredImage; break; }
+                        if (v.gallery && v.gallery.length > 0) { imageUrl = v.gallery[0]; break; }
+                      }
                     }
-                  }
-                  
-                  const price = p.variants?.[0]?.price || 0;
-                  const packUnit = p.variants?.[0]?.packUnit || (p.productType === 'LUBRICANT' ? 'Can/Bottle' : 'Piece');
-                  const inStock = p.variants?.some((v: any) => v.stockStatus === 'instock') ?? true;
+                    
+                    const price = p.variants?.[0]?.price || 0;
+                    const packUnit = p.variants?.[0]?.packUnit || (p.productType === 'LUBRICANT' ? 'Can/Bottle' : 'Piece');
+                    const inStock = p.variants?.some((v: any) => v.stockStatus === 'instock') ?? true;
 
-                  return (
-                    <button 
-                      key={p.id}
-                      onClick={() => { 
-                        setSelectedProduct(p); 
-                        setIsVariantModalOpen(true); 
-                      }}
-                      className="bg-surface border border-border rounded-xl flex flex-col hover:border-amber-500 hover:shadow-md transition-all text-left active:scale-95 overflow-hidden group"
-                    >
-                      <div className="relative w-full aspect-square bg-stone-100 flex items-center justify-center overflow-hidden">
-                        <Image src={imageUrl} alt={p.name} fill sizes="150px" className="object-cover group-hover:scale-105 transition-transform" />
-                        <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
-                          {p.viscosity && (
-                            <span className="px-2 py-0.5 bg-amber-500 text-white font-mono font-bold text-[10px] rounded shadow-sm">
-                              {p.viscosity}
+                    return (
+                      <button 
+                        key={p.id}
+                        onClick={() => { 
+                          setSelectedProduct(p); 
+                          setIsVariantModalOpen(true); 
+                        }}
+                        className="bg-surface border border-border rounded-xl flex flex-col hover:border-amber-500 hover:shadow-md transition-all text-left active:scale-[0.98] overflow-hidden group"
+                      >
+                        <div className="relative w-full aspect-square bg-background flex items-center justify-center overflow-hidden border-b border-border/50">
+                          <Image src={imageUrl} alt={p.name} fill sizes="150px" className="object-cover group-hover:scale-105 transition-transform" />
+                          <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
+                            {p.viscosity && (
+                              <span className="px-2 py-0.5 bg-amber-500 text-slate-950 font-mono font-bold text-[10px] rounded-md shadow-sm">
+                                {p.viscosity}
+                              </span>
+                            )}
+                            {p.partNumber && (
+                              <span className="px-2 py-0.5 bg-blue-600 text-white font-mono font-bold text-[10px] rounded-md shadow-sm">
+                                #{p.partNumber}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="p-3 flex flex-col justify-between flex-1">
+                          <div>
+                            {p.brand && (
+                              <span className="text-[11px] font-semibold text-muted uppercase tracking-wider">
+                                {p.brand}
+                              </span>
+                            )}
+                            <span className="font-inter font-bold text-foreground text-sm leading-snug line-clamp-2 mt-0.5 mb-1">
+                              {p.name}
                             </span>
-                          )}
-                          {p.partNumber && (
-                            <span className="px-2 py-0.5 bg-blue-600 text-white font-mono font-bold text-[10px] rounded shadow-sm">
-                              #{p.partNumber}
+                            <span className="text-[11px] text-muted font-medium">
+                              Pack: {packUnit}
                             </span>
-                          )}
+                          </div>
+                          <div className="flex justify-between items-end w-full mt-2.5 pt-2 border-t border-border/50">
+                            <span className="font-mono font-bold text-amber-600 dark:text-amber-400 text-base">
+                              Rs {price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                            </span>
+                            <span className={`font-inter text-[10px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded-md border ${
+                              (inStock || posMode === 'DISPATCH') ? "text-muted bg-background border-border" : "text-error bg-error/10 border-error/20"
+                            }`}>
+                              {inStock ? "In Stock" : (posMode === 'DISPATCH' ? "Pre-Sold" : "Out")}
+                            </span>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2.5">
+                  {filteredProducts.map((p: any) => {
+                    let imageUrl = "/placeholder.png";
+                    if (p.variants && p.variants.length > 0) {
+                      for (const v of p.variants) {
+                        if (v.featuredImage) { imageUrl = v.featuredImage; break; }
+                        if (v.gallery && v.gallery.length > 0) { imageUrl = v.gallery[0]; break; }
+                      }
+                    }
+                    
+                    const price = p.variants?.[0]?.price || 0;
+                    const packUnit = p.variants?.[0]?.packUnit || (p.productType === 'LUBRICANT' ? 'Can/Bottle' : 'Piece');
+                    const inStock = p.variants?.some((v: any) => v.stockStatus === 'instock') ?? true;
+
+                    return (
+                      <div
+                        key={p.id}
+                        onClick={() => {
+                          setSelectedProduct(p);
+                          setIsVariantModalOpen(true);
+                        }}
+                        className="p-3 bg-surface border border-border hover:border-amber-500/60 hover:shadow-md rounded-xl flex items-center justify-between gap-4 cursor-pointer transition-all group"
+                      >
+                        <div className="flex items-center gap-3.5 min-w-0">
+                          <div className="relative w-12 h-12 rounded-lg bg-background border border-border/80 overflow-hidden shrink-0 flex items-center justify-center">
+                            <Image src={imageUrl} alt={p.name} fill sizes="48px" className="object-cover group-hover:scale-105 transition-transform" />
+                          </div>
+
+                          <div className="flex flex-col min-w-0">
+                            <div className="flex items-center gap-2">
+                              {p.brand && (
+                                <span className="text-[10px] font-bold text-muted uppercase tracking-wider">
+                                  {p.brand}
+                                </span>
+                              )}
+                              {p.viscosity && (
+                                <span className="px-1.5 py-0.2 bg-amber-500/10 text-amber-600 dark:text-amber-400 font-mono font-bold text-[10px] rounded border border-amber-500/20">
+                                  {p.viscosity}
+                                </span>
+                              )}
+                              {p.partNumber && (
+                                <span className="px-1.5 py-0.2 bg-blue-500/10 text-blue-600 dark:text-blue-400 font-mono font-bold text-[10px] rounded border border-blue-500/20">
+                                  #{p.partNumber}
+                                </span>
+                              )}
+                            </div>
+
+                            <span className="font-inter font-semibold text-foreground text-sm truncate mt-0.5 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                              {p.name}
+                            </span>
+
+                            <span className="text-[11px] text-muted">
+                              Pack: {packUnit}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-4 shrink-0">
+                          <div className="text-right">
+                            <span className="font-mono font-bold text-amber-600 dark:text-amber-400 text-base block">
+                              Rs {price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                            </span>
+                            <span className={`text-[10px] uppercase font-semibold px-1.5 py-0.5 rounded-md border inline-block mt-0.5 ${
+                              (inStock || posMode === 'DISPATCH')
+                                ? "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
+                                : "text-error bg-error/10 border-error/20"
+                            }`}>
+                              {inStock ? "In Stock" : (posMode === 'DISPATCH' ? "Pre-Sold" : "Out")}
+                            </span>
+                          </div>
+
+                          <button
+                            type="button"
+                            className="hidden sm:flex items-center gap-1 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs shadow-sm transition-all"
+                          >
+                            <Plus size={14} />
+                            <span>Select</span>
+                          </button>
                         </div>
                       </div>
-                      <div className="p-3 flex flex-col justify-between flex-1">
-                        <div>
-                          {p.brand && (
-                            <span className="text-[11px] font-semibold text-stone-500 uppercase tracking-wider">
-                              {p.brand}
-                            </span>
-                          )}
-                          <span className="font-inter font-bold text-foreground text-sm leading-snug line-clamp-2 mt-0.5 mb-1">
-                            {p.name}
-                          </span>
-                          <span className="text-[11px] text-muted font-medium">
-                            Pack: {packUnit}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-end w-full mt-2.5 pt-2 border-t border-border/50">
-                          <span className="font-mono font-bold text-amber-600 text-base">
-                            Rs {price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                          </span>
-                          <span className={`font-inter text-[10px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded border ${
-                            (inStock || posMode === 'DISPATCH') ? "text-muted bg-background border-border" : "text-error bg-error/10 border-error/20"
-                          }`}>
-                            {inStock ? "In Stock" : (posMode === 'DISPATCH' ? "Pre-Sold" : "Out")}
-                          </span>
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
               
               {/* Intersection Observer target */}
               <div ref={bottomRef} className="h-10 w-full flex items-center justify-center mt-6">

@@ -9,7 +9,7 @@ import DataTable from "@/components/dashboard/DataTable";
 import { OrderStatusBadge, BranchBadge, PaymentGatewayBadge } from "@/components/dashboard/Badges";
 import ShippingLabelModal from "@/app/admin/shipping/components/ShippingLabelModal";
 import FardarDispatchModal from "@/components/admin/FardarDispatchModal";
-import { Printer, Truck, Plus } from "lucide-react";
+import { Printer, Truck, Plus, Eye } from "lucide-react";
 import { useOrders } from "@/hooks/useOrders";
 import Link from "next/link";
 import AdminStatCards from "@/components/admin/AdminStatCards";
@@ -79,6 +79,25 @@ export default function OrdersPage() {
       header: "Status", 
       accessor: (row: any) => <OrderStatusBadge status={row.status} /> 
     },
+    {
+      header: "Action",
+      className: "text-right",
+      accessor: (row: any) => (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedOrderId(row.id);
+            }}
+            title="View Order Details"
+            className="p-1.5 rounded-lg border border-border bg-surface hover:bg-surface-hover text-muted hover:text-primary hover:border-primary transition-all inline-flex items-center justify-center shadow-sm"
+          >
+            <Eye size={15} />
+          </button>
+        </div>
+      )
+    }
   ];
 
   const { data: branchesData } = useBranches();
@@ -89,7 +108,7 @@ export default function OrdersPage() {
       <select 
         value={branchId}
         onChange={e => { setBranchId(e.target.value); setPage(1); }}
-        className="bg-stone-50 border border-stone-200 rounded-lg py-2 px-3 text-sm font-inter text-stone-700 outline-none focus:ring-1 focus:ring-stone-400 max-w-[140px]"
+        className="bg-surface border border-border rounded-xl py-2 px-3 text-sm font-inter text-foreground outline-none focus:ring-1 focus:ring-amber-500 max-w-[140px]"
       >
         <option value="">All Branches</option>
         {branches.map((b: any) => (
@@ -100,7 +119,7 @@ export default function OrdersPage() {
       <select 
         value={status} 
         onChange={e => { setStatus(e.target.value); setPage(1); }}
-        className="bg-stone-50 border border-stone-200 rounded-lg py-2 px-3 text-sm font-inter text-stone-700 outline-none focus:ring-1 focus:ring-stone-400"
+        className="bg-surface border border-border rounded-xl py-2 px-3 text-sm font-inter text-foreground outline-none focus:ring-1 focus:ring-amber-500"
       >
         <option value="">All Statuses</option>
         <option value="PENDING">Pending</option>
@@ -113,7 +132,7 @@ export default function OrdersPage() {
       <select 
         value={paymentGateway}
         onChange={e => { setPaymentGateway(e.target.value); setPage(1); }}
-        className="bg-stone-50 border border-stone-200 rounded-lg py-2 px-3 text-sm font-inter text-stone-700 outline-none focus:ring-1 focus:ring-stone-400"
+        className="bg-surface border border-border rounded-xl py-2 px-3 text-sm font-inter text-foreground outline-none focus:ring-1 focus:ring-amber-500"
       >
         <option value="">All Gateways</option>
         <option value="Koko">Koko</option>
@@ -127,7 +146,7 @@ export default function OrdersPage() {
       <select 
         value={type}
         onChange={e => { setType(e.target.value); setPage(1); }}
-        className="bg-stone-50 border border-stone-200 rounded-lg py-2 px-3 text-sm font-inter text-stone-700 outline-none focus:ring-1 focus:ring-stone-400"
+        className="bg-surface border border-border rounded-xl py-2 px-3 text-sm font-inter text-foreground outline-none focus:ring-1 focus:ring-amber-500"
       >
         <option value="">All Types</option>
         <option value="ECOMMERCE">Online Store</option>
@@ -173,7 +192,9 @@ export default function OrdersPage() {
   };
 
   const getQuickSelectVariant = (rangeStart: string, rangeEnd: string) => {
-    return startDate === rangeStart && endDate === rangeEnd ? "bg-stone-900 text-white" : "bg-stone-100 text-stone-600 hover:bg-stone-200";
+    return startDate === rangeStart && endDate === rangeEnd 
+      ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold" 
+      : "bg-surface-hover text-muted hover:text-foreground border border-border/50";
   };
   
   const todayStr = new Date().toISOString().split("T")[0];
@@ -184,30 +205,30 @@ export default function OrdersPage() {
   const bottomRow = (
     <>
       <div className="flex items-center gap-2 flex-wrap flex-1">
-        <button onClick={() => handleDateQuickSelect("all")} className={`px-3 py-1.5 rounded-md text-xs font-inter font-medium transition-colors ${getQuickSelectVariant("", "")}`}>All Time</button>
-        <button onClick={() => handleDateQuickSelect("today")} className={`px-3 py-1.5 rounded-md text-xs font-inter font-medium transition-colors ${getQuickSelectVariant(todayStr, todayStr)}`}>Today</button>
-        <button onClick={() => handleDateQuickSelect("7days")} className={`px-3 py-1.5 rounded-md text-xs font-inter font-medium transition-colors ${getQuickSelectVariant(last7Str, todayStr)}`}>Last 7 Days</button>
-        <button onClick={() => handleDateQuickSelect("30days")} className={`px-3 py-1.5 rounded-md text-xs font-inter font-medium transition-colors ${getQuickSelectVariant(last30Str, todayStr)}`}>Last 30 Days</button>
-        <button onClick={() => handleDateQuickSelect("90days")} className={`px-3 py-1.5 rounded-md text-xs font-inter font-medium transition-colors ${getQuickSelectVariant(last90Str, todayStr)}`}>Last 90 Days</button>
+        <button onClick={() => handleDateQuickSelect("all")} className={`px-3 py-1.5 rounded-xl text-xs font-inter font-medium transition-colors ${getQuickSelectVariant("", "")}`}>All Time</button>
+        <button onClick={() => handleDateQuickSelect("today")} className={`px-3 py-1.5 rounded-xl text-xs font-inter font-medium transition-colors ${getQuickSelectVariant(todayStr, todayStr)}`}>Today</button>
+        <button onClick={() => handleDateQuickSelect("7days")} className={`px-3 py-1.5 rounded-xl text-xs font-inter font-medium transition-colors ${getQuickSelectVariant(last7Str, todayStr)}`}>Last 7 Days</button>
+        <button onClick={() => handleDateQuickSelect("30days")} className={`px-3 py-1.5 rounded-xl text-xs font-inter font-medium transition-colors ${getQuickSelectVariant(last30Str, todayStr)}`}>Last 30 Days</button>
+        <button onClick={() => handleDateQuickSelect("90days")} className={`px-3 py-1.5 rounded-xl text-xs font-inter font-medium transition-colors ${getQuickSelectVariant(last90Str, todayStr)}`}>Last 90 Days</button>
       </div>
 
-      <div className="flex items-center gap-3 bg-stone-50 p-1.5 rounded-lg border border-stone-200 w-full md:w-auto">
+      <div className="flex items-center gap-3 bg-surface-hover/50 p-1.5 rounded-xl border border-border w-full md:w-auto">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-inter text-stone-500 font-medium whitespace-nowrap pl-2">Custom Range:</span>
+          <span className="text-xs font-inter text-muted font-medium whitespace-nowrap pl-2">Custom Range:</span>
           <input 
             type="date" 
             value={startDate} 
             onChange={e => { setStartDate(e.target.value); setPage(1); }}
-            className="bg-white border border-stone-200 rounded-md py-1.5 px-2 text-xs font-inter text-stone-700 outline-none focus:ring-1 focus:ring-stone-400"
+            className="bg-surface border border-border rounded-xl py-1.5 px-2.5 text-xs font-inter text-foreground outline-none focus:ring-1 focus:ring-amber-500"
           />
         </div>
-        <span className="text-stone-300">-</span>
+        <span className="text-muted/50">-</span>
         <div className="flex items-center gap-2">
           <input 
             type="date" 
             value={endDate} 
             onChange={e => { setEndDate(e.target.value); setPage(1); }}
-            className="bg-white border border-stone-200 rounded-md py-1.5 px-2 text-xs font-inter text-stone-700 outline-none focus:ring-1 focus:ring-stone-400"
+            className="bg-surface border border-border rounded-xl py-1.5 px-2.5 text-xs font-inter text-foreground outline-none focus:ring-1 focus:ring-amber-500"
           />
         </div>
       </div>
@@ -215,15 +236,15 @@ export default function OrdersPage() {
   );
 
   return (
-    <div className="flex flex-col p-4 md:p-10 max-w-[1280px] mx-auto w-full">
+    <div className="flex flex-col p-4 md:p-8 max-w-[1400px] mx-auto w-full gap-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
         <PageHeader 
-          title="Orders" 
-          description="Manage and track all customer orders across channels."
+          title="Orders & Invoices" 
+          description="Manage and track all customer orders, garage invoices, and dispatches across channels."
         />
         <Link 
           href="/admin/orders/quick-dispatch"
-          className="flex items-center gap-2 bg-stone-900 text-white px-4 py-2 rounded-lg font-inter font-medium text-sm hover:bg-stone-800 transition-colors shadow-sm self-start sm:self-auto"
+          className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-stone-950 px-4 py-2 rounded-xl font-inter font-bold text-sm transition-colors shadow-sm self-start sm:self-auto"
         >
           <Plus size={16} /> Quick Dispatch
         </Link>

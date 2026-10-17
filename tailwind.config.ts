@@ -1,6 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  darkMode: "class",
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -10,9 +11,15 @@ const config: Config = {
     extend: {
       fontFamily: {
         poppins: ["var(--font-poppins)"],
+        inter: ["var(--font-inter)", "sans-serif"],
         signature: ["var(--font-signature)", "sans-serif"],
         inria: ["var(--font-inria)", "serif"],
         urbanist: ["var(--font-urbanist)", "sans-serif"],
+      },
+      borderRadius: {
+        lg: "var(--radius, 0.75rem)",
+        md: "calc(var(--radius, 0.75rem) - 2px)",
+        sm: "calc(var(--radius, 0.75rem) - 4px)",
       },
       colors: {
         background: 'var(--background)',
@@ -24,6 +31,7 @@ const config: Config = {
         primary: {
           DEFAULT: 'var(--primary)',
           hover: 'var(--primary-hover)',
+          soft: 'var(--primary-soft)',
         },
         accent: {
           DEFAULT: 'var(--accent)',

@@ -31,8 +31,6 @@ import {
   HardDrive,
   X,
   LogOut,
-  ChevronDown,
-  ChevronRight
 } from "lucide-react";
 
 interface NavItem {
@@ -45,7 +43,6 @@ interface NavItem {
 export default function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean, setIsOpen?: (v: boolean) => void }) {
   const pathname = usePathname();
   const { user, hasPermission, hasRole, isSuperAdmin } = useAuthStore();
-  const [expandedGroups, setExpandedGroups] = useState<string[]>([]);
 
   const getInitials = (name?: string | null) => {
     if (!name) return "US";
@@ -116,81 +113,67 @@ export default function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean, setIs
 
   const primaryRole = user?.roles?.[0] || "Staff User";
 
-  // Initialize expanded groups based on active route
-  useEffect(() => {
-    const activeGroup = visibleGroups.find(group => 
-      group.items.some(item => item.href === "/admin" ? pathname === "/admin" : pathname?.startsWith(item.href))
-    );
-    if (activeGroup && !expandedGroups.includes(activeGroup.label)) {
-      setExpandedGroups(prev => [...prev, activeGroup.label]);
-    }
-  }, [pathname]);
-
-  const toggleGroup = (label: string) => {
-    setExpandedGroups(prev => 
-      prev.includes(label) ? prev.filter(g => g !== label) : [...prev, label]
-    );
-  };
-
   return (
-    <aside className={`fixed left-0 top-0 bottom-0 w-[240px] bg-surface border-r border-border flex flex-col z-50 text-text-secondary transition-transform duration-300 md:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
+    <aside className={`fixed left-0 top-0 bottom-0 w-[240px] bg-surface border-r border-border flex flex-col z-50 transition-transform duration-300 md:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
       {/* Logo Area */}
-      <div className="h-[67px] flex items-center justify-between px-6 border-b border-border shrink-0 bg-surface">
-        <Link href="/admin" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
+      <div className="h-[64px] flex items-center justify-between px-5 border-b border-border shrink-0 bg-surface">
+        <Link href="/admin" className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 shadow-sm">
             <Box size={18} />
           </div>
-          <span className="font-inter font-bold tracking-wider text-foreground text-sm uppercase">OIL POS & ERP</span>
+          <div className="flex flex-col">
+            <span className="font-inter font-bold tracking-wider text-foreground text-xs uppercase leading-none">
+              OIL POS & ERP
+            </span>
+            <span className="font-inter text-[10px] text-muted tracking-wide mt-0.5">
+              Multi-Branch Suite
+            </span>
+          </div>
         </Link>
         {setIsOpen && (
-          <button className="md:hidden text-muted hover:text-foreground" onClick={() => setIsOpen(false)}>
-            <X size={20} />
+          <button className="md:hidden text-muted hover:text-foreground p-1 rounded-lg" onClick={() => setIsOpen(false)}>
+            <X size={18} />
           </button>
         )}
       </div>
 
-      {/* Navigation */}
-      <div className="flex-1 overflow-y-auto py-6 px-3 flex flex-col gap-2 scrollbar-hide">
+      {/* Navigation (Permanently Expanded Categories) */}
+      <div className="flex-1 overflow-y-auto py-4 px-3 flex flex-col gap-4 scrollbar-thin">
         {visibleGroups.map((group, idx) => {
-          const isExpanded = expandedGroups.includes(group.label);
           return (
-            <div key={idx} className="flex flex-col gap-1 mb-2">
-              <button 
-                onClick={() => toggleGroup(group.label)}
-                className="flex items-center justify-between px-3 py-2 w-full rounded-lg hover:bg-stone-50 transition-colors group"
-              >
-                <span className="font-poppins font-semibold text-[11px] uppercase tracking-wider text-stone-500 group-hover:text-foreground transition-colors">
-                  {group.label}
-                </span>
-                {isExpanded ? (
-                  <ChevronDown size={14} className="text-stone-400" />
-                ) : (
-                  <ChevronRight size={14} className="text-stone-400" />
-                )}
-              </button>
-              
-              {isExpanded && (
-                <div className="flex flex-col gap-0.5 mt-1">
-                  {group.items.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = item.href === "/admin" ? pathname === "/admin" : pathname?.startsWith(item.href);
+            <div key={idx} className="flex flex-col gap-1">
+              {/* Category Header Label */}
+              <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-muted/70 select-none">
+                {group.label}
+              </div>
 
-                    return (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        className={`flex items-center gap-3 px-3 py-2.5 mx-1 rounded-lg transition-all ${isActive
-                            ? "bg-stone-100 text-stone-900 font-bold"
-                            : "text-stone-500 hover:bg-stone-50 hover:text-stone-900 font-medium"
-                          }`}
-                      >
-                        <Icon size={18} className={isActive ? "text-stone-900" : "text-stone-400"} />
-                        <span className="font-inter text-sm">{item.name}</span>
-                      </Link>
-                    );
-                  })}
-                </div>
-              )}
+              {/* Category Items (Always Expanded) */}
+              <div className="flex flex-col gap-0.5">
+                {group.items.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = item.href === "/admin" 
+                    ? pathname === "/admin" 
+                    : pathname?.startsWith(item.href);
+
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all ${
+                        isActive
+                          ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold border border-amber-500/25 shadow-sm"
+                          : "text-muted hover:text-foreground hover:bg-background/80 font-medium border border-transparent"
+                      }`}
+                    >
+                      <Icon 
+                        size={16} 
+                        className={isActive ? "text-amber-600 dark:text-amber-400 shrink-0" : "text-muted shrink-0"} 
+                      />
+                      <span className="font-inter truncate">{item.name}</span>
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
           );
         })}

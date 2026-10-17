@@ -88,18 +88,18 @@ export default function PnLPageClient() {
   return (
     <div className="flex flex-col p-4 md:p-8 max-w-[1400px] mx-auto w-full gap-6">
       {/* Top Header & Navigation */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-stone-200">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-border">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200 tracking-wider uppercase">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20 tracking-wider uppercase">
               Executive Analytics
             </span>
-            <span className="text-xs text-stone-400 font-mono">Consolidated Multi-Branch P&L</span>
+            <span className="text-xs text-muted font-mono">Consolidated Multi-Branch P&L</span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-stone-900 tracking-tight font-poppins">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-foreground tracking-tight font-poppins">
             Profit & Loss (P&L) Statement
           </h1>
-          <p className="text-sm text-stone-500 font-inter">
+          <p className="text-sm text-muted font-inter">
             Authoritative Gross Margin, COGS, Operational Overhead, and Net Retail Profit.
           </p>
         </div>
@@ -107,16 +107,16 @@ export default function PnLPageClient() {
         {/* Global Filter Bar */}
         <div className="flex flex-wrap items-center gap-2.5">
           {/* Branch Selector */}
-          <div className="flex items-center bg-white border border-stone-200 rounded-xl px-3 py-1.5 shadow-sm">
-            <Building2 size={16} className="text-stone-400 mr-2 shrink-0" />
+          <div className="flex items-center bg-surface border border-border rounded-xl px-3 py-1.5 shadow-sm">
+            <Building2 size={16} className="text-muted mr-2 shrink-0" />
             <select
               value={selectedBranch}
               onChange={(e) => setSelectedBranch(e.target.value)}
-              className="bg-transparent text-sm font-inter text-stone-800 outline-none cursor-pointer pr-2"
+              className="bg-transparent text-sm font-inter text-foreground outline-none cursor-pointer pr-2"
             >
-              <option value="">All Branches Network</option>
+              <option value="" className="bg-surface text-foreground">All Branches Network</option>
               {branches.map((b: any) => (
-                <option key={b.id} value={b.id}>
+                <option key={b.id} value={b.id} className="bg-surface text-foreground">
                   {b.name} ({b.code})
                 </option>
               ))}
@@ -124,7 +124,7 @@ export default function PnLPageClient() {
           </div>
 
           {/* Date Preset Buttons */}
-          <div className="flex bg-stone-100 p-1 rounded-xl border border-stone-200 text-xs font-inter font-semibold">
+          <div className="flex bg-surface-hover p-1 rounded-xl border border-border text-xs font-inter font-semibold">
             {(
               [
                 { id: "TODAY", label: "Today" },
@@ -143,8 +143,8 @@ export default function PnLPageClient() {
                 }}
                 className={`px-3 py-1.5 rounded-lg transition-all ${
                   datePreset === p.id && !customStartDate
-                    ? "bg-stone-900 text-white shadow-sm"
-                    : "text-stone-600 hover:text-stone-900"
+                    ? "bg-primary text-white shadow-sm font-bold"
+                    : "text-muted hover:text-foreground"
                 }`}
               >
                 {p.label}
@@ -155,83 +155,83 @@ export default function PnLPageClient() {
           <button
             onClick={() => refetch()}
             disabled={isFetching}
-            className="p-2 bg-white border border-stone-200 rounded-xl text-stone-600 hover:text-stone-900 hover:bg-stone-50 transition-all shadow-sm disabled:opacity-50"
+            className="p-2 bg-surface border border-border rounded-xl text-muted hover:text-foreground hover:bg-surface-hover transition-all shadow-sm disabled:opacity-50"
             title="Refresh P&L calculation"
           >
-            <RefreshCw size={16} className={isFetching ? "animate-spin text-amber-600" : ""} />
+            <RefreshCw size={16} className={isFetching ? "animate-spin text-amber-500" : ""} />
           </button>
         </div>
       </div>
 
       {isLoading ? (
-        <div className="flex flex-col items-center justify-center p-16 bg-white rounded-2xl border border-stone-200">
-          <div className="w-10 h-10 border-4 border-amber-600 border-t-transparent rounded-full animate-spin mb-4" />
-          <p className="text-sm font-inter text-stone-500 font-medium">Computing canonical P&L ledger...</p>
+        <div className="flex flex-col items-center justify-center p-16 bg-surface rounded-2xl border border-border">
+          <div className="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mb-4" />
+          <p className="text-sm font-inter text-muted font-medium">Computing canonical P&L ledger...</p>
         </div>
       ) : (
         <>
           {/* Top Primary Financial Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Net Revenue */}
-            <div className="bg-white rounded-2xl border border-stone-200 p-5 shadow-sm flex flex-col justify-between">
-              <div className="flex items-center justify-between text-stone-500 mb-2">
+            <div className="bg-surface rounded-2xl border border-border p-5 shadow-sm flex flex-col justify-between">
+              <div className="flex items-center justify-between text-muted mb-2">
                 <span className="text-xs font-bold uppercase tracking-wider font-inter">Net Revenue</span>
-                <span className="p-2 bg-stone-100 rounded-lg text-stone-700">
+                <span className="p-2 bg-surface-hover rounded-lg text-foreground">
                   <Receipt size={16} />
                 </span>
               </div>
               <div>
-                <span className="text-2xl lg:text-3xl font-extrabold text-stone-900 font-mono tracking-tight">
+                <span className="text-2xl lg:text-3xl font-extrabold text-foreground font-mono tracking-tight">
                   {formatRs(summary.netRevenue)}
                 </span>
-                <p className="text-xs text-stone-500 mt-1 font-inter">
+                <p className="text-xs text-muted mt-1 font-inter">
                   From {summary.totalOrdersCount} completed POS sales
                 </p>
               </div>
             </div>
 
             {/* Total COGS */}
-            <div className="bg-white rounded-2xl border border-stone-200 p-5 shadow-sm flex flex-col justify-between">
-              <div className="flex items-center justify-between text-stone-500 mb-2">
+            <div className="bg-surface rounded-2xl border border-border p-5 shadow-sm flex flex-col justify-between">
+              <div className="flex items-center justify-between text-muted mb-2">
                 <span className="text-xs font-bold uppercase tracking-wider font-inter">Cost of Goods (COGS)</span>
-                <span className="p-2 bg-stone-100 rounded-lg text-stone-700">
+                <span className="p-2 bg-surface-hover rounded-lg text-foreground">
                   <Layers size={16} />
                 </span>
               </div>
               <div>
-                <span className="text-2xl lg:text-3xl font-extrabold text-stone-700 font-mono tracking-tight">
+                <span className="text-2xl lg:text-3xl font-extrabold text-foreground/80 font-mono tracking-tight">
                   {formatRs(summary.cogs.totalCogs)}
                 </span>
-                <p className="text-xs text-stone-500 mt-1 font-inter">
+                <p className="text-xs text-muted mt-1 font-inter">
                   Oil: {formatRs(summary.cogs.oilCogs)} · Non-Oil: {formatRs(summary.cogs.nonOilCogs)}
                 </p>
               </div>
             </div>
 
             {/* Gross Profit */}
-            <div className="bg-white rounded-2xl border border-stone-200 p-5 shadow-sm flex flex-col justify-between">
-              <div className="flex items-center justify-between text-stone-500 mb-2">
+            <div className="bg-surface rounded-2xl border border-border p-5 shadow-sm flex flex-col justify-between">
+              <div className="flex items-center justify-between text-muted mb-2">
                 <span className="text-xs font-bold uppercase tracking-wider font-inter">Gross Profit</span>
-                <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-800 font-mono">
+                <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 font-mono">
                   {summary.grossMarginPercent}% Margin
                 </span>
               </div>
               <div>
-                <span className="text-2xl lg:text-3xl font-extrabold text-amber-600 font-mono tracking-tight">
+                <span className="text-2xl lg:text-3xl font-extrabold text-amber-600 dark:text-amber-400 font-mono tracking-tight">
                   {formatRs(summary.grossProfit)}
                 </span>
-                <p className="text-xs text-stone-500 mt-1 font-inter">Net Revenue minus Inventory Cost</p>
+                <p className="text-xs text-muted mt-1 font-inter">Net Revenue minus Inventory Cost</p>
               </div>
             </div>
 
             {/* Net Retail Profit */}
             <div className={`rounded-2xl border p-5 shadow-sm flex flex-col justify-between ${
-              summary.netProfit >= 0 ? "bg-stone-900 border-stone-900 text-white" : "bg-rose-950 border-rose-900 text-white"
+              summary.netProfit >= 0 ? "bg-surface border-emerald-500/30 text-foreground" : "bg-red-500/10 border-red-500/30 text-foreground"
             }`}>
-              <div className="flex items-center justify-between text-stone-300 mb-2">
+              <div className="flex items-center justify-between text-muted mb-2">
                 <span className="text-xs font-bold uppercase tracking-wider font-inter">Net Retail Profit</span>
                 <span className={`px-2 py-0.5 rounded text-[11px] font-bold font-mono ${
-                  summary.netProfit >= 0 ? "bg-emerald-500/20 text-emerald-400" : "bg-rose-500/20 text-rose-300"
+                  summary.netProfit >= 0 ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" : "bg-red-500/15 text-red-500"
                 }`}>
                   {summary.netMarginPercent}% Net
                 </span>
@@ -265,10 +265,13 @@ export default function PnLPageClient() {
                   {/* Oils Stream */}
                   <div>
                     <div className="flex justify-between text-xs font-inter font-semibold mb-1.5">
-                      <span className="text-stone-700">🛢️ Oils & Lubricants</span>
-                      <span className="text-stone-900 font-mono">{formatRs(summary.cogs.oilRevenue)}</span>
+                      <span className="text-foreground flex items-center gap-1.5">
+                        <Droplets size={14} className="text-amber-500" />
+                        <span>Oils & Lubricants</span>
+                      </span>
+                      <span className="text-foreground font-mono">{formatRs(summary.cogs.oilRevenue)}</span>
                     </div>
-                    <div className="w-full bg-stone-100 rounded-full h-2.5 overflow-hidden">
+                    <div className="w-full bg-border rounded-full h-2.5 overflow-hidden">
                       <div
                         className="bg-amber-600 h-2.5 rounded-full"
                         style={{
@@ -280,7 +283,7 @@ export default function PnLPageClient() {
                         }}
                       />
                     </div>
-                    <span className="text-[11px] text-stone-400 font-mono mt-1 block">
+                    <span className="text-[11px] text-muted font-mono mt-1 block">
                       COGS: {formatRs(summary.cogs.oilCogs)} (Gross: {formatRs(summary.cogs.oilRevenue - summary.cogs.oilCogs)})
                     </span>
                   </div>
@@ -288,8 +291,11 @@ export default function PnLPageClient() {
                   {/* Non-Oil Items Stream */}
                   <div>
                     <div className="flex justify-between text-xs font-inter font-semibold mb-1.5">
-                      <span className="text-stone-700">⚙️ Non-Oil Items (Filters, Batteries, Spares)</span>
-                      <span className="text-stone-900 font-mono">{formatRs(summary.cogs.nonOilRevenue)}</span>
+                      <span className="text-foreground flex items-center gap-1.5">
+                        <Wrench size={14} className="text-blue-500" />
+                        <span>Non-Oil Items (Filters, Batteries, Spares)</span>
+                      </span>
+                      <span className="text-foreground font-mono">{formatRs(summary.cogs.nonOilRevenue)}</span>
                     </div>
                     <div className="w-full bg-stone-100 rounded-full h-2.5 overflow-hidden">
                       <div
@@ -369,22 +375,22 @@ export default function PnLPageClient() {
 
           {/* Section: Multi-Branch Profitability Comparison Table (When viewing All Branches) */}
           {branchComparison.length > 0 && (
-            <div className="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-sm">
-              <div className="p-5 border-b border-stone-200 flex items-center justify-between bg-stone-50">
+            <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm">
+              <div className="p-5 border-b border-border flex items-center justify-between bg-surface-hover/60">
                 <div>
-                  <h3 className="font-bold text-base font-poppins text-stone-900">
+                  <h3 className="font-bold text-base font-poppins text-foreground">
                     Inter-Branch Profitability Comparison
                   </h3>
-                  <p className="text-xs text-stone-500 font-inter">
+                  <p className="text-xs text-muted font-inter">
                     Real-time financial yield comparison across all active retail locations.
                   </p>
                 </div>
               </div>
 
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full text-left border-collapse table-auto min-w-[650px]">
                   <thead>
-                    <tr className="border-b border-stone-200 bg-stone-100/50 text-[11px] font-bold text-stone-600 uppercase tracking-wider font-inter">
+                    <tr className="border-b border-border bg-surface-hover/70 text-[11px] font-bold text-muted uppercase tracking-wider font-inter">
                       <th className="py-3 px-4">Branch</th>
                       <th className="py-3 px-4">Code</th>
                       <th className="py-3 px-4 text-right">Revenue</th>
@@ -392,19 +398,19 @@ export default function PnLPageClient() {
                       <th className="py-3 px-4 text-right">Estimated Net</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-stone-100 text-sm font-inter">
+                  <tbody className="divide-y divide-border text-sm font-inter">
                     {branchComparison.map((b) => (
-                      <tr key={b.branchId} className="hover:bg-stone-50/80 transition-colors">
-                        <td className="py-3.5 px-4 font-semibold text-stone-900">{b.branchName}</td>
-                        <td className="py-3.5 px-4 font-mono text-xs text-stone-500">{b.branchCode}</td>
-                        <td className="py-3.5 px-4 text-right font-mono font-bold text-stone-900">
+                      <tr key={b.branchId} className="hover:bg-surface-hover/50 transition-colors">
+                        <td className="py-3.5 px-4 font-semibold text-foreground">{b.branchName}</td>
+                        <td className="py-3.5 px-4 font-mono text-xs text-muted">{b.branchCode}</td>
+                        <td className="py-3.5 px-4 text-right font-mono font-bold text-foreground">
                           {formatRs(b.revenue)}
                         </td>
-                        <td className="py-3.5 px-4 text-right font-mono text-stone-600">
+                        <td className="py-3.5 px-4 text-right font-mono text-foreground/80">
                           {formatRs(b.expenses)}
                         </td>
                         <td className={`py-3.5 px-4 text-right font-mono font-bold ${
-                          b.estimatedNet >= 0 ? "text-emerald-600" : "text-rose-600"
+                          b.estimatedNet >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-500"
                         }`}>
                           {formatRs(b.estimatedNet)}
                         </td>

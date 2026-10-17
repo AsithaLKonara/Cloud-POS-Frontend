@@ -123,7 +123,7 @@ const ZReportSlip = forwardRef<HTMLDivElement, ZReportProps>((props, ref) => {
           <span>Rs. {expectedClosing.toFixed(2)}</span>
         </div>
         <div className="flex justify-between font-bold">
-          <span>(★) Actual Counted Cash:</span>
+          <span>(*) Actual Counted Cash:</span>
           <span>Rs. {actualClosing.toFixed(2)}</span>
         </div>
         <div className="flex justify-between font-bold text-xs border-t border-black pt-1 mt-0.5">

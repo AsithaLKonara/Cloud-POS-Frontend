@@ -16,7 +16,7 @@ export default function FilterBar({
   onSearchChange,
 }: FilterBarProps) {
   return (
-    <div className="flex flex-col gap-4 bg-surface p-4 rounded-xl border border-border mb-6 shadow-sm">
+    <div className="flex flex-col gap-4 bg-surface p-4 rounded-2xl border border-border mb-6 shadow-sm">
       <div className="flex flex-col md:flex-row items-center gap-4">
         {/* Search */}
         <div className="flex-1 w-full relative">

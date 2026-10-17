@@ -22,7 +22,7 @@ export default function DashboardLayoutClient({ children, session }: { children:
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
 
       {/* Main Layout Area */}
-      <div className="flex-1 flex flex-col md:ml-[224px] h-screen overflow-hidden w-full transition-all">
+      <div className="flex-1 flex flex-col md:ml-[240px] h-screen overflow-hidden w-full transition-all bg-background text-foreground">
         
         {/* Header */}
         <Header onMenuClick={() => setIsSidebarOpen(true)} session={session} />

@@ -247,34 +247,34 @@ export default function AdminReturnsPage() {
       </div>
 
       {/* Data Table */}
-      <div className="bg-white border border-stone-200 rounded-xl shadow-sm overflow-hidden flex flex-col">
+      <div className="bg-surface border border-border rounded-2xl shadow-sm overflow-hidden flex flex-col">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[960px]">
+          <table className="w-full text-left border-collapse table-auto min-w-[900px]">
             <thead>
-              <tr className="bg-stone-50 border-b border-stone-200">
+              <tr className="bg-background border-b border-border">
                 <th className="py-4 px-6 w-12">
-                  <input type="checkbox" checked={selectedRMAs.length === returns.length && returns.length > 0} onChange={handleSelectAll} className="rounded text-stone-900 focus:ring-stone-900 border-stone-300" />
+                  <input type="checkbox" checked={selectedRMAs.length === returns.length && returns.length > 0} onChange={handleSelectAll} className="rounded text-primary focus:ring-primary border-border" />
                 </th>
-                <th className="font-inter font-semibold text-xs text-stone-500 uppercase tracking-wider py-4 px-2">RMA</th>
-                <th className="font-inter font-semibold text-xs text-stone-500 uppercase tracking-wider py-4 px-4">Order</th>
-                <th className="font-inter font-semibold text-xs text-stone-500 uppercase tracking-wider py-4 px-4">Customer</th>
-                <th className="font-inter font-semibold text-xs text-stone-500 uppercase tracking-wider py-4 px-4">Channel</th>
-                <th className="font-inter font-semibold text-xs text-stone-500 uppercase tracking-wider py-4 px-4">Type</th>
-                <th className="font-inter font-semibold text-xs text-stone-500 uppercase tracking-wider py-4 px-4">Date</th>
-                <th className="font-inter font-semibold text-xs text-stone-500 uppercase tracking-wider py-4 px-4">Status</th>
-                <th className="font-inter font-semibold text-xs text-stone-500 uppercase tracking-wider py-4 px-4 text-right">Amount</th>
-                <th className="py-4 px-4"></th>
+                <th className="font-inter font-semibold text-xs text-muted uppercase tracking-wider py-4 px-2">RMA</th>
+                <th className="font-inter font-semibold text-xs text-muted uppercase tracking-wider py-4 px-4">Order</th>
+                <th className="font-inter font-semibold text-xs text-muted uppercase tracking-wider py-4 px-4">Customer</th>
+                <th className="font-inter font-semibold text-xs text-muted uppercase tracking-wider py-4 px-4">Channel</th>
+                <th className="font-inter font-semibold text-xs text-muted uppercase tracking-wider py-4 px-4">Type</th>
+                <th className="font-inter font-semibold text-xs text-muted uppercase tracking-wider py-4 px-4">Date</th>
+                <th className="font-inter font-semibold text-xs text-muted uppercase tracking-wider py-4 px-4">Status</th>
+                <th className="font-inter font-semibold text-xs text-muted uppercase tracking-wider py-4 px-4 text-right">Amount</th>
+                <th className="py-4 px-4 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-stone-100">
+            <tbody className="divide-y divide-border/50">
               {isLoading ? (
                 [...Array(5)].map((_, i) => (
-                  <tr key={i}><td colSpan={10} className="py-3 px-6"><div className="h-5 bg-stone-100 rounded animate-pulse w-full" /></td></tr>
+                  <tr key={i}><td colSpan={10} className="py-3 px-6"><div className="h-5 bg-surface-hover rounded animate-pulse w-full" /></td></tr>
                 ))
               ) : returns.length === 0 ? (
                 <tr>
                   <td colSpan={10} className="py-16 text-center">
-                    <div className="flex flex-col items-center gap-3 text-stone-400">
+                    <div className="flex flex-col items-center gap-3 text-muted">
                       <RotateCcw size={36} className="opacity-30" />
                       <p className="font-inter text-sm font-medium">No returns found</p>
                       <p className="font-inter text-xs">Try adjusting your filters or search terms</p>
@@ -284,42 +284,47 @@ export default function AdminReturnsPage() {
               ) : (
                 returns.map((ret: any) => {
                   const statusInfo = getStatusConfig(ret.status);
-                  const StatusIcon = statusInfo.icon;
                   const originCfg = ORIGIN_LABELS[ret.origin] || ORIGIN_LABELS["COURIER"];
                   const OriginIcon = originCfg.icon;
                   const typeCfg = TYPE_LABELS[ret.type] || TYPE_LABELS["REFUND"];
                   return (
-                    <tr key={ret.id} className={`hover:bg-stone-50 transition-colors ${selectedRMAs.includes(ret.id) ? "bg-stone-50" : ""}`}>
+                    <tr key={ret.id} className={`hover:bg-surface-hover/60 transition-colors ${selectedRMAs.includes(ret.id) ? "bg-surface-hover" : ""}`}>
                       <td className="py-4 px-6">
-                        <input type="checkbox" checked={selectedRMAs.includes(ret.id)} onChange={() => handleSelectOne(ret.id)} className="rounded text-stone-900 focus:ring-stone-900 border-stone-300" />
+                        <input type="checkbox" checked={selectedRMAs.includes(ret.id)} onChange={() => handleSelectOne(ret.id)} className="rounded text-primary focus:ring-primary border-border" />
                       </td>
-                      <td className="py-4 px-2 font-inter font-semibold text-sm text-stone-900 font-mono">{ret.rmaId}</td>
-                      <td className="py-4 px-4 font-inter text-sm text-blue-600 hover:underline cursor-pointer">
-                        {ret.orderId ? ret.orderId : <span className="text-stone-400 font-medium text-xs uppercase">Manual</span>}
+                      <td className="py-4 px-2 font-inter font-semibold text-sm text-foreground font-mono">{ret.rmaId}</td>
+                      <td className="py-4 px-4 font-inter text-sm text-primary hover:underline cursor-pointer">
+                        {ret.orderId ? ret.orderId : <span className="text-muted font-medium text-xs uppercase">Manual</span>}
                       </td>
-                      <td className="py-4 px-4 font-inter text-sm text-stone-700">{ret.customer}</td>
+                      <td className="py-4 px-4 font-inter text-sm text-foreground">{ret.customer}</td>
                       <td className="py-4 px-4">
-                        <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-semibold border ${originCfg.bg} ${originCfg.color} ${originCfg.border}`}>
-                          <OriginIcon size={11} />
+                        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted">
+                          <OriginIcon size={12} className="text-muted" />
                           {originCfg.label}
-                        </div>
+                        </span>
                       </td>
                       <td className="py-4 px-4">
-                        <div className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-semibold border ${typeCfg.bg} ${typeCfg.color} ${typeCfg.border}`}>
+                        <span className="inline-flex items-center text-xs font-medium text-muted">
                           {ret.type === "EXCHANGE" ? "Exchange" : "Refund"}
-                        </div>
+                        </span>
                       </td>
-                      <td className="py-4 px-4 font-inter text-sm text-stone-500">{ret.date}</td>
+                      <td className="py-4 px-4 font-inter text-sm text-muted">{ret.date}</td>
                       <td className="py-4 px-4">
-                        <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider ${statusInfo.bg} ${statusInfo.color}`}>
-                          <StatusIcon size={13} />
-                          {statusInfo.label}
-                        </div>
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-wide">
+                          <span className={`w-1.5 h-1.5 rounded-full ${ret.status === "REFUNDED" ? "bg-emerald-500" : ret.status === "REJECTED" ? "bg-rose-500" : "bg-amber-500"}`} />
+                          <span className={ret.status === "REFUNDED" ? "text-emerald-500" : ret.status === "REJECTED" ? "text-rose-500" : "text-amber-500"}>
+                            {statusInfo.label}
+                          </span>
+                        </span>
                       </td>
-                      <td className="py-4 px-4 font-inter text-sm text-stone-900 text-right font-medium">LKR {ret.amount.toLocaleString()}</td>
+                      <td className="py-4 px-4 font-inter text-sm text-foreground text-right font-medium">LKR {ret.amount.toLocaleString()}</td>
                       <td className="py-4 px-4 text-right">
-                        <Link href={`/admin/returns/${ret.id}`} className="inline-flex items-center justify-center px-3 py-1.5 bg-white border border-stone-300 text-stone-700 font-inter font-medium text-xs rounded hover:bg-stone-50 transition-colors shadow-sm">
-                          Process
+                        <Link 
+                          href={`/admin/returns/${ret.id}`} 
+                          title="Process Return Request"
+                          className="p-1.5 rounded-lg border border-border bg-surface hover:bg-surface-hover text-muted hover:text-primary hover:border-primary transition-all inline-flex items-center justify-center shadow-sm"
+                        >
+                          <RotateCcw size={15} />
                         </Link>
                       </td>
                     </tr>
@@ -329,7 +334,7 @@ export default function AdminReturnsPage() {
             </tbody>
           </table>
         </div>
-        <div className="flex items-center justify-between p-4 border-t border-stone-200 bg-stone-50/50">
+        <div className="flex items-center justify-between p-4 border-t border-border bg-background/50">
           <span className="font-inter text-sm text-stone-500">
             Showing <span className="font-medium text-stone-900">{(page - 1) * 10 + (returns.length > 0 ? 1 : 0)}</span>–<span className="font-medium text-stone-900">{(page - 1) * 10 + returns.length}</span> of <span className="font-medium text-stone-900">{total}</span>
           </span>

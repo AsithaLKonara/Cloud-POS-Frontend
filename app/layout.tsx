@@ -33,6 +33,12 @@ export const metadata: Metadata = {
     default: "Cloud POS & ERP | Inter-Branch Oil Retail System",
   },
   description: "Enterprise Inter-Branch POS, ERP, and CRM System for Oil & Lubricant Retail.",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+  },
 };
 
 import Providers from "./providers";
@@ -45,9 +51,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
-        className={`${poppins.variable} ${orangeAvenue.variable} ${inriaSerif.variable} ${urbanist.variable} antialiased bg-slate-950 text-slate-100`}
+        className={`${poppins.variable} ${orangeAvenue.variable} ${inriaSerif.variable} ${urbanist.variable} antialiased bg-background text-foreground transition-colors min-h-screen`}
       >
         <Providers>
           {children}

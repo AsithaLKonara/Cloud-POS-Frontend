@@ -9,7 +9,7 @@ import { StatusBadge } from "@/components/dashboard/Badges";
 import ProductFormModal from "@/components/dashboard/ProductFormModal";
 import BulkEditModal from "@/components/admin/BulkEditModal";
 import Link from "next/link";
-import { Barcode, Edit, ArchiveRestore, CheckCircle2, Printer, X } from "lucide-react";
+import { Barcode, Edit, ArchiveRestore, CheckCircle2, Printer, X, Pencil, Trash2 } from "lucide-react";
 import BarcodeLib from "react-barcode";
 import { useReactToPrint } from "react-to-print";
 import { useProducts, useDeleteProduct, useBulkEditProducts } from "@/hooks/useProducts";
@@ -113,14 +113,14 @@ export default function ProductsPage() {
       header: "Product & Spec",
       accessor: (row: any) => (
         <div className="flex flex-col text-left">
-          <button onClick={() => handleEdit(row)} className="font-semibold text-stone-900 hover:text-amber-600 transition-colors text-left text-sm">
+          <button onClick={() => handleEdit(row)} className="font-semibold text-foreground hover:text-amber-500 transition-colors text-left text-sm">
             {row.name}
           </button>
-          <div className="flex items-center gap-1.5 mt-0.5 text-xs text-stone-500">
-            {row.brand && <span className="font-medium text-stone-700">{row.brand}</span>}
+          <div className="flex items-center gap-1.5 mt-0.5 text-xs text-muted">
+            {row.brand && <span className="font-medium text-foreground/80">{row.brand}</span>}
             {row.brand && (row.viscosity || row.partNumber) && <span>·</span>}
-            {row.viscosity && <span className="px-1.5 py-0.5 bg-amber-50 text-amber-700 font-mono font-bold rounded text-[10px]">{row.viscosity}</span>}
-            {row.partNumber && <span className="font-mono text-stone-500 text-[11px]">#{row.partNumber}</span>}
+            {row.viscosity && <span className="font-mono font-bold text-amber-600 dark:text-amber-400 text-[11px]">({row.viscosity})</span>}
+            {row.partNumber && <span className="font-mono text-muted text-[11px]">#{row.partNumber}</span>}
           </div>
         </div>
       ),
@@ -129,18 +129,8 @@ export default function ProductsPage() {
       header: "Type",
       accessor: (row: any) => {
         const type = row.productType || "LUBRICANT";
-        const badgeStyles: Record<string, string> = {
-          LUBRICANT: "bg-amber-100 text-amber-800 border-amber-200",
-          FILTER: "bg-blue-100 text-blue-800 border-blue-200",
-          BATTERY: "bg-purple-100 text-purple-800 border-purple-200",
-          CAR_CARE: "bg-emerald-100 text-emerald-800 border-emerald-200",
-          SPARE_PART: "bg-orange-100 text-orange-800 border-orange-200",
-          ACCESSORY: "bg-stone-100 text-stone-800 border-stone-200",
-          SERVICE: "bg-cyan-100 text-cyan-800 border-cyan-200",
-        };
-        const style = badgeStyles[type] || "bg-stone-100 text-stone-700 border-stone-200";
         return (
-          <span className={`px-2 py-0.5 text-[11px] font-semibold rounded-full border ${style}`}>
+          <span className="text-xs font-semibold text-foreground/80">
             {type.replace('_', ' ')}
           </span>
         );
@@ -191,17 +181,28 @@ export default function ProductsPage() {
     {
       header: "Actions",
       accessor: (row: any) => (
-        <div className="flex gap-2 text-xs items-center">
-          <button onClick={() => handleEdit(row)} className="text-blue-600 hover:underline font-medium">Edit</button>
-          <span className="text-stone-300">·</span>
-          <button onClick={() => handleDelete(row.id)} disabled={deleteProductMutation.isPending} className="text-red-500 hover:underline font-medium disabled:opacity-50">Archive</button>
-          <span className="text-stone-300">·</span>
+        <div className="flex gap-1 items-center justify-end">
+          <button 
+            onClick={() => handleEdit(row)} 
+            title="Edit Product"
+            className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-500/10 transition-colors"
+          >
+            <Pencil size={15} />
+          </button>
+          <button 
+            onClick={() => handleDelete(row.id)} 
+            disabled={deleteProductMutation.isPending} 
+            title="Archive Product"
+            className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50"
+          >
+            <Trash2 size={15} />
+          </button>
           <button
             onClick={() => setPrintingProduct({ name: row.name, variants: row.variants || [] })}
-            className="text-stone-500 hover:text-stone-900 transition-colors"
+            className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-muted hover:text-foreground hover:bg-surface-hover transition-colors"
             title="Print Variant Barcodes"
           >
-            <Barcode size={16} />
+            <Barcode size={15} />
           </button>
         </div>
       ),
@@ -213,7 +214,7 @@ export default function ProductsPage() {
       <select 
         value={productTypeFilter}
         onChange={(e) => { setProductTypeFilter(e.target.value); setPage(1); }}
-        className="bg-stone-50 border border-stone-200 rounded-lg py-2 px-3 text-sm font-inter text-stone-700 outline-none focus:ring-1 focus:ring-amber-500/50"
+        className="bg-surface border border-border rounded-xl py-2 px-3 text-sm font-inter text-foreground outline-none focus:ring-1 focus:ring-amber-500"
       >
         <option value="">All Item Types</option>
         <option value="LUBRICANT">Oils & Lubricants</option>
@@ -227,7 +228,7 @@ export default function ProductsPage() {
       <select 
         value={statusFilter}
         onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-        className="bg-stone-50 border border-stone-200 rounded-lg py-2 px-3 text-sm font-inter text-stone-700 outline-none focus:ring-1 focus:ring-amber-500/50"
+        className="bg-surface border border-border rounded-xl py-2 px-3 text-sm font-inter text-foreground outline-none focus:ring-1 focus:ring-amber-500"
       >
         <option value="">All Status</option>
         <option value="ACTIVE">Active</option>
@@ -238,7 +239,7 @@ export default function ProductsPage() {
       </select>
       <button
         onClick={handleAdd}
-        className="bg-amber-600 text-white hover:bg-amber-500 active:scale-95 px-5 py-2 rounded-lg font-inter text-sm font-semibold transition-all whitespace-nowrap ml-auto shadow-md shadow-amber-600/20 flex items-center gap-2"
+        className="bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold active:scale-95 px-5 py-2 rounded-xl font-inter text-sm transition-all whitespace-nowrap ml-auto shadow-sm flex items-center gap-2"
       >
         + Add Item
       </button>
@@ -247,25 +248,27 @@ export default function ProductsPage() {
 
   return (
     <>
-      <div className="flex flex-col p-4 md:p-10 max-w-[1280px] mx-auto w-full">
+      <div className="flex flex-col p-4 md:p-8 max-w-[1400px] mx-auto w-full gap-4">
         <PageHeader
-          title="Products"
-          description="Manage your product catalog, categories, and inventory base."
+          title="Product Catalog & Inventory Items"
+          description="Manage lubricants, viscosities, auto parts, filters, and store catalog items."
         />
 
-        <div className="mb-6"><AdminStatCards metrics={[
-  { title: "Total", value: meta?.total?.toString() || products.length.toString(), theme: "white-blue" },
-  { title: "Active", value: products.filter((p: any) => p.status === "ACTIVE").length.toString(), theme: "white-stone" },
-  { title: "Pending", value: products.filter((p: any) => p.status === "DRAFT").length.toString(), theme: "orange" }
-]} /></div>
-      <FilterBar
+        <div className="mb-2">
+          <AdminStatCards metrics={[
+            { title: "Total Catalog", value: meta?.total?.toString() || products.length.toString(), theme: "white-blue" },
+            { title: "Active SKUs", value: products.filter((p: any) => p.status === "ACTIVE").length.toString(), theme: "white-stone" },
+            { title: "Draft Items", value: products.filter((p: any) => p.status === "DRAFT").length.toString(), theme: "orange" }
+          ]} />
+        </div>
+        <FilterBar
           placeholder="Search products by name or SKU..."
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           filters={filters}
         />
 
-        <div className="bg-white border border-stone-200 rounded-xl shadow-sm overflow-hidden mt-6">
+        <div className="bg-surface border border-border rounded-2xl shadow-sm overflow-hidden mt-4">
           <DataTable
             data={products}
             columns={columns}

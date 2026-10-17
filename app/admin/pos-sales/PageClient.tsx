@@ -1,14 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Loader2, Store, Calendar, FileText, Download, RotateCcw, AlertCircle, Truck, Package, Clock, CheckCircle2, ArrowLeftRight } from "lucide-react";
-import { useBranches } from "@/hooks/useInventory";
-import { useOrders } from "@/hooks/useOrders";
-import { useBranchReport } from "@/hooks/useReports";
-import { useReturns } from "@/hooks/useReturns";
-import { format } from "date-fns";
-import Link from "next/link";
-import { X, ExternalLink } from "lucide-react";
+import { Search, Loader2, Store, Calendar, FileText, Download, RotateCcw, AlertCircle, Truck, Package, Clock, CheckCircle2, ArrowLeftRight, Eye, X, ExternalLink } from "lucide-react";
 
 const formatPrice = (price: number) =>
   new Intl.NumberFormat("en-LK", { style: "currency", currency: "LKR" }).format(price);
@@ -61,12 +54,21 @@ export default function POSSalesClient() {
     setIsSidePanelOpen(true);
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusTextColor = (status: string) => {
     switch (status) {
-      case "COMPLETED": return "bg-emerald-50 text-emerald-700 border-emerald-200";
-      case "PENDING": return "bg-amber-50 text-amber-700 border-amber-200";
-      case "CANCELLED": return "bg-red-50 text-red-700 border-red-200";
-      default: return "bg-stone-50 text-stone-700 border-stone-200";
+      case "COMPLETED": return "text-emerald-600 dark:text-emerald-400";
+      case "PENDING": return "text-amber-600 dark:text-amber-400";
+      case "CANCELLED": return "text-red-600 dark:text-red-400";
+      default: return "text-muted";
+    }
+  };
+
+  const getStatusDotColor = (status: string) => {
+    switch (status) {
+      case "COMPLETED": return "bg-emerald-500";
+      case "PENDING": return "bg-amber-500";
+      case "CANCELLED": return "bg-red-500";
+      default: return "bg-muted";
     }
   };
 
@@ -189,11 +191,11 @@ export default function POSSalesClient() {
               </div>
             </div>
 
-            <div className="bg-surface border border-border rounded-xl overflow-hidden shadow-sm">
+            <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-sm">
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full text-left border-collapse table-auto min-w-[700px]">
                   <thead>
-                    <tr className="bg-stone-50 border-b border-border">
+                    <tr className="bg-surface-hover/70 border-b border-border">
                       <th className="px-6 py-4 font-inter text-xs font-semibold text-muted uppercase tracking-wider">Order ID</th>
                       <th className="px-6 py-4 font-inter text-xs font-semibold text-muted uppercase tracking-wider">Date</th>
                       <th className="px-6 py-4 font-inter text-xs font-semibold text-muted uppercase tracking-wider">Customer</th>
@@ -227,7 +229,7 @@ export default function POSSalesClient() {
                       </tr>
                     ) : (
                       orders.map((order: any) => (
-                        <tr key={order.id} className="hover:bg-stone-50 transition-colors">
+                        <tr key={order.id} className="hover:bg-surface-hover/60 transition-colors">
                           <td className="px-6 py-4"><span className="font-mono text-sm font-semibold text-foreground">{order.orderNumber}</span></td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2 text-sm text-muted font-inter">
@@ -246,13 +248,18 @@ export default function POSSalesClient() {
                           <td className="px-6 py-4 font-inter text-sm text-foreground">{order.items?.length || 0} items</td>
                           <td className="px-6 py-4 font-inter text-sm font-semibold text-foreground">{formatPrice(order.total)}</td>
                           <td className="px-6 py-4">
-                            <span className={`px-2.5 py-1 rounded-full text-xs font-semibold font-inter border ${getStatusColor(order.status)}`}>
+                            <span className={`inline-flex items-center gap-1.5 text-xs font-semibold font-inter ${getStatusTextColor(order.status)}`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${getStatusDotColor(order.status)}`} />
                               {order.status}
                             </span>
                           </td>
                           <td className="px-6 py-4 text-right">
-                            <button onClick={() => openOrderDetails(order)} className="text-primary hover:text-primary-hover font-inter text-sm font-semibold hover:underline">
-                              View Details
+                            <button 
+                              onClick={() => openOrderDetails(order)} 
+                              title="View Order Details"
+                              className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-primary hover:bg-primary-soft transition-colors"
+                            >
+                              <Eye size={16} />
                             </button>
                           </td>
                         </tr>
@@ -328,30 +335,34 @@ export default function POSSalesClient() {
                         const statusInfo = RETURN_STATUS_CONFIG[ret.status] || { icon: RotateCcw, bg: "bg-stone-100", color: "text-stone-700", label: ret.status };
                         const StatusIcon = statusInfo.icon;
                         return (
-                          <tr key={ret.id} className="hover:bg-stone-50 transition-colors">
+                          <tr key={ret.id} className="hover:bg-surface-hover/60 transition-colors">
                             <td className="px-6 py-4 font-mono text-sm font-semibold text-foreground">{ret.rmaId}</td>
-                            <td className="px-6 py-4 font-inter text-sm text-blue-600">
-                              {ret.orderId ? ret.orderId : <span className="text-stone-400 text-xs uppercase">Manual</span>}
+                            <td className="px-6 py-4 font-inter text-sm text-blue-600 dark:text-blue-400">
+                              {ret.orderId ? ret.orderId : <span className="text-muted text-xs uppercase">Manual</span>}
                             </td>
                             <td className="px-6 py-4 font-inter text-sm text-foreground">{ret.customer}</td>
                             <td className="px-6 py-4">
-                              <span className={`px-2 py-1 rounded-md text-xs font-semibold border ${
-                                ret.type === "EXCHANGE" ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-rose-50 text-rose-700 border-rose-200"
+                              <span className={`text-xs font-semibold ${
+                                ret.type === "EXCHANGE" ? "text-amber-600 dark:text-amber-400" : "text-rose-600 dark:text-rose-400"
                               }`}>
                                 {ret.type === "EXCHANGE" ? "Exchange" : "Refund"}
                               </span>
                             </td>
                             <td className="px-6 py-4 font-inter text-sm text-muted">{ret.date}</td>
                             <td className="px-6 py-4">
-                              <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider ${statusInfo.bg} ${statusInfo.color}`}>
-                                <StatusIcon size={12} />
+                              <div className={`inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider ${statusInfo.color}`}>
+                                <StatusIcon size={13} />
                                 {statusInfo.label}
                               </div>
                             </td>
                             <td className="px-6 py-4 font-inter text-sm font-semibold text-foreground text-right">LKR {ret.amount.toLocaleString()}</td>
                             <td className="px-6 py-4 text-right">
-                              <Link href={`/admin/returns/${ret.id}`} className="inline-flex items-center justify-center px-3 py-1.5 bg-white border border-stone-300 text-stone-700 font-inter font-medium text-xs rounded hover:bg-stone-50 transition-colors shadow-sm">
-                                Process
+                              <Link 
+                                href={`/admin/returns/${ret.id}`} 
+                                title="Process Return"
+                                className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-foreground hover:bg-surface-hover transition-colors"
+                              >
+                                <ArrowLeftRight size={16} />
                               </Link>
                             </td>
                           </tr>

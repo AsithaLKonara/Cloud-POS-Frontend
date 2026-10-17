@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, Fragment } from "react";
-import { Search, Star, Check, X, Flag, MessageSquare, Eye } from "lucide-react";
+import { Search, Star, Check, X, Flag, MessageSquare, Eye, AlertTriangle } from "lucide-react";
 import PageHeader from "@/components/admin/PageHeader";
 import { useAllReviews, useUpdateReviewStatus, useReviewStats, useAddReviewReply } from "@/hooks/useReviews";
 
@@ -158,7 +158,7 @@ export default function AdminReviewsPage() {
           { label: "Pending Review", value: stats?.pending || 0, color: "text-orange-600" },
           { label: "Approved", value: stats?.approved || 0, color: "text-emerald-600" },
           { label: "Rejected / Spam", value: stats?.rejected || 0, color: "text-red-600" },
-          { label: "Average Rating", value: `${stats?.averageRating || 0} ★`, color: "text-amber-500" },
+          { label: "Average Rating", value: `${Number(stats?.averageRating || 0).toFixed(1)} / 5.0`, color: "text-amber-500" },
         ].map(({ label, value, color }) => (
           <div key={label} className="bg-white border border-stone-200 rounded-xl p-5 shadow-sm flex flex-col gap-1">
             <span className="font-inter text-xs font-semibold text-stone-500 uppercase tracking-wider">{label}</span>
@@ -284,8 +284,9 @@ export default function AdminReviewsPage() {
                         {st.label}
                       </span>
                       {review.flagged && (
-                        <span className="mt-1.5 block text-[10px] font-bold text-red-600 uppercase tracking-wider">
-                          ⚠ Spam Flagged
+                        <span className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-bold text-red-600 uppercase tracking-wider">
+                          <AlertTriangle size={12} />
+                          <span>Spam Flagged</span>
                         </span>
                       )}
                     </td>

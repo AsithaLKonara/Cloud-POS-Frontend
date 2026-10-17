@@ -5,7 +5,7 @@ import { useOrders, useDispatchOrder } from '@/hooks/useOrders';
 import { Button } from '@/components/ui/Button';
 import ShippingLabelModal from './components/ShippingLabelModal';
 import TrackingSidePanel from './components/TrackingSidePanel';
-import { X, Search } from 'lucide-react';
+import { X, Search, Check, Truck, Navigation, FileText, Loader2 } from 'lucide-react';
 
 export default function ShippingDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -149,8 +149,14 @@ export default function ShippingDashboard() {
           <p className="text-xs font-semibold uppercase tracking-wider mb-2 text-stone-500">Total Shipments</p>
           <p className="text-4xl font-bold text-stone-900">{orders.length}</p>
           <div className="flex gap-2 mt-4 text-[10px] font-semibold">
-            <span className="bg-emerald-50 text-emerald-700 px-2 py-1 rounded">✓ {orders.filter((o:any) => o.status === 'DELIVERED').length} Delivered</span>
-            <span className="bg-stone-100 text-stone-600 px-2 py-1 rounded">✕ {orders.filter((o:any) => o.status === 'CANCELLED').length} Cancelled</span>
+            <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-2 py-1 rounded-lg flex items-center gap-1">
+              <Check size={12} />
+              <span>{orders.filter((o:any) => o.status === 'DELIVERED').length} Delivered</span>
+            </span>
+            <span className="bg-stone-500/10 text-stone-600 dark:text-stone-400 border border-stone-500/20 px-2 py-1 rounded-lg flex items-center gap-1">
+              <X size={12} />
+              <span>{orders.filter((o:any) => o.status === 'CANCELLED').length} Cancelled</span>
+            </span>
           </div>
         </div>
       </div>
@@ -177,109 +183,131 @@ export default function ShippingDashboard() {
         </div>
       </div>
 
-      <div className="bg-white rounded shadow overflow-hidden">
+      <div className="bg-surface border border-border rounded-2xl shadow-sm overflow-hidden">
         {isLoading ? (
-          <div className="p-4">Loading orders...</div>
+          <div className="p-8 text-center text-muted font-inter text-sm">Loading orders...</div>
         ) : (
-          <table className="w-full text-left">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="p-4 w-10">
-                  <input 
-                    type="checkbox" 
-                    onChange={handleSelectAll}
-                    className="w-4 h-4 rounded border-gray-300"
-                  />
-                </th>
-                <th className="p-4">Order ID</th>
-                <th className="p-4">Customer</th>
-                <th className="p-4">Total</th>
-                <th className="p-4">Courier Status</th>
-                <th className="p-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders?.map((order: any) => {
-                const isDispatched = order.status === 'DISPATCHED' || !!order.trackingNumber;
-
-                return (
-                  <tr 
-                    key={order.id} 
-                    className={`border-t cursor-pointer hover:bg-stone-50 transition-colors ${selectedOrderIds.includes(order.id) ? 'bg-blue-50' : ''}`}
-                    onClick={() => openTrackingPanel(order)}
-                  >
-                    <td className="p-4" onClick={(e) => e.stopPropagation()}>
-                      {isDispatched && (
-                        <input 
-                          type="checkbox" 
-                          checked={selectedOrderIds.includes(order.id)}
-                          onChange={(e) => handleSelectOrder(order.id, e.target.checked)}
-                          className="w-4 h-4 rounded border-gray-300"
-                        />
-                      )}
-                    </td>
-                    <td className="p-4 font-medium">{order.orderNumber}</td>
-                    <td className="p-4">
-                      <div>
-                        {order.customer 
-                          ? `${order.customer.firstName || ''} ${order.customer.lastName || ''}` 
-                          : order.shippingAddress?.firstName 
-                            ? `${order.shippingAddress.firstName} ${order.shippingAddress.lastName}`
-                            : 'Guest'}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {order.customer?.phone || order.shippingAddress?.phone || 'N/A'}
-                      </div>
-                    </td>
-                    <td className="p-4">Rs. {order.total.toFixed(2)}</td>
-                    <td className="p-4">
-                      {isDispatched ? (
-                        <div>
-                          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs uppercase">{order.status}</span>
-                          <div className="text-xs mt-1 text-gray-500">{order.trackingNumber}</div>
-                        </div>
-                      ) : (
-                        <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs uppercase">{order.status}</span>
-                      )}
-                    </td>
-                    <td className="p-4 text-right space-x-2" onClick={(e) => e.stopPropagation()}>
-                      {!isDispatched ? (
-                        <Button size="sm" onClick={() => openDispatchModal(order.id)} isLoading={dispatchOrder.isPending && dispatchOrderId === order.id}>
-                          Dispatch & Create Label
-                        </Button>
-                      ) : (
-                        <div className="flex items-center justify-end gap-3">
-                          <button 
-                            onClick={(e) => openTrackingPanel(order, e)}
-                            className="text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors"
-                          >
-                            Track
-                          </button>
-                          {order.trackingNumber && (
-                            <button 
-                              onClick={() => {
-                                setPreviewOrderIds([order.id]);
-                                setIsModalOpen(true);
-                              }}
-                              className="text-sm text-blue-600 hover:underline inline-block font-medium"
-                            >
-                              View Label
-                            </button>
-                          )}
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-              
-              {orders?.length === 0 && (
+          <div className="overflow-x-auto w-full">
+            <table className="w-full text-left table-auto min-w-[760px] border-collapse">
+              <thead className="bg-background border-b border-border">
                 <tr>
-                  <td colSpan={6} className="p-4 text-center text-gray-500">No orders found.</td>
+                  <th className="p-4 w-10">
+                    <input 
+                      type="checkbox" 
+                      onChange={handleSelectAll}
+                      className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
+                    />
+                  </th>
+                  <th className="p-4 font-inter font-semibold text-xs text-muted uppercase tracking-wider">Order ID</th>
+                  <th className="p-4 font-inter font-semibold text-xs text-muted uppercase tracking-wider">Customer</th>
+                  <th className="p-4 font-inter font-semibold text-xs text-muted uppercase tracking-wider">Total</th>
+                  <th className="p-4 font-inter font-semibold text-xs text-muted uppercase tracking-wider">Courier Status</th>
+                  <th className="p-4 text-right font-inter font-semibold text-xs text-muted uppercase tracking-wider">Actions</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-border/50">
+                {orders?.map((order: any) => {
+                  const isDispatched = order.status === 'DISPATCHED' || !!order.trackingNumber;
+
+                  return (
+                    <tr 
+                      key={order.id} 
+                      className={`cursor-pointer hover:bg-surface-hover/70 transition-colors ${selectedOrderIds.includes(order.id) ? 'bg-surface-hover' : ''}`}
+                      onClick={() => openTrackingPanel(order)}
+                    >
+                      <td className="p-4" onClick={(e) => e.stopPropagation()}>
+                        {isDispatched && (
+                          <input 
+                            type="checkbox" 
+                            checked={selectedOrderIds.includes(order.id)}
+                            onChange={(e) => handleSelectOrder(order.id, e.target.checked)}
+                            className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
+                          />
+                        )}
+                      </td>
+                      <td className="p-4 font-medium text-foreground font-mono text-sm">{order.orderNumber}</td>
+                      <td className="p-4">
+                        <div className="text-sm font-medium text-foreground">
+                          {order.customer 
+                            ? `${order.customer.firstName || ''} ${order.customer.lastName || ''}` 
+                            : order.shippingAddress?.firstName 
+                              ? `${order.shippingAddress.firstName} ${order.shippingAddress.lastName}`
+                              : 'Guest'}
+                        </div>
+                        <div className="text-xs text-muted font-mono">
+                          {order.customer?.phone || order.shippingAddress?.phone || 'N/A'}
+                        </div>
+                      </td>
+                      <td className="p-4 font-medium text-foreground text-sm font-mono">Rs. {order.total.toFixed(2)}</td>
+                      <td className="p-4">
+                        {isDispatched ? (
+                          <div className="flex flex-col">
+                            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-500">
+                              <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                              {order.status}
+                            </span>
+                            <span className="text-[11px] font-mono text-muted mt-0.5">{order.trackingNumber}</span>
+                          </div>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-500">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                            {order.status}
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-4 text-right" onClick={(e) => e.stopPropagation()}>
+                        {!isDispatched ? (
+                          <button
+                            type="button"
+                            onClick={() => openDispatchModal(order.id)}
+                            disabled={dispatchOrder.isPending && dispatchOrderId === order.id}
+                            title="Dispatch & Create Shipping Label"
+                            className="p-1.5 rounded-lg border border-primary/20 bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all inline-flex items-center justify-center shadow-sm disabled:opacity-50"
+                          >
+                            {dispatchOrder.isPending && dispatchOrderId === order.id ? (
+                              <Loader2 size={15} className="animate-spin" />
+                            ) : (
+                              <Truck size={15} />
+                            )}
+                          </button>
+                        ) : (
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button 
+                              type="button"
+                              onClick={(e) => openTrackingPanel(order, e)}
+                              title="Track Shipment"
+                              className="p-1.5 rounded-lg border border-border bg-surface hover:bg-surface-hover text-muted hover:text-foreground transition-all inline-flex items-center justify-center shadow-sm"
+                            >
+                              <Navigation size={15} />
+                            </button>
+                            {order.trackingNumber && (
+                              <button 
+                                type="button"
+                                onClick={() => {
+                                  setPreviewOrderIds([order.id]);
+                                  setIsModalOpen(true);
+                                }}
+                                title="View Courier Label"
+                                className="p-1.5 rounded-lg border border-border bg-surface hover:bg-surface-hover text-primary hover:border-primary transition-all inline-flex items-center justify-center shadow-sm"
+                              >
+                                <FileText size={15} />
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+                
+                {orders?.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="p-8 text-center text-muted font-inter text-sm">No orders found.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 

@@ -306,9 +306,9 @@ export default function CustomerSelectionModal({ onClose, onSelect, activeSessio
               <div className="flex flex-col gap-1.5">
                 <label className="font-inter font-bold text-xs text-foreground">Account Classification</label>
                 <select {...register("customerType")} className="input">
-                  <option value="GARAGE_WORKSHOP">🔧 Garage / Auto Repair Workshop</option>
-                  <option value="COMMERCIAL_FLEET">🚛 Commercial Vehicle Fleet</option>
-                  <option value="RETAIL">🚗 Individual Retail Driver</option>
+                  <option value="GARAGE_WORKSHOP">Garage / Auto Repair Workshop</option>
+                  <option value="COMMERCIAL_FLEET">Commercial Vehicle Fleet</option>
+                  <option value="RETAIL">Individual Retail Driver</option>
                 </select>
               </div>
 

@@ -15,6 +15,10 @@ import {
   Wrench,
   Printer,
   Sparkles,
+  Droplets,
+  Zap,
+  FlaskConical,
+  Car,
 } from "lucide-react";
 import BarcodeLib from "react-barcode";
 import { useReactToPrint } from "react-to-print";
@@ -51,14 +55,14 @@ interface ProductFormModalProps {
 }
 
 const PRODUCT_TYPES = [
-  { value: "LUBRICANT", label: "🛢️ Lubricant / Engine Oil", desc: "Engine oil, Gear oil, ATF, Hydraulic fluid" },
-  { value: "FILTER", label: "⚙️ Oil / Air / Cabin Filter", desc: "Spin-on, Cartridge, Air, Cabin, Fuel filters" },
-  { value: "BATTERY", label: "🔋 Automotive Battery", desc: "Maintenance-free, AGM, EFB automotive batteries" },
-  { value: "CAR_CARE", label: "🧪 Coolant & Car Care Fluid", desc: "Radiator coolant, Brake fluid, Additives, Flushes" },
-  { value: "SPARE_PART", label: "⚡ Spare Part & Spark Plug", desc: "Spark plugs, Belts, Wiper blades, Bulbs" },
-  { value: "ACCESSORY", label: "🚗 Vehicle Accessory", desc: "Car accessories and maintenance tools" },
-  { value: "SERVICE", label: "🔧 Labor & Service Package", desc: "Oil change labor, Filter replacement, Inspection" },
-  { value: "GENERAL", label: "📦 General Merchandise", desc: "Other retail items" },
+  { value: "LUBRICANT", label: "Lubricant / Engine Oil", icon: Droplets, desc: "Engine oil, Gear oil, ATF, Hydraulic fluid" },
+  { value: "FILTER", label: "Oil / Air / Cabin Filter", icon: Wrench, desc: "Spin-on, Cartridge, Air, Cabin, Fuel filters" },
+  { value: "BATTERY", label: "Automotive Battery", icon: Zap, desc: "Maintenance-free, AGM, EFB automotive batteries" },
+  { value: "CAR_CARE", label: "Coolant & Car Care Fluid", icon: FlaskConical, desc: "Radiator coolant, Brake fluid, Additives, Flushes" },
+  { value: "SPARE_PART", label: "Spare Part & Spark Plug", icon: Sparkles, desc: "Spark plugs, Belts, Wiper blades, Bulbs" },
+  { value: "ACCESSORY", label: "Vehicle Accessory", icon: Car, desc: "Car accessories and maintenance tools" },
+  { value: "SERVICE", label: "Labor & Service Package", icon: Wrench, desc: "Oil change labor, Filter replacement, Inspection" },
+  { value: "GENERAL", label: "General Merchandise", icon: Package, desc: "Other retail items" },
 ];
 
 const COMMON_VISCOSITIES = [
@@ -481,23 +485,30 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
                 <div className="flex flex-col gap-2">
                   <label className="label">Item Category & Classification <span className="text-red-500">*</span></label>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                    {PRODUCT_TYPES.map(type => (
-                      <button
-                        key={type.value}
-                        type="button"
-                        onClick={() => setValue("productType", type.value as any)}
-                        className={`p-3 text-left rounded-xl border transition-all flex flex-col justify-between ${
-                          currentProductType === type.value
-                            ? "border-stone-900 bg-stone-900 text-white shadow-sm"
-                            : "border-stone-200 bg-white hover:border-stone-300 text-stone-800 hover:bg-stone-50"
-                        }`}
-                      >
-                        <span className="text-xs font-bold leading-tight">{type.label}</span>
-                        <span className={`text-[10px] mt-1 line-clamp-2 ${currentProductType === type.value ? "text-stone-300" : "text-stone-400"}`}>
-                          {type.desc}
-                        </span>
-                      </button>
-                    ))}
+                    {PRODUCT_TYPES.map(type => {
+                      const Icon = type.icon;
+                      const isSelected = currentProductType === type.value;
+                      return (
+                        <button
+                          key={type.value}
+                          type="button"
+                          onClick={() => setValue("productType", type.value as any)}
+                          className={`p-3 text-left rounded-xl border transition-all flex flex-col justify-between ${
+                            isSelected
+                              ? "border-amber-500 bg-amber-500/10 text-amber-500 shadow-sm"
+                              : "border-border bg-surface hover:border-amber-500/40 text-foreground hover:bg-background"
+                          }`}
+                        >
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <Icon size={14} className={isSelected ? "text-amber-500" : "text-muted"} />
+                            <span className="text-xs font-bold leading-tight">{type.label}</span>
+                          </div>
+                          <span className={`text-[10px] mt-0.5 line-clamp-2 ${isSelected ? "text-amber-500/80" : "text-muted"}`}>
+                            {type.desc}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 

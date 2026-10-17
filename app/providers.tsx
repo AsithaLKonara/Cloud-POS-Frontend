@@ -34,6 +34,8 @@ function AuthInitializer() {
   return null;
 }
 
+import { ThemeProvider } from "@/components/theme/ThemeProvider";
+
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
     () =>
@@ -51,9 +53,11 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <CsrfInitializer />
-      <AuthInitializer />
-      {children}
+      <ThemeProvider>
+        <CsrfInitializer />
+        <AuthInitializer />
+        {children}
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import PageHeader from "@/components/dashboard/PageHeader";
 import DataTable from "@/components/dashboard/DataTable";
 import StatCard from "@/components/dashboard/StatCard";
-import { PaymentGatewayBadge } from "@/components/dashboard/Badges";
+import { PaymentGatewayBadge, StatusBadge } from "@/components/dashboard/Badges";
 import { useState, useMemo } from "react";
 import { usePaymentTransactions, usePaymentKpis } from "@/hooks/usePayments";
 import { api } from "@/services/api";
@@ -72,7 +72,10 @@ export default function PaymentsPage() {
       accessor: (row: any) => <PaymentGatewayBadge gateway={row.gateway} status={row.status.toLowerCase()} /> 
     },
     { header: "Amount", accessor: "amountStr" as const },
-    { header: "Status", accessor: "status" as const },
+    { 
+      header: "Status", 
+      accessor: (row: any) => <StatusBadge status={row.status.toLowerCase()} /> 
+    },
     { header: "Date", accessor: "date" as const },
   ];
 
@@ -327,8 +330,8 @@ export default function PaymentsPage() {
       {activeTab === "Gateways" && (
         <div className="flex flex-col gap-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-white border border-stone-200 rounded-xl p-6 shadow-sm flex flex-col items-center justify-center min-h-[400px]">
-              <h3 className="font-inter font-semibold text-stone-800 mb-6 text-lg self-start">Volume by Gateway</h3>
+            <div className="bg-surface border border-border rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center min-h-[400px]">
+              <h3 className="font-inter font-semibold text-foreground mb-6 text-lg self-start">Volume by Gateway</h3>
               {kpis.gatewayData.length > 0 ? (
                 <div className="h-[300px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
@@ -352,37 +355,37 @@ export default function PaymentsPage() {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <div className="text-stone-500 font-inter text-sm">No data available</div>
+                <div className="text-muted font-inter text-sm">No data available</div>
               )}
             </div>
 
-            <div className="bg-white border border-stone-200 rounded-xl shadow-sm overflow-hidden">
-              <div className="p-6 border-b border-stone-200">
-                <h3 className="font-inter font-semibold text-stone-800 text-lg">Gateway Performance</h3>
+            <div className="bg-surface border border-border rounded-2xl shadow-sm overflow-hidden">
+              <div className="p-6 border-b border-border">
+                <h3 className="font-inter font-semibold text-foreground text-lg">Gateway Performance</h3>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full text-left border-collapse table-auto">
                   <thead>
-                    <tr className="bg-stone-50 border-b border-stone-200">
-                      <th className="py-3 px-6 text-xs font-semibold text-stone-600 uppercase tracking-wider">Gateway</th>
-                      <th className="py-3 px-6 text-xs font-semibold text-stone-600 uppercase tracking-wider text-right">Transactions</th>
-                      <th className="py-3 px-6 text-xs font-semibold text-stone-600 uppercase tracking-wider text-right">Collected Value</th>
+                    <tr className="bg-background border-b border-border">
+                      <th className="py-3 px-6 text-xs font-semibold text-muted uppercase tracking-wider">Gateway</th>
+                      <th className="py-3 px-6 text-xs font-semibold text-muted uppercase tracking-wider text-right">Transactions</th>
+                      <th className="py-3 px-6 text-xs font-semibold text-muted uppercase tracking-wider text-right">Collected Value</th>
                     </tr>
                   </thead>
                   <tbody>
                     {kpis.gatewayData.map((entry: any, i: number) => (
-                      <tr key={i} className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
-                        <td className="py-4 px-6 text-sm font-medium text-stone-900 flex items-center gap-3">
-                          <span className="w-3 h-3 rounded-full" style={{ backgroundColor: GATEWAY_COLORS[entry.name] || '#94a3b8' }}></span>
+                      <tr key={i} className="border-b border-border/50 hover:bg-surface-hover transition-colors">
+                        <td className="py-4 px-6 text-sm font-medium text-foreground flex items-center gap-3">
+                          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: GATEWAY_COLORS[entry.name] || '#94a3b8' }}></span>
                           {entry.name}
                         </td>
-                        <td className="py-4 px-6 text-sm text-stone-600 text-right">{entry.transactions}</td>
-                        <td className="py-4 px-6 text-sm font-medium text-stone-900 text-right">Rs. {entry.value.toLocaleString()}</td>
+                        <td className="py-4 px-6 text-sm text-muted text-right">{entry.transactions}</td>
+                        <td className="py-4 px-6 text-sm font-medium text-foreground text-right">Rs. {entry.value.toLocaleString()}</td>
                       </tr>
                     ))}
                     {kpis.gatewayData.length === 0 && (
                       <tr>
-                        <td colSpan={3} className="py-8 text-center text-sm text-stone-500">No data available</td>
+                        <td colSpan={3} className="py-8 text-center text-sm text-muted">No data available</td>
                       </tr>
                     )}
                   </tbody>
@@ -394,16 +397,16 @@ export default function PaymentsPage() {
       )}
 
       {activeTab === "Reports" && (
-        <div className="bg-white border border-stone-200 rounded-xl p-8 shadow-sm flex flex-col items-center justify-center min-h-[300px] text-center">
-          <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 mb-4">
+        <div className="bg-surface border border-border rounded-2xl p-8 shadow-sm flex flex-col items-center justify-center min-h-[300px] text-center">
+          <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-500 mb-4">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
           </div>
-          <h3 className="font-inter font-bold text-stone-900 text-xl mb-2">Financial Accounting Reports</h3>
-          <p className="text-stone-500 max-w-md mb-6">Generate and download comprehensive CSV reports of all transactions, refunds, and net revenue for accounting software integration.</p>
+          <h3 className="font-inter font-bold text-foreground text-xl mb-2">Financial Accounting Reports</h3>
+          <p className="text-muted max-w-md mb-6">Generate and download comprehensive CSV reports of all transactions, refunds, and net revenue for accounting software integration.</p>
           <button 
             onClick={handleDownloadCSV}
             disabled={isExporting}
-            className="bg-stone-900 hover:bg-stone-800 disabled:bg-stone-400 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+            className="bg-primary hover:bg-primary/90 disabled:opacity-50 text-white font-medium py-2 px-6 rounded-xl transition-colors flex items-center justify-center gap-2"
           >
             {isExporting ? (
               <>

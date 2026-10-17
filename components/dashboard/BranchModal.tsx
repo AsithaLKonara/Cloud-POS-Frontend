@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useCreateBranch, useUpdateBranch } from "@/hooks/useInventory";
 import { globalDialog } from "@/store/dialog.store";
+import { X } from "lucide-react";
 
 export default function BranchModal({ 
   isOpen, 
@@ -68,8 +69,8 @@ export default function BranchModal({
           <h2 className="text-xl font-bold text-stone-800">
             {branchToEdit ? "Edit Branch" : "Add New Branch"}
           </h2>
-          <button onClick={onClose} className="text-stone-400 hover:text-stone-700 transition">
-            ✕
+          <button onClick={onClose} className="text-muted hover:text-foreground transition-colors p-1 rounded-lg" aria-label="Close modal">
+            <X size={20} />
           </button>
         </div>
         

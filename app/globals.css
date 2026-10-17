@@ -4,23 +4,27 @@
 
 @layer base {
   :root {
-    --background: #F9FAFB;
-    --foreground: #111827;
+    --radius: 0.75rem;
+
+    /* Calm, Low-Glare Light Theme (Soft Slate & Warm Petroleum Amber) */
+    --background: #F8FAFC;
+    --foreground: #0F172A;
 
     --surface: #FFFFFF;
     --surface-elevated: #FFFFFF;
 
-    --primary: #111827;
-    --primary-hover: #1F2937;
+    --primary: #D97706;
+    --primary-hover: #B45309;
+    --primary-soft: #FEF3C7;
 
-    --accent: #F97316;
-    --accent-soft: #FFEDD5;
+    --accent: #D97706;
+    --accent-soft: #FEF3C7;
 
-    --text-primary: #111827;
-    --text-secondary: #6B7280;
+    --text-primary: #0F172A;
+    --text-secondary: #475569;
     
-    --muted: #9CA3AF;
-    --border: #E5E7EB;
+    --muted: #64748B;
+    --border: #E2E8F0;
 
     --success: #10B981;
     --success-soft: #D1FAE5;
@@ -31,16 +35,52 @@
     --error: #EF4444;
     --error-soft: #FEE2E2;
 
-    --info: #3B82F6;
+    --info: #2563EB;
     --info-soft: #DBEAFE;
   }
 
+  .dark {
+    /* Deep, Premium Dark Theme (Obsidian Slate & Luminous Petroleum Gold) */
+    --background: #090D16;
+    --foreground: #F8FAFC;
+
+    --surface: #111827;
+    --surface-elevated: #1E293B;
+
+    --primary: #F59E0B;
+    --primary-hover: #D97706;
+    --primary-soft: rgba(245, 158, 11, 0.15);
+
+    --accent: #F59E0B;
+    --accent-soft: rgba(245, 158, 11, 0.15);
+
+    --text-primary: #F8FAFC;
+    --text-secondary: #94A3B8;
+    
+    --muted: #64748B;
+    --border: #1E293B;
+
+    --success: #10B981;
+    --success-soft: rgba(16, 185, 129, 0.15);
+
+    --warning: #F59E0B;
+    --warning-soft: rgba(245, 158, 11, 0.15);
+
+    --error: #EF4444;
+    --error-soft: rgba(239, 68, 68, 0.15);
+
+    --info: #3B82F6;
+    --info-soft: rgba(59, 130, 246, 0.15);
+  }
+
   .dashboard-theme {
-    --primary: #F97316;
-    --primary-hover: #EA580C;
-    --accent: #F97316;
-    --accent-soft: #FFEDD5;
-    --background: #f5f5f4; /* stone-100 */
+    /* Inherits CSS variables dynamically from :root / .dark */
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+
+  * {
+    border-color: var(--border);
   }
 }
 

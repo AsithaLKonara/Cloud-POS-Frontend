@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Truck, CheckCircle2 } from "lucide-react";
+import { X, Truck, CheckCircle2, Info } from "lucide-react";
 import { useUpdateOrderStatus } from "@/hooks/useOrders";
 
 interface FardarDispatchModalProps {
@@ -88,8 +88,8 @@ export default function FardarDispatchModal({ orderIds, onClose, onSuccess }: Fa
               ))}
             </div>
 
-            <div className="flex items-start gap-3 p-3 bg-blue-50 border border-blue-100 rounded-lg text-blue-800 text-sm font-inter">
-              <span className="mt-0.5">ℹ️</span>
+            <div className="flex items-start gap-3 p-3 bg-blue-50/60 border border-blue-200/60 rounded-xl text-blue-900 text-sm font-inter">
+              <Info size={16} className="shrink-0 mt-0.5 text-blue-600" />
               <p>Customers will automatically receive an email with their Fardar tracking link once dispatched.</p>
             </div>
           </div>

@@ -1,40 +1,53 @@
 import { CheckCircle2, Clock, XCircle, Undo2, MapPin } from "lucide-react";
 
 interface BadgeProps {
-  label: string;
+  label?: string;
+  status?: string;
   variant?: 'success' | 'warning' | 'error' | 'info' | 'neutral' | 'purple';
   icon?: React.ReactNode;
   dot?: boolean;
 }
 
-export function StatusBadge({ label, variant = 'neutral', icon, dot = false }: BadgeProps) {
-  const getStyles = () => {
-    switch (variant) {
-      case 'success': return 'bg-success-soft text-success border-success/30 ring-success/20';
-      case 'warning': return 'bg-warning-soft text-warning border-warning/30 ring-warning/20';
-      case 'error': return 'bg-error-soft text-error border-error/30 ring-error/20';
-      case 'info': return 'bg-info-soft text-info border-info/30 ring-info/20';
-      case 'purple': return 'bg-accent-soft text-accent border-accent/30 ring-accent/20';
-      default: return 'bg-background text-muted border-border ring-border/20';
+export function StatusBadge({ label, status, variant, icon, dot = true }: BadgeProps) {
+  const displayLabel = label || status || '';
+  
+  // Infer variant if not provided
+  const resolvedVariant = variant || (() => {
+    const s = (status || label || '').toLowerCase();
+    if (['paid', 'completed', 'delivered', 'active', 'operational', 'success', 'refunded'].includes(s)) return 'success';
+    if (['pending', 'processing', 'in_transit', 'transit', 'awaiting item', 'inspecting', 'requested'].includes(s)) return 'warning';
+    if (['failed', 'cancelled', 'rejected', 'error', 'inactive', 'maintenance'].includes(s)) return 'error';
+    if (['info', 'dispatched'].includes(s)) return 'info';
+    return 'neutral';
+  })();
+
+  const getTextColor = () => {
+    switch (resolvedVariant) {
+      case 'success': return 'text-emerald-600 dark:text-emerald-400';
+      case 'warning': return 'text-amber-600 dark:text-amber-400';
+      case 'error': return 'text-red-600 dark:text-red-400';
+      case 'info': return 'text-blue-600 dark:text-blue-400';
+      case 'purple': return 'text-purple-600 dark:text-purple-400';
+      default: return 'text-muted';
     }
   };
 
   const getDotColor = () => {
-    switch (variant) {
-      case 'success': return 'bg-success';
-      case 'warning': return 'bg-warning';
-      case 'error': return 'bg-error';
-      case 'info': return 'bg-info';
-      case 'purple': return 'bg-accent';
+    switch (resolvedVariant) {
+      case 'success': return 'bg-emerald-500';
+      case 'warning': return 'bg-amber-500';
+      case 'error': return 'bg-red-500';
+      case 'info': return 'bg-blue-500';
+      case 'purple': return 'bg-purple-500';
       default: return 'bg-muted';
     }
   };
 
   return (
-    <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-semibold font-inter tracking-wide uppercase ${getStyles()}`}>
+    <div className={`inline-flex items-center gap-1.5 text-xs font-semibold font-inter ${getTextColor()}`}>
       {dot && <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${getDotColor()}`} />}
       {icon && <span className="shrink-0">{icon}</span>}
-      {label}
+      <span className="capitalize">{displayLabel}</span>
     </div>
   );
 }

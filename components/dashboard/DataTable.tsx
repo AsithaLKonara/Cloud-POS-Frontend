@@ -30,7 +30,7 @@ export default function DataTable<T>({
   return (
     <div className="flex flex-col overflow-hidden w-full">
       <div className="overflow-x-auto w-full">
-        <table className="w-full text-left border-collapse">
+        <table className="w-full text-left border-collapse table-auto">
           <thead>
             <tr className="bg-background border-b border-border">
               {columns.map((col, idx) => (
