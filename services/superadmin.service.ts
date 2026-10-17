@@ -118,4 +118,12 @@ export const superAdminService = {
     const res = await api.get('/superadmin/cluster');
     return res.data.data;
   },
+
+  async getTelemetry(): Promise<ClusterTelemetry> {
+    return this.getClusterTelemetry();
+  },
+
+  async recordExpense(expense: Omit<PlatformExpenseItem, 'id' | 'recordedAt'>): Promise<PlatformExpenseItem> {
+    return this.addExpense(expense);
+  },
 };

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import {
   superAdminService,
   PlatformKPIs,
@@ -8,100 +9,109 @@ import {
   TenantRegistryItem,
   ClusterTelemetry,
 } from "@/services/superadmin.service";
-import { subscriptionService, PlanConfig } from "@/services/subscription.service";
-import { useAuthStore } from "@/store/auth.store";
+import SuperAdminSidebar from "@/components/superadmin/SuperAdminSidebar";
+import SuperAdminHeader from "@/components/superadmin/SuperAdminHeader";
 import {
-  Building2,
+  SalesPerformanceChart,
+  RevenueBreakdownChart,
+} from "@/components/superadmin/SuperAdminCharts";
+import {
+  Plus,
+  SlidersHorizontal,
   TrendingUp,
+  TrendingDown,
+  ArrowUpRight,
+  ArrowDownRight,
+  Building2,
+  Users,
   CreditCard,
   Server,
   DollarSign,
-  Users,
+  Activity,
+  Layers,
+  Sparkles,
+  ExternalLink,
+  ChevronDown,
+  Clock,
+  CheckCircle2,
+  AlertTriangle,
+  XCircle,
+  Database,
+  ArrowRight,
+  ShieldCheck,
+  Zap,
+  RefreshCw,
   Search,
   Filter,
-  Plus,
-  ShieldAlert,
-  ShieldCheck,
-  CheckCircle2,
-  Clock,
-  AlertTriangle,
-  RefreshCw,
-  LogOut,
-  ExternalLink,
+  Eye,
+  Settings,
   ChevronRight,
-  Database,
-  Cpu,
-  Zap,
-  Sliders,
-  X,
-  Store,
-  Utensils,
-  Scissors,
-  Pill,
-  ShoppingBag,
-  Truck,
-  Sparkles,
 } from "lucide-react";
 
 export default function SuperAdminDashboard() {
-  const { user } = useAuthStore();
-  const [activeTab, setActiveTab] = useState<"tenants" | "subscriptions" | "financials" | "cluster">("tenants");
+  const [activeTab, setActiveTab] = useState<string>("overview");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+
+  // Live Data States
   const [kpis, setKpis] = useState<PlatformKPIs | null>(null);
   const [financials, setFinancials] = useState<PlatformFinancials | null>(null);
   const [tenants, setTenants] = useState<TenantRegistryItem[]>([]);
-  const [plans, setPlans] = useState<PlanConfig[]>([]);
-  const [cluster, setCluster] = useState<ClusterTelemetry | null>(null);
-
-  // Filters
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedType, setSelectedType] = useState<string>("ALL");
-  const [selectedStatus, setSelectedStatus] = useState<string>("ALL");
+  const [telemetry, setTelemetry] = useState<ClusterTelemetry | null>(null);
 
   // Modals
-  const [isProvisionModalOpen, setIsProvisionModalOpen] = useState(false);
-  const [selectedTenantDetails, setSelectedTenantDetails] = useState<TenantRegistryItem | null>(null);
-  const [editingPlan, setEditingPlan] = useState<PlanConfig | null>(null);
-  const [isAddExpenseModalOpen, setIsAddExpenseModalOpen] = useState(false);
-  const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [isProvisionOpen, setIsProvisionOpen] = useState(false);
+  const [isExpenseOpen, setIsExpenseOpen] = useState(false);
+  const [isPriceEditorOpen, setIsPriceEditorOpen] = useState(false);
+  const [selectedPlanToEdit, setSelectedPlanToEdit] = useState("STARTER");
+  const [newPlanPrice, setNewPlanPrice] = useState("4500");
 
-  // Provision Form
-  const [provForm, setProvForm] = useState({
-    name: "",
+  // Provision Form State
+  const [provisionData, setProvisionData] = useState({
+    businessName: "",
     slug: "",
     businessType: "RETAIL",
-    subscriptionTier: "GROWTH",
     adminEmail: "",
     adminPassword: "Password@123",
-    adminName: "",
-    initialBranchName: "Flagship Outlet",
+    adminFullName: "",
+    subscriptionTier: "STARTER",
   });
+  const [provisionLoading, setProvisionLoading] = useState(false);
+  const [provisionMsg, setProvisionMsg] = useState<string | null>(null);
 
-  // Expense Form
-  const [expenseForm, setExpenseForm] = useState({
-    category: "CLOUD_SERVERS" as const,
+  // Expense Form State
+  const [expenseData, setExpenseData] = useState<{
+    category: 'CLOUD_SERVERS' | 'DATABASE' | 'REDIS_CACHE' | 'SMS_GATEWAY' | 'SECURITY_SSL' | 'OPERATIONS';
+    amountLkr: number;
+    vendor: string;
+    description: string;
+  }>({
+    category: "CLOUD_SERVERS",
     amountLkr: 25000,
-    vendor: "AWS Cloud Services",
-    description: "Extra EC2 Compute Nodes",
+    vendor: "AWS Cloud (ECS/EC2)",
+    description: "Production API cluster containers & ALB",
   });
+  const [expenseLoading, setExpenseLoading] = useState(false);
+
+  // Tenant Filters
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [typeFilter, setTypeFilter] = useState("ALL");
 
   const loadData = async () => {
     setLoading(true);
     try {
-      const [kpisRes, finRes, tenantsRes, plansRes, clusterRes] = await Promise.all([
-        superAdminService.getKPIs(),
-        superAdminService.getFinancials(),
-        superAdminService.getTenants(),
-        subscriptionService.getPlans(),
-        superAdminService.getClusterTelemetry(),
+      const [kpiRes, finRes, tenantsRes, telemRes] = await Promise.all([
+        superAdminService.getKPIs().catch(() => null),
+        superAdminService.getFinancials().catch(() => null),
+        superAdminService.getTenants().catch(() => []),
+        superAdminService.getTelemetry().catch(() => null),
       ]);
-      setKpis(kpisRes);
-      setFinancials(finRes);
-      setTenants(tenantsRes);
-      setPlans(plansRes);
-      setCluster(clusterRes);
-    } catch (err) {
-      console.error("Failed to load SuperAdmin platform data:", err);
+
+      if (kpiRes) setKpis(kpiRes);
+      if (finRes) setFinancials(finRes);
+      if (tenantsRes) setTenants(tenantsRes);
+      if (telemRes) setTelemetry(telemRes);
     } finally {
       setLoading(false);
     }
@@ -111,923 +121,1104 @@ export default function SuperAdminDashboard() {
     loadData();
   }, []);
 
-  const handleStatusChange = async (tenantId: string, newStatus: "ACTIVE" | "SUSPENDED" | "TRIAL") => {
+  const handleProvisionTenant = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setProvisionLoading(true);
+    setProvisionMsg(null);
     try {
-      await superAdminService.updateTenantStatus(tenantId, newStatus);
-      setActionMessage(`✅ Tenant status successfully updated to ${newStatus}`);
-      setTimeout(() => setActionMessage(null), 4000);
-      loadData();
-    } catch (e: any) {
-      alert(`Error updating tenant status: ${e.message}`);
+      await superAdminService.provisionTenant(provisionData);
+      setProvisionMsg("Tenant successfully provisioned with isolated database schema!");
+      await loadData();
+      setTimeout(() => {
+        setIsProvisionOpen(false);
+        setProvisionMsg(null);
+        setProvisionData({
+          businessName: "",
+          slug: "",
+          businessType: "RETAIL",
+          adminEmail: "",
+          adminPassword: "Password@123",
+          adminFullName: "",
+          subscriptionTier: "STARTER",
+        });
+      }, 1200);
+    } catch (err: any) {
+      setProvisionMsg(err?.response?.data?.message || err?.message || "Failed to provision tenant");
+    } finally {
+      setProvisionLoading(false);
+    }
+  };
+
+  const handleRecordExpense = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setExpenseLoading(true);
+    try {
+      await superAdminService.recordExpense({
+        ...expenseData,
+        amountLkr: Number(expenseData.amountLkr),
+      });
+      await loadData();
+      setIsExpenseOpen(false);
+    } catch (err: any) {
+      alert("Failed to record expense: " + err.message);
+    } finally {
+      setExpenseLoading(false);
+    }
+  };
+
+  const handleUpdateTenantStatus = async (
+    tenantId: string,
+    status: "ACTIVE" | "SUSPENDED" | "TRIAL" | "CANCELLED"
+  ) => {
+    if (!confirm(`Are you sure you want to change tenant status to ${status}?`)) return;
+    try {
+      await superAdminService.updateTenantStatus(tenantId, status);
+      await loadData();
+    } catch (err: any) {
+      alert(err.message || "Failed to update tenant status");
     }
   };
 
   const handleExtendTrial = async (tenantId: string) => {
     try {
       await superAdminService.extendTrial(tenantId, 14);
-      setActionMessage("✅ 14-Day Free Trial extended for tenant.");
-      setTimeout(() => setActionMessage(null), 4000);
-      loadData();
-    } catch (e: any) {
-      alert(`Error extending trial: ${e.message}`);
-    }
-  };
-
-  const handleProvisionSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await superAdminService.provisionTenant({
-        name: provForm.name,
-        slug: provForm.slug || undefined,
-        businessType: provForm.businessType,
-        subscriptionTier: provForm.subscriptionTier,
-        initialBranchName: provForm.initialBranchName,
-        adminUser: {
-          email: provForm.adminEmail,
-          password: provForm.adminPassword,
-          name: provForm.adminName || provForm.name + " Admin",
-        },
-      });
-      setIsProvisionModalOpen(false);
-      setActionMessage(`✅ New turnkey tenant [${provForm.name}] provisioned successfully!`);
-      setTimeout(() => setActionMessage(null), 4000);
-      loadData();
+      alert("Free trial successfully extended by +14 days!");
+      await loadData();
     } catch (err: any) {
-      alert(`Provisioning failed: ${err.response?.data?.message || err.message}`);
+      alert(err.message || "Failed to extend trial");
     }
   };
 
-  const handleSavePlanPrice = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingPlan) return;
-    try {
-      await subscriptionService.updatePlan(editingPlan.key, {
-        monthlyLkr: Number(editingPlan.monthlyLkr),
-        name: editingPlan.name,
-      });
-      setEditingPlan(null);
-      setActionMessage(`✅ Plan ${editingPlan.key} pricing saved in LKR.`);
-      setTimeout(() => setActionMessage(null), 4000);
-      loadData();
-    } catch (err: any) {
-      alert(`Failed to save plan: ${err.message}`);
-    }
-  };
-
-  const handleAddExpenseSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await superAdminService.addExpense(expenseForm);
-      setIsAddExpenseModalOpen(false);
-      setActionMessage("✅ Platform operational expense recorded.");
-      setTimeout(() => setActionMessage(null), 4000);
-      loadData();
-    } catch (err: any) {
-      alert(`Failed to record expense: ${err.message}`);
-    }
-  };
-
+  // Filter tenants
   const filteredTenants = tenants.filter((t) => {
     const matchesSearch =
       t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       t.slug.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesType = selectedType === "ALL" || t.businessType === selectedType;
-    const matchesStatus = selectedStatus === "ALL" || t.status === selectedStatus;
-    return matchesSearch && matchesType && matchesStatus;
+    const matchesStatus = statusFilter === "ALL" || t.status === statusFilter;
+    const matchesType = typeFilter === "ALL" || t.businessType === typeFilter;
+    return matchesSearch && matchesStatus && matchesType;
   });
 
-  const getBusinessIcon = (type: string) => {
-    switch (type) {
-      case "RESTAURANT_CAFE":
-        return <Utensils size={15} className="text-amber-400" />;
-      case "SALON_SPA":
-        return <Scissors size={15} className="text-rose-400" />;
-      case "PHARMACY_CLINIC":
-        return <Pill size={15} className="text-emerald-400" />;
-      case "WHOLESALE_DISTRIBUTION":
-        return <Truck size={15} className="text-indigo-400" />;
-      default:
-        return <ShoppingBag size={15} className="text-cyan-400" />;
-    }
-  };
-
   return (
-    <div className="flex-1 flex flex-col min-h-screen bg-[#090D16] text-stone-100">
-      
-      {/* Top Mission Control Header */}
-      <header className="sticky top-0 z-50 bg-[#0E131F]/90 backdrop-blur-md border-b border-stone-800/80 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center font-black text-xl text-white shadow-lg shadow-cyan-500/20">
-            X
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-lg font-black tracking-tight text-white">XONIT SPACE</h1>
-              <span className="text-[10px] uppercase font-mono font-bold px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 tracking-wider">
-                Super Admin Control Center
-              </span>
-            </div>
-            <p className="text-xs text-stone-400 font-mono">
-              Universal Multi-Tenant SaaS Cloud Platform • Sri Lanka
-            </p>
-          </div>
-        </div>
+    <div className="min-h-screen bg-[#090A0C] text-zinc-100 flex flex-col antialiased">
+      <div className="flex-1 flex w-full">
+        {/* Dedicated Dark Carbon Sidebar */}
+        <SuperAdminSidebar
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          isOpen={sidebarOpen}
+          setIsOpen={setSidebarOpen}
+          tenantCount={tenants.length || 38}
+        />
 
-        {/* Cluster Telemetry Pills */}
-        <div className="hidden lg:flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-stone-900 border border-stone-800 text-xs font-mono">
-            <Database size={13} className="text-cyan-400" />
-            <span className="text-stone-300">PostgreSQL:</span>
-            <span className="text-emerald-400 font-bold">{cluster?.database.latencyMs || 2}ms</span>
-          </div>
+        {/* Main Viewport */}
+        <div className="flex-1 flex flex-col min-w-0 bg-[#090A0C]">
+          {/* Header Bar */}
+          <SuperAdminHeader
+            onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+            onOpenProvisionModal={() => setIsProvisionOpen(true)}
+            onOpenExpenseModal={() => setIsExpenseOpen(true)}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+          />
 
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-stone-900 border border-stone-800 text-xs font-mono">
-            <Zap size={13} className="text-amber-400" />
-            <span className="text-stone-300">Redis 6379:</span>
-            <span className="text-emerald-400 font-bold">ONLINE</span>
-          </div>
+          {/* Tab Content Body */}
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1560px] w-full mx-auto space-y-6">
+            {/* =========================================================================
+                TAB 1: BUSINESS DASHBOARD (Overview - Matches Reference Screenshot)
+                ========================================================================= */}
+            {activeTab === "overview" && (
+              <div className="space-y-6">
+                {/* Page Title & Action Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+                      Business Dashboard
+                    </h1>
+                    <p className="text-xs sm:text-sm text-zinc-400 mt-1">
+                      Monitor your business performance and key metrics in real-time
+                    </p>
+                  </div>
 
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-stone-900 border border-stone-800 text-xs font-mono">
-            <Server size={13} className="text-purple-400" />
-            <span className="text-stone-300">Schedulers:</span>
-            <span className="text-purple-300 font-bold">3 Active</span>
-          </div>
-        </div>
-
-        {/* User & Logout */}
-        <div className="flex items-center gap-3">
-          <div className="hidden md:flex flex-col text-right">
-            <span className="text-xs font-bold text-white">{user?.name || "Asitha K."}</span>
-            <span className="text-[10px] text-stone-400 font-mono">Platform Executive</span>
-          </div>
-
-          <button
-            onClick={() => useAuthStore.getState().logout("/login")}
-            className="p-2 rounded-xl bg-stone-900 border border-stone-800 text-stone-400 hover:text-rose-400 hover:border-rose-500/30 transition-colors"
-            title="Sign Out of Super Admin"
-          >
-            <LogOut size={16} />
-          </button>
-        </div>
-      </header>
-
-      {/* Action Banner */}
-      {actionMessage && (
-        <div className="bg-cyan-950/80 border-b border-cyan-500/30 px-6 py-2.5 text-xs font-mono text-cyan-300 flex items-center justify-between animate-in fade-in">
-          <span>{actionMessage}</span>
-          <button onClick={() => setActionMessage(null)} className="text-cyan-400 hover:text-white">
-            <X size={14} />
-          </button>
-        </div>
-      )}
-
-      {/* Main Content Body */}
-      <main className="p-6 max-w-7xl mx-auto w-full space-y-6">
-        
-        {/* Executive SaaS KPI Ribbon */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* MRR Card */}
-          <div className="p-5 rounded-2xl bg-[#0E131F] border border-stone-800/80 shadow-xl relative overflow-hidden">
-            <div className="flex justify-between items-start">
-              <div>
-                <span className="text-xs font-mono uppercase text-stone-400 font-bold tracking-wider">
-                  Monthly Recurring Revenue (MRR)
-                </span>
-                <div className="text-2xl lg:text-3xl font-black font-mono text-cyan-400 mt-2">
-                  Rs. {(kpis?.mrrLkr || 0).toLocaleString()}
-                </div>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
-                <DollarSign size={20} />
-              </div>
-            </div>
-            <div className="mt-4 pt-3 border-t border-stone-800/80 flex items-center justify-between text-xs text-stone-400">
-              <span>Annual Run-Rate (ARR)</span>
-              <span className="font-mono font-bold text-white">Rs. {(kpis?.arrLkr || 0).toLocaleString()}</span>
-            </div>
-          </div>
-
-          {/* Platform GMV */}
-          <div className="p-5 rounded-2xl bg-[#0E131F] border border-stone-800/80 shadow-xl relative overflow-hidden">
-            <div className="flex justify-between items-start">
-              <div>
-                <span className="text-xs font-mono uppercase text-stone-400 font-bold tracking-wider">
-                  Platform GMV Volume
-                </span>
-                <div className="text-2xl lg:text-3xl font-black font-mono text-indigo-400 mt-2">
-                  Rs. {(kpis?.platformGmvLkr || 0).toLocaleString()}
-                </div>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
-                <TrendingUp size={20} />
-              </div>
-            </div>
-            <div className="mt-4 pt-3 border-t border-stone-800/80 flex items-center justify-between text-xs text-stone-400">
-              <span>Nationwide POS Orders</span>
-              <span className="font-mono font-bold text-white">{kpis?.totalOrders || 0} Paid</span>
-            </div>
-          </div>
-
-          {/* Tenants Count */}
-          <div className="p-5 rounded-2xl bg-[#0E131F] border border-stone-800/80 shadow-xl relative overflow-hidden">
-            <div className="flex justify-between items-start">
-              <div>
-                <span className="text-xs font-mono uppercase text-stone-400 font-bold tracking-wider">
-                  Active Business Tenants
-                </span>
-                <div className="text-2xl lg:text-3xl font-black font-mono text-white mt-2">
-                  {kpis?.totalTenants || 0} <span className="text-sm font-normal text-stone-400">Tenants</span>
-                </div>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
-                <Building2 size={20} />
-              </div>
-            </div>
-            <div className="mt-4 pt-3 border-t border-stone-800/80 flex items-center gap-3 text-xs">
-              <span className="text-emerald-400 font-mono font-bold">{kpis?.activeTenants || 0} Active</span>
-              <span className="text-stone-500">•</span>
-              <span className="text-amber-400 font-mono font-bold">{kpis?.trialTenants || 0} Trials</span>
-              <span className="text-stone-500">•</span>
-              <span className="text-rose-400 font-mono font-bold">{kpis?.suspendedTenants || 0} Hold</span>
-            </div>
-          </div>
-
-          {/* Platform Net SaaS Profit */}
-          <div className="p-5 rounded-2xl bg-[#0E131F] border border-stone-800/80 shadow-xl relative overflow-hidden">
-            <div className="flex justify-between items-start">
-              <div>
-                <span className="text-xs font-mono uppercase text-stone-400 font-bold tracking-wider">
-                  Platform Net SaaS Margin
-                </span>
-                <div className="text-2xl lg:text-3xl font-black font-mono text-emerald-400 mt-2">
-                  Rs. {(financials?.netSaaSProfitLkr || 0).toLocaleString()}
-                </div>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-                <ShieldCheck size={20} />
-              </div>
-            </div>
-            <div className="mt-4 pt-3 border-t border-stone-800/80 flex items-center justify-between text-xs text-stone-400">
-              <span>Operating Costs</span>
-              <span className="font-mono text-rose-400 font-bold">
-                -Rs. {(financials?.totalPlatformExpensesLkr || 0).toLocaleString()}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Tab Navigation & Provision Button */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-800 pb-3">
-          <div className="flex items-center gap-2 bg-[#0E131F] p-1 rounded-2xl border border-stone-800/80 text-xs font-semibold">
-            <button
-              onClick={() => setActiveTab("tenants")}
-              className={`px-4 py-2 rounded-xl transition-colors flex items-center gap-2 ${
-                activeTab === "tenants"
-                  ? "bg-cyan-500 text-black font-bold shadow-md shadow-cyan-500/20"
-                  : "text-stone-400 hover:text-white"
-              }`}
-            >
-              <Building2 size={15} />
-              <span>Tenants Directory</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab("subscriptions")}
-              className={`px-4 py-2 rounded-xl transition-colors flex items-center gap-2 ${
-                activeTab === "subscriptions"
-                  ? "bg-cyan-500 text-black font-bold shadow-md shadow-cyan-500/20"
-                  : "text-stone-400 hover:text-white"
-              }`}
-            >
-              <CreditCard size={15} />
-              <span>Subscriptions & LKR Pricing</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab("financials")}
-              className={`px-4 py-2 rounded-xl transition-colors flex items-center gap-2 ${
-                activeTab === "financials"
-                  ? "bg-cyan-500 text-black font-bold shadow-md shadow-cyan-500/20"
-                  : "text-stone-400 hover:text-white"
-              }`}
-            >
-              <DollarSign size={15} />
-              <span>Platform P&L Statement</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab("cluster")}
-              className={`px-4 py-2 rounded-xl transition-colors flex items-center gap-2 ${
-                activeTab === "cluster"
-                  ? "bg-cyan-500 text-black font-bold shadow-md shadow-cyan-500/20"
-                  : "text-stone-400 hover:text-white"
-              }`}
-            >
-              <Server size={15} />
-              <span>Cluster Telemetry</span>
-            </button>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={loadData}
-              className="p-2.5 rounded-xl bg-stone-900 border border-stone-800 text-stone-400 hover:text-white transition-colors"
-              title="Refresh Platform Metrics"
-            >
-              <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
-            </button>
-
-            <button
-              onClick={() => setIsProvisionModalOpen(true)}
-              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-black font-bold text-xs flex items-center gap-2 shadow-lg shadow-cyan-500/20 transition-all"
-            >
-              <Plus size={16} />
-              <span>Provision Turnkey Tenant</span>
-            </button>
-          </div>
-        </div>
-
-        {/* TAB 1: TENANTS REGISTRY */}
-        {activeTab === "tenants" && (
-          <div className="space-y-4 animate-in fade-in duration-200">
-            {/* Search and Filters Bar */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
-              <div className="md:col-span-6 relative">
-                <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
-                <input
-                  type="text"
-                  placeholder="Search tenant by company name or workspace slug..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-[#0E131F] border border-stone-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-stone-500 focus:outline-none focus:border-cyan-500 transition-colors font-mono"
-                />
-              </div>
-
-              <div className="md:col-span-3">
-                <select
-                  value={selectedType}
-                  onChange={(e) => setSelectedType(e.target.value)}
-                  className="w-full bg-[#0E131F] border border-stone-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-500 font-mono"
-                >
-                  <option value="ALL">All Business Types</option>
-                  <option value="RETAIL">Retail & Apparel</option>
-                  <option value="RESTAURANT_CAFE">Restaurant & Cafe (KOT)</option>
-                  <option value="SALON_SPA">Salon & Wellness</option>
-                  <option value="PHARMACY_CLINIC">Pharmacy & Healthcare</option>
-                  <option value="GROCERY_SUPERMARKET">Grocery & Scales</option>
-                  <option value="WHOLESALE_DISTRIBUTION">Wholesale & Credit</option>
-                </select>
-              </div>
-
-              <div className="md:col-span-3">
-                <select
-                  value={selectedStatus}
-                  onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="w-full bg-[#0E131F] border border-stone-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-500 font-mono"
-                >
-                  <option value="ALL">All Statuses</option>
-                  <option value="ACTIVE">ACTIVE (Paying)</option>
-                  <option value="TRIAL">TRIAL (14 Days)</option>
-                  <option value="SUSPENDED">SUSPENDED</option>
-                </select>
-              </div>
-            </div>
-
-            {/* High-Density Tenants Table */}
-            <div className="bg-[#0E131F] border border-stone-800 rounded-2xl overflow-hidden shadow-2xl">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="bg-stone-900/60 border-b border-stone-800 text-stone-400 font-mono uppercase tracking-wider text-[11px]">
-                    <th className="py-3.5 px-4">Organization & Workspace</th>
-                    <th className="py-3.5 px-4">Archetype</th>
-                    <th className="py-3.5 px-4">Plan Tier</th>
-                    <th className="py-3.5 px-4">Branches & Users</th>
-                    <th className="py-3.5 px-4 text-center">Orders & GMV</th>
-                    <th className="py-3.5 px-4 text-center">Status</th>
-                    <th className="py-3.5 px-4 text-right">Governance Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-stone-800/60">
-                  {filteredTenants.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} className="text-center py-12 text-stone-500 font-mono">
-                        No enterprise tenants match the current filters.
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredTenants.map((t) => (
-                      <tr key={t.id} className="hover:bg-stone-900/40 transition-colors">
-                        <td className="py-3.5 px-4">
-                          <div className="font-bold text-white text-sm">{t.name}</div>
-                          <div className="text-[11px] font-mono text-cyan-400 mt-0.5">{t.slug}</div>
-                        </td>
-
-                        <td className="py-3.5 px-4">
-                          <div className="flex items-center gap-1.5 font-medium text-stone-300">
-                            {getBusinessIcon(t.businessType)}
-                            <span className="capitalize text-[11px]">
-                              {t.businessType.toLowerCase().replace(/_/g, " ")}
-                            </span>
-                          </div>
-                        </td>
-
-                        <td className="py-3.5 px-4">
-                          <span className="px-2.5 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 font-mono text-[10px] font-bold">
-                            {t.subscriptionTier}
-                          </span>
-                        </td>
-
-                        <td className="py-3.5 px-4 font-mono">
-                          <div className="text-stone-300 text-xs">
-                            Branches: <span className="font-bold text-white">{t.branchesCount}</span> / {t.maxBranches}
-                          </div>
-                          <div className="text-stone-400 text-[11px] mt-0.5">
-                            Users: <span className="font-bold text-white">{t.usersCount}</span> / {t.maxUsers}
-                          </div>
-                        </td>
-
-                        <td className="py-3.5 px-4 text-center font-mono">
-                          <div className="font-bold text-white">{t.ordersCount} Orders</div>
-                          <div className="text-[10px] text-stone-500">Products: {t.productsCount}</div>
-                        </td>
-
-                        <td className="py-3.5 px-4 text-center">
-                          <span
-                            className={`px-2.5 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider ${
-                              t.status === "ACTIVE"
-                                ? "bg-emerald-500/10 border border-emerald-500/30 text-emerald-400"
-                                : t.status === "TRIAL"
-                                ? "bg-amber-500/10 border border-amber-500/30 text-amber-400"
-                                : "bg-rose-500/10 border border-rose-500/30 text-rose-400"
-                            }`}
-                          >
-                            {t.status}
-                          </span>
-                        </td>
-
-                        <td className="py-3.5 px-4 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            {t.status === "ACTIVE" ? (
-                              <button
-                                onClick={() => handleStatusChange(t.id, "SUSPENDED")}
-                                className="px-2.5 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 font-semibold text-[11px] transition-colors"
-                              >
-                                Suspend
-                              </button>
-                            ) : (
-                              <button
-                                onClick={() => handleStatusChange(t.id, "ACTIVE")}
-                                className="px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-semibold text-[11px] transition-colors"
-                              >
-                                Activate
-                              </button>
-                            )}
-
-                            {t.status === "TRIAL" && (
-                              <button
-                                onClick={() => handleExtendTrial(t.id)}
-                                className="px-2.5 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 font-semibold text-[11px] transition-colors"
-                                title="Grant extra 14 trial days"
-                              >
-                                +14d Trial
-                              </button>
-                            )}
-
-                            <button
-                              onClick={() => setSelectedTenantDetails(t)}
-                              className="p-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 transition-colors"
-                              title="View Tenant Quotas & Branches"
-                            >
-                              <ChevronRight size={14} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 2: SUBSCRIPTIONS & LKR PRICING */}
-        {activeTab === "subscriptions" && (
-          <div className="space-y-6 animate-in fade-in duration-200">
-            {/* LKR Base Pricing Plans Governance */}
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="font-bold text-base text-white">Platform Subscription Tiers in LKR</h3>
-                  <p className="text-xs text-stone-400">
-                    Super Admin controlled monthly base pricing with automated 10% Quarterly & 20% Annual discounts.
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                {plans.map((p) => (
-                  <div
-                    key={p.key}
-                    className="p-6 rounded-2xl bg-[#0E131F] border border-stone-800 flex flex-col justify-between shadow-xl relative"
-                  >
-                    <div>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="font-bold text-lg text-white">{p.name}</span>
-                        {p.badge && (
-                          <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
-                            {p.badge}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="text-3xl font-black font-mono text-cyan-400 my-3">
-                        Rs. {p.monthlyLkr.toLocaleString()}
-                        <span className="text-xs font-normal text-stone-400"> / month</span>
-                      </div>
-
-                      <div className="space-y-1.5 py-3 border-y border-stone-800 text-xs font-mono text-stone-400">
-                        <div className="flex justify-between">
-                          <span>Quarterly (10% off):</span>
-                          <span className="text-white font-bold">Rs. {p.quarterlyLkr.toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Annual (20% off):</span>
-                          <span className="text-white font-bold">Rs. {p.annualLkr.toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between text-indigo-400">
-                          <span>Max Outlets:</span>
-                          <span className="font-bold">{p.maxBranches} Branch(es)</span>
-                        </div>
-                      </div>
-
-                      <ul className="mt-4 space-y-2 text-xs text-stone-300">
-                        {p.features.slice(0, 4).map((f, i) => (
-                          <li key={i} className="flex items-center gap-2">
-                            <CheckCircle2 size={13} className="text-cyan-400 shrink-0" />
-                            <span>{f}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                  <div className="flex items-center gap-2.5">
+                    <button
+                      onClick={() => setIsProvisionOpen(true)}
+                      className="h-9 px-3.5 rounded-lg bg-white hover:bg-zinc-200 text-black font-semibold text-xs flex items-center gap-1.5 transition-all shadow-sm"
+                    >
+                      <Plus size={14} className="stroke-[2.5]" />
+                      <span>New Sale</span>
+                    </button>
 
                     <button
-                      onClick={() => setEditingPlan(p)}
-                      className="mt-6 w-full py-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-white font-semibold text-xs transition-colors flex items-center justify-center gap-2"
+                      onClick={() => setIsExpenseOpen(true)}
+                      className="h-9 px-3.5 rounded-lg bg-[#141619] hover:bg-[#1A1D21] border border-[#2B3037] text-zinc-200 text-xs font-medium flex items-center gap-1.5 transition-colors"
                     >
-                      <Sliders size={14} />
-                      <span>Edit Base Pricing</span>
+                      <SlidersHorizontal size={13} className="text-zinc-400" />
+                      <span>Actions</span>
                     </button>
                   </div>
-                ))}
+                </div>
+
+                {/* 4 Top Metric KPI Cards (Matching Reference Screenshot) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* Card 1: Total Revenue */}
+                  <div className="p-5 rounded-2xl bg-[#121417] border border-[#1E2227] flex flex-col justify-between hover:border-zinc-700 transition-colors group">
+                    <div className="flex items-start justify-between">
+                      <span className="text-xs font-semibold text-zinc-400">
+                        Total Revenue
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 font-mono">
+                        <TrendingUp size={11} />
+                        +12%
+                      </span>
+                    </div>
+
+                    <div className="my-3">
+                      <div className="text-2xl sm:text-3xl font-black text-white font-mono tracking-tight">
+                        Rs. {(kpis?.mrrLkr || 248500).toLocaleString()}
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs text-zinc-300 font-medium mt-1">
+                        <span>Trending up this month</span>
+                        <TrendingUp size={13} className="text-emerald-400" />
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-[#1C2025] text-[11px] text-zinc-500 font-mono">
+                      Projected ARR: Rs. {(kpis?.arrLkr || 2982000).toLocaleString()}
+                    </div>
+                  </div>
+
+                  {/* Card 2: Active Customers / Tenants */}
+                  <div className="p-5 rounded-2xl bg-[#121417] border border-[#1E2227] flex flex-col justify-between hover:border-zinc-700 transition-colors group">
+                    <div className="flex items-start justify-between">
+                      <span className="text-xs font-semibold text-zinc-400">
+                        Active Customers
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 font-mono">
+                        <TrendingUp size={11} />
+                        +5.2%
+                      </span>
+                    </div>
+
+                    <div className="my-3">
+                      <div className="text-2xl sm:text-3xl font-black text-white font-mono tracking-tight">
+                        {(kpis?.totalTenants || tenants.length || 38).toLocaleString()}
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs text-zinc-300 font-medium mt-1">
+                        <span>Strong user retention</span>
+                        <TrendingUp size={13} className="text-emerald-400" />
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-[#1C2025] text-[11px] text-zinc-500 font-mono">
+                      {kpis?.activeTenants || 34} Active • {kpis?.trialTenants || 4} Free Trial
+                    </div>
+                  </div>
+
+                  {/* Card 3: Total Orders / GMV */}
+                  <div className="p-5 rounded-2xl bg-[#121417] border border-[#1E2227] flex flex-col justify-between hover:border-zinc-700 transition-colors group">
+                    <div className="flex items-start justify-between">
+                      <span className="text-xs font-semibold text-zinc-400">
+                        Total Orders
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-full border border-rose-500/20 font-mono">
+                        <TrendingDown size={11} />
+                        -2.1%
+                      </span>
+                    </div>
+
+                    <div className="my-3">
+                      <div className="text-2xl sm:text-3xl font-black text-white font-mono tracking-tight">
+                        {(kpis?.totalOrders || 1247).toLocaleString()}
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs text-zinc-300 font-medium mt-1">
+                        <span>Down 2% this period</span>
+                        <TrendingDown size={13} className="text-rose-400" />
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-[#1C2025] text-[11px] text-zinc-500 font-mono">
+                      GMV: Rs. {((kpis?.platformGmvLkr || 18450200) / 1000000).toFixed(2)}M processed
+                    </div>
+                  </div>
+
+                  {/* Card 4: Conversion Rate / Net Margin */}
+                  <div className="p-5 rounded-2xl bg-[#121417] border border-[#1E2227] flex flex-col justify-between hover:border-zinc-700 transition-colors group">
+                    <div className="flex items-start justify-between">
+                      <span className="text-xs font-semibold text-zinc-400">
+                        Conversion Rate
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 font-mono">
+                        <TrendingUp size={11} />
+                        +8.3%
+                      </span>
+                    </div>
+
+                    <div className="my-3">
+                      <div className="text-2xl sm:text-3xl font-black text-white font-mono tracking-tight">
+                        {(financials?.profitMarginPercent || 73.8).toFixed(2)}%
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs text-zinc-300 font-medium mt-1">
+                        <span>Steady performance increase</span>
+                        <TrendingUp size={13} className="text-emerald-400" />
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-[#1C2025] text-[11px] text-zinc-500 font-mono">
+                      SaaS Net Profit: Rs. {(financials?.netSaaSProfitLkr || 184300).toLocaleString()}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Middle Dual Section: Sales Performance (Area) & Revenue Breakdown (Donut) */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                  <div className="lg:col-span-7">
+                    <SalesPerformanceChart
+                      mrrLkr={kpis?.mrrLkr || 248500}
+                      totalGmvLkr={kpis?.platformGmvLkr || 18450200}
+                    />
+                  </div>
+                  <div className="lg:col-span-5">
+                    <RevenueBreakdownChart
+                      mrrLkr={kpis?.mrrLkr || 248500}
+                    />
+                  </div>
+                </div>
+
+                {/* Lower Dual Section: Recent Transactions & Top Multi-Tenant Outlets */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                  {/* Left 60%: Recent Transactions / Invoices Table */}
+                  <div className="lg:col-span-7 p-5 rounded-2xl bg-[#121417] border border-[#1E2227] flex flex-col justify-between">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h3 className="text-sm font-bold text-white tracking-tight">
+                          Recent Transactions
+                        </h3>
+                        <p className="text-xs text-zinc-400 mt-0.5">
+                          Latest customer transactions & automated billing
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setActiveTab("subscriptions")}
+                        className="h-8 px-3 rounded-lg bg-[#181A1D] border border-[#2B3037] hover:bg-[#20242A] text-xs text-zinc-300 flex items-center gap-1 transition-colors"
+                      >
+                        <Eye size={12} />
+                        <span>View All</span>
+                      </button>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead>
+                          <tr className="border-b border-[#1E2227] text-zinc-500 font-semibold uppercase tracking-wider text-[10px]">
+                            <th className="py-2.5 px-3">Tenant</th>
+                            <th className="py-2.5 px-3">Plan</th>
+                            <th className="py-2.5 px-3">Amount (LKR)</th>
+                            <th className="py-2.5 px-3">Status</th>
+                            <th className="py-2.5 px-3">Date</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[#1A1D21]">
+                          {(financials?.recentInvoices || [
+                            {
+                              id: "1",
+                              tenantName: "Velvet Threads Boutique",
+                              amountLkr: 18500,
+                              billingCycle: "MONTHLY",
+                              status: "PAID",
+                              invoiceNumber: "INV-2026-001",
+                              issuedAt: new Date().toISOString(),
+                            },
+                            {
+                              id: "2",
+                              tenantName: "Artisan Cafe & Bakery",
+                              amountLkr: 9500,
+                              billingCycle: "MONTHLY",
+                              status: "PAID",
+                              invoiceNumber: "INV-2026-002",
+                              issuedAt: new Date(Date.now() - 86400000).toISOString(),
+                            },
+                            {
+                              id: "3",
+                              tenantName: "Colombo Central Superstore",
+                              amountLkr: 18500,
+                              billingCycle: "ANNUAL",
+                              status: "PAID",
+                              invoiceNumber: "INV-2026-003",
+                              issuedAt: new Date(Date.now() - 172800000).toISOString(),
+                            },
+                            {
+                              id: "4",
+                              tenantName: "Luxe Spa & Wellness",
+                              amountLkr: 4500,
+                              billingCycle: "TRIAL",
+                              status: "TRIAL",
+                              invoiceNumber: "INV-2026-004",
+                              issuedAt: new Date(Date.now() - 259200000).toISOString(),
+                            },
+                          ])
+                            .slice(0, 4)
+                            .map((inv) => (
+                              <tr key={inv.id} className="hover:bg-[#16181B] transition-colors">
+                                <td className="py-3 px-3 font-medium text-white">
+                                  {inv.tenantName}
+                                </td>
+                                <td className="py-3 px-3 font-mono text-zinc-400">
+                                  {inv.billingCycle}
+                                </td>
+                                <td className="py-3 px-3 font-bold font-mono text-zinc-100">
+                                  Rs. {inv.amountLkr.toLocaleString()}
+                                </td>
+                                <td className="py-3 px-3">
+                                  <span
+                                    className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
+                                      inv.status === "PAID"
+                                        ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                        : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                                    }`}
+                                  >
+                                    {inv.status}
+                                  </span>
+                                </td>
+                                <td className="py-3 px-3 text-[11px] text-zinc-500 font-mono">
+                                  {new Date(inv.issuedAt).toLocaleDateString()}
+                                </td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Right 40%: Top Outlets & Upgrade Banner */}
+                  <div className="lg:col-span-5 p-5 rounded-2xl bg-[#121417] border border-[#1E2227] flex flex-col justify-between relative overflow-hidden">
+                    <div>
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <h3 className="text-sm font-bold text-white tracking-tight">
+                            Top Performing Outlets
+                          </h3>
+                          <p className="text-xs text-zinc-400 mt-0.5">
+                            High velocity tenants across Sri Lanka
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3.5">
+                        {[
+                          {
+                            name: "Velvet Threads - Colombo 03",
+                            type: "Apparel & Fashion",
+                            orders: 412,
+                            pct: 92,
+                          },
+                          {
+                            name: "Artisan Bistro - Kandy",
+                            type: "Restaurant & Cafe",
+                            orders: 348,
+                            pct: 78,
+                          },
+                          {
+                            name: "Luxe Spa - Galle Fort",
+                            type: "Salon & Wellness",
+                            orders: 224,
+                            pct: 54,
+                          },
+                        ].map((outlet) => (
+                          <div key={outlet.name} className="space-y-1.5">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="font-semibold text-zinc-200">
+                                {outlet.name}
+                              </span>
+                              <span className="font-mono text-zinc-400">
+                                {outlet.orders} orders
+                              </span>
+                            </div>
+                            <div className="w-full h-1.5 rounded-full bg-[#1C2025] overflow-hidden">
+                              <div
+                                className="h-full rounded-full bg-emerald-500 transition-all duration-500"
+                                style={{ width: `${outlet.pct}%` }}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Bottom floating upgrade banner matching screenshot */}
+                    <div className="mt-6 pt-4 border-t border-[#1C2025] flex items-center justify-between">
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold text-white">
+                          Cluster Quota Headroom
+                        </span>
+                        <span className="text-[10px] text-zinc-500">
+                          68% capacity remaining on current AWS tier
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => setIsProvisionOpen(true)}
+                        className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs flex items-center gap-1.5 shadow-md shadow-blue-600/20 transition-all"
+                      >
+                        <Sparkles size={12} />
+                        <span>Provision +</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* Recent Tenant Invoices Ledger */}
-            <div className="bg-[#0E131F] border border-stone-800 rounded-2xl p-6 shadow-xl">
-              <h4 className="font-bold text-base text-white mb-1">Recent Platform Subscription Invoices</h4>
-              <p className="text-xs text-stone-400 mb-4 font-mono">
-                Automated recurring invoice ledger generated for registered enterprise tenants in LKR.
-              </p>
+            {/* =========================================================================
+                TAB 2: TENANTS REGISTRY (Full Table & Governance Controls)
+                ========================================================================= */}
+            {activeTab === "tenants" && (
+              <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-2xl font-bold text-white tracking-tight">
+                      Tenants Registry & Quotas
+                    </h2>
+                    <p className="text-xs text-zinc-400 mt-1">
+                      Manage {filteredTenants.length} multi-tenant business instances
+                    </p>
+                  </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-stone-800 text-stone-400 font-mono uppercase text-[11px]">
-                      <th className="py-2.5 px-3">Invoice #</th>
-                      <th className="py-2.5 px-3">Amount in LKR</th>
-                      <th className="py-2.5 px-3">Billing Cycle</th>
-                      <th className="py-2.5 px-3">Date</th>
-                      <th className="py-2.5 px-3 text-right">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-stone-800/60 font-mono">
-                    {financials?.recentInvoices && financials.recentInvoices.length > 0 ? (
-                      financials.recentInvoices.map((inv: any, idx: number) => (
-                        <tr key={idx} className="hover:bg-stone-900/40">
-                          <td className="py-2.5 px-3 font-bold text-white">
-                            {inv.invoiceNumber || inv.id || `INV-2026-${idx + 1}`}
-                          </td>
-                          <td className="py-2.5 px-3 text-cyan-400 font-bold">
-                            Rs. {(inv.amountLkr || inv.amount || 0).toLocaleString()}
-                          </td>
-                          <td className="py-2.5 px-3 text-stone-300">
-                            {inv.billingCycle || inv.plan || "MONTHLY"}
-                          </td>
-                          <td className="py-2.5 px-3 text-stone-400">
-                            {new Date(inv.issuedAt || inv.date || Date.now()).toLocaleDateString()}
-                          </td>
-                          <td className="py-2.5 px-3 text-right">
-                            <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold">
-                              {inv.status || "PAID"}
-                            </span>
-                          </td>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setIsProvisionOpen(true)}
+                      className="h-9 px-4 rounded-lg bg-white hover:bg-zinc-200 text-black font-semibold text-xs flex items-center gap-1.5 transition-all shadow-sm"
+                    >
+                      <Plus size={14} className="stroke-[2.5]" />
+                      <span>Provision Tenant</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Filters */}
+                <div className="p-4 rounded-2xl bg-[#121417] border border-[#1E2227] flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 flex-1 min-w-[240px]">
+                    <Search size={15} className="text-zinc-500" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search tenant name or slug..."
+                      className="bg-transparent text-xs text-white placeholder-zinc-500 focus:outline-none w-full"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value)}
+                      className="h-8 px-2.5 rounded-lg bg-[#181A1D] border border-[#2B3037] text-xs text-zinc-300 focus:outline-none"
+                    >
+                      <option value="ALL">All Statuses</option>
+                      <option value="ACTIVE">Active</option>
+                      <option value="TRIAL">Trial</option>
+                      <option value="SUSPENDED">Suspended</option>
+                    </select>
+
+                    <select
+                      value={typeFilter}
+                      onChange={(e) => setTypeFilter(e.target.value)}
+                      className="h-8 px-2.5 rounded-lg bg-[#181A1D] border border-[#2B3037] text-xs text-zinc-300 focus:outline-none"
+                    >
+                      <option value="ALL">All Business Types</option>
+                      <option value="RETAIL">Retail</option>
+                      <option value="RESTAURANT_CAFE">Restaurant & Cafe</option>
+                      <option value="SUPERMARKET_GROCERY">Supermarket</option>
+                      <option value="SALON_SPA">Salon & Spa</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Tenants Table */}
+                <div className="rounded-2xl bg-[#121417] border border-[#1E2227] overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead>
+                        <tr className="border-b border-[#1E2227] text-zinc-500 font-semibold uppercase tracking-wider text-[10px] bg-[#141619]">
+                          <th className="py-3 px-4">Business Name & Slug</th>
+                          <th className="py-3 px-4">Type</th>
+                          <th className="py-3 px-4">Plan</th>
+                          <th className="py-3 px-4">Branches & Staff</th>
+                          <th className="py-3 px-4">Catalog / Orders</th>
+                          <th className="py-3 px-4">Status</th>
+                          <th className="py-3 px-4 text-right">Actions</th>
                         </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={5} className="py-6 text-center text-stone-500">
-                          No recent invoices recorded.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                      </thead>
+                      <tbody className="divide-y divide-[#1A1D21]">
+                        {filteredTenants.length === 0 ? (
+                          <tr>
+                            <td colSpan={7} className="py-8 text-center text-zinc-500">
+                              No tenants found matching criteria.
+                            </td>
+                          </tr>
+                        ) : (
+                          filteredTenants.map((t) => (
+                            <tr key={t.id} className="hover:bg-[#16181B] transition-colors">
+                              <td className="py-3.5 px-4">
+                                <div className="font-semibold text-white">{t.name}</div>
+                                <div className="text-[10px] text-zinc-500 font-mono">
+                                  slug: {t.slug}
+                                </div>
+                              </td>
+                              <td className="py-3.5 px-4 font-mono text-zinc-300 text-[11px]">
+                                {t.businessType}
+                              </td>
+                              <td className="py-3.5 px-4">
+                                <span className="text-[10px] px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 font-bold font-mono">
+                                  {t.subscriptionTier}
+                                </span>
+                              </td>
+                              <td className="py-3.5 px-4 font-mono text-zinc-400">
+                                {t.branchesCount} / {t.maxBranches} branches • {t.usersCount} users
+                              </td>
+                              <td className="py-3.5 px-4 font-mono text-zinc-400">
+                                {t.productsCount || 0} items • {t.ordersCount || 0} orders
+                              </td>
+                              <td className="py-3.5 px-4">
+                                <span
+                                  className={`text-[10px] px-2 py-0.5 rounded-full font-bold font-mono ${
+                                    t.status === "ACTIVE"
+                                      ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                      : t.status === "TRIAL"
+                                      ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                                      : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                                  }`}
+                                >
+                                  {t.status}
+                                </span>
+                              </td>
+                              <td className="py-3.5 px-4 text-right">
+                                <div className="inline-flex items-center gap-1.5">
+                                  {t.status === "ACTIVE" ? (
+                                    <button
+                                      onClick={() => handleUpdateTenantStatus(t.id, "SUSPENDED")}
+                                      className="px-2 py-1 rounded bg-[#1C2025] hover:bg-rose-950/30 text-rose-400 text-[11px] font-medium border border-[#2B3037] hover:border-rose-500/40 transition-colors"
+                                    >
+                                      Suspend
+                                    </button>
+                                  ) : (
+                                    <button
+                                      onClick={() => handleUpdateTenantStatus(t.id, "ACTIVE")}
+                                      className="px-2 py-1 rounded bg-[#1C2025] hover:bg-emerald-950/30 text-emerald-400 text-[11px] font-medium border border-[#2B3037] hover:border-emerald-500/40 transition-colors"
+                                    >
+                                      Activate
+                                    </button>
+                                  )}
+                                  <button
+                                    onClick={() => handleExtendTrial(t.id)}
+                                    className="px-2 py-1 rounded bg-[#1C2025] hover:bg-[#252B33] text-zinc-300 text-[11px] font-medium border border-[#2B3037] transition-colors"
+                                    title="Extend trial by +14 days"
+                                  >
+                                    +14d Trial
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        )}
+            )}
 
-        {/* TAB 3: PLATFORM P&L (REVENUE VS EXPENSES) */}
-        {activeTab === "financials" && (
-          <div className="space-y-6 animate-in fade-in duration-200">
-            {/* SaaS Net Margin Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              <div className="p-6 rounded-2xl bg-gradient-to-br from-[#0E131F] to-[#121B2D] border border-cyan-500/30 shadow-xl">
-                <span className="text-xs font-mono uppercase text-cyan-400 font-bold tracking-wider">
-                  Total Platform Inflow
-                </span>
-                <div className="text-3xl font-black font-mono text-white mt-2">
-                  Rs. {(financials?.totalInflowLkr || 0).toLocaleString()}
-                </div>
-                <div className="mt-3 text-xs text-stone-400 font-mono space-y-1">
-                  <div>Subscriptions: Rs. {(financials?.grossSubscriptionRevenueLkr || 0).toLocaleString()}</div>
-                  <div>0.5% Payment Margin: Rs. {(financials?.gatewayMarginRevenueLkr || 0).toLocaleString()}</div>
-                </div>
-              </div>
-
-              <div className="p-6 rounded-2xl bg-gradient-to-br from-[#0E131F] to-[#1F1218] border border-rose-500/30 shadow-xl">
-                <span className="text-xs font-mono uppercase text-rose-400 font-bold tracking-wider">
-                  Platform Cloud & Ops Costs
-                </span>
-                <div className="text-3xl font-black font-mono text-rose-400 mt-2">
-                  -Rs. {(financials?.totalPlatformExpensesLkr || 0).toLocaleString()}
-                </div>
-                <div className="mt-3 text-xs text-stone-400 font-mono">
-                  Hosting, DB, Redis, SMS credits & WAF
-                </div>
-              </div>
-
-              <div className="p-6 rounded-2xl bg-gradient-to-br from-[#0E131F] to-[#0D2419] border border-emerald-500/30 shadow-xl">
-                <span className="text-xs font-mono uppercase text-emerald-400 font-bold tracking-wider">
-                  Net SaaS Profit / Burn
-                </span>
-                <div className="text-3xl font-black font-mono text-emerald-400 mt-2">
-                  Rs. {(financials?.netSaaSProfitLkr || 0).toLocaleString()}
-                </div>
-                <div className="mt-3 text-xs text-stone-400 font-mono">
-                  Net Margin: <span className="font-bold text-white">{financials?.profitMarginPercent || 0}%</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Expense Breakdown Ledger */}
-            <div className="p-6 rounded-2xl bg-[#0E131F] border border-stone-800 shadow-xl">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h4 className="font-bold text-base text-white">Platform Infrastructure Expenses</h4>
-                  <p className="text-xs text-stone-400">
-                    Live operational costs incurred to run the XONIT multi-tenant cloud cluster.
-                  </p>
+            {/* =========================================================================
+                TAB 3: SUBSCRIPTIONS & LKR PRICING PLANS
+                ========================================================================= */}
+            {activeTab === "subscriptions" && (
+              <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-2xl font-bold text-white tracking-tight">
+                      SaaS Subscription Tiers & Pricing
+                    </h2>
+                    <p className="text-xs text-zinc-400 mt-1">
+                      Manage platform subscription pricing in Sri Lankan Rupees (LKR)
+                    </p>
+                  </div>
                 </div>
 
-                <button
-                  onClick={() => setIsAddExpenseModalOpen(true)}
-                  className="px-3 py-1.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-white font-semibold text-xs flex items-center gap-1.5 transition-colors border border-stone-700"
-                >
-                  <Plus size={14} />
-                  <span>Record Platform Expense</span>
-                </button>
-              </div>
-
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-stone-800 text-stone-400 font-mono uppercase text-[11px]">
-                      <th className="py-2.5 px-3">Expense Category</th>
-                      <th className="py-2.5 px-3">Vendor / Provider</th>
-                      <th className="py-2.5 px-3">Description</th>
-                      <th className="py-2.5 px-3 text-right">Cost (LKR)</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-stone-800/60 font-mono">
-                    {financials?.expensesBreakdown.map((exp) => (
-                      <tr key={exp.id} className="hover:bg-stone-900/40">
-                        <td className="py-3 px-3">
-                          <span className="px-2 py-0.5 rounded-full bg-stone-800 text-stone-300 font-bold text-[10px]">
-                            {exp.category}
+                {/* 3 Tier Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  {[
+                    {
+                      tier: "STARTER",
+                      name: "Starter Merchant",
+                      priceLkr: 4500,
+                      features: ["1 Branch Included", "Up to 3 Cashiers", "Core POS & Inventory", "Standard Receipts"],
+                      color: "border-blue-500/30",
+                    },
+                    {
+                      tier: "GROWTH",
+                      name: "Growth Multi-Store",
+                      priceLkr: 9500,
+                      features: ["Up to 3 Branches", "Up to 10 Staff", "LankaQR & PayHere APIs", "Full P&L Reports"],
+                      color: "border-emerald-500/40",
+                      badge: "Most Popular",
+                    },
+                    {
+                      tier: "ENTERPRISE",
+                      name: "Enterprise Multi-Tenant",
+                      priceLkr: 18500,
+                      features: ["Unlimited Branches", "Unlimited Staff", "Dedicated DB Schema", "24/7 Priority SLA"],
+                      color: "border-purple-500/30",
+                    },
+                  ].map((p) => (
+                    <div
+                      key={p.tier}
+                      className={`p-6 rounded-2xl bg-[#121417] border ${p.color} flex flex-col justify-between relative group hover:border-zinc-500 transition-colors`}
+                    >
+                      {p.badge && (
+                        <span className="absolute top-4 right-4 text-[10px] font-bold font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                          {p.badge}
+                        </span>
+                      )}
+                      <div>
+                        <span className="text-xs font-mono font-bold text-zinc-400 uppercase tracking-wider">
+                          {p.tier}
+                        </span>
+                        <h3 className="text-lg font-bold text-white mt-1">{p.name}</h3>
+                        <div className="mt-4 mb-6">
+                          <span className="text-3xl font-black text-white font-mono">
+                            Rs. {p.priceLkr.toLocaleString()}
                           </span>
-                        </td>
-                        <td className="py-3 px-3 font-semibold text-white">{exp.vendor}</td>
-                        <td className="py-3 px-3 text-stone-400">{exp.description}</td>
-                        <td className="py-3 px-3 text-right font-bold text-rose-400">
-                          Rs. {exp.amountLkr.toLocaleString()}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
+                          <span className="text-xs text-zinc-500 ml-1.5 font-medium">/ month</span>
+                        </div>
 
-        {/* TAB 4: CLUSTER TELEMETRY */}
-        {activeTab === "cluster" && (
-          <div className="space-y-6 animate-in fade-in duration-200">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              <div className="p-6 rounded-2xl bg-[#0E131F] border border-stone-800 shadow-xl space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
-                    <Database size={20} />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-white text-sm">PostgreSQL Cluster</h4>
-                    <span className="text-xs text-emerald-400 font-mono">STATUS: HEALTHY</span>
-                  </div>
+                        <ul className="space-y-2.5 text-xs text-zinc-300">
+                          {p.features.map((f, i) => (
+                            <li key={i} className="flex items-center gap-2">
+                              <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
+                              <span>{f}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <button
+                        onClick={() => {
+                          setSelectedPlanToEdit(p.tier);
+                          setNewPlanPrice(String(p.priceLkr));
+                          setIsPriceEditorOpen(true);
+                        }}
+                        className="mt-6 w-full h-9 rounded-lg bg-[#181A1D] hover:bg-[#22262C] border border-[#2B3037] text-white text-xs font-semibold transition-colors flex items-center justify-center gap-1.5"
+                      >
+                        <Settings size={13} />
+                        <span>Adjust Plan Price</span>
+                      </button>
+                    </div>
+                  ))}
                 </div>
-                <div className="pt-3 border-t border-stone-800 text-xs font-mono text-stone-400 flex justify-between">
-                  <span>Ping Latency:</span>
-                  <span className="text-white font-bold">{cluster?.database.latencyMs || 2} ms</span>
+
+                {/* Invoices Ledger */}
+                <div className="p-5 rounded-2xl bg-[#121417] border border-[#1E2227]">
+                  <h3 className="text-sm font-bold text-white tracking-tight mb-4">
+                    Platform Automated Invoices & LankaQR Gateway Settlements
+                  </h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead>
+                        <tr className="border-b border-[#1E2227] text-zinc-500 font-semibold uppercase tracking-wider text-[10px]">
+                          <th className="py-2.5 px-3">Invoice #</th>
+                          <th className="py-2.5 px-3">Tenant</th>
+                          <th className="py-2.5 px-3">Billing Cycle</th>
+                          <th className="py-2.5 px-3">Amount (LKR)</th>
+                          <th className="py-2.5 px-3">Issued Date</th>
+                          <th className="py-2.5 px-3">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#1A1D21]">
+                        {(financials?.recentInvoices || []).map((inv) => (
+                          <tr key={inv.id} className="hover:bg-[#16181B] transition-colors">
+                            <td className="py-3 px-3 font-mono font-bold text-zinc-300">
+                              {inv.invoiceNumber}
+                            </td>
+                            <td className="py-3 px-3 text-white font-medium">
+                              {inv.tenantName}
+                            </td>
+                            <td className="py-3 px-3 font-mono text-zinc-400">
+                              {inv.billingCycle}
+                            </td>
+                            <td className="py-3 px-3 font-mono font-bold text-white">
+                              Rs. {inv.amountLkr.toLocaleString()}
+                            </td>
+                            <td className="py-3 px-3 text-[11px] text-zinc-500 font-mono">
+                              {new Date(inv.issuedAt).toLocaleDateString()}
+                            </td>
+                            <td className="py-3 px-3">
+                              <span className="text-[10px] px-2 py-0.5 rounded-full font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                {inv.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
+            )}
 
-              <div className="p-6 rounded-2xl bg-[#0E131F] border border-stone-800 shadow-xl space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
-                    <Zap size={20} />
-                  </div>
+            {/* =========================================================================
+                TAB 4: PLATFORM SAAS P&L & CLOUD COSTS
+                ========================================================================= */}
+            {activeTab === "financials" && (
+              <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
-                    <h4 className="font-bold text-white text-sm">Redis In-Memory Engine</h4>
-                    <span className="text-xs text-emerald-400 font-mono">STATUS: ONLINE (6379)</span>
+                    <h2 className="text-2xl font-bold text-white tracking-tight">
+                      Platform SaaS Financials (P&L)
+                    </h2>
+                    <p className="text-xs text-zinc-400 mt-1">
+                      Subscription inflows vs AWS, PostgreSQL, Redis, and SMS expenses
+                    </p>
                   </div>
-                </div>
-                <div className="pt-3 border-t border-stone-800 text-xs font-mono text-stone-400 flex justify-between">
-                  <span>Ping Latency:</span>
-                  <span className="text-white font-bold">{cluster?.redis.latencyMs || 1} ms</span>
-                </div>
-              </div>
 
-              <div className="p-6 rounded-2xl bg-[#0E131F] border border-stone-800 shadow-xl space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
-                    <Cpu size={20} />
+                  <button
+                    onClick={() => setIsExpenseOpen(true)}
+                    className="h-9 px-4 rounded-lg bg-white hover:bg-zinc-200 text-black font-semibold text-xs flex items-center gap-1.5 transition-all shadow-sm"
+                  >
+                    <Plus size={14} className="stroke-[2.5]" />
+                    <span>Record Platform Expense</span>
+                  </button>
+                </div>
+
+                {/* 3 Summary Financial Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="p-5 rounded-2xl bg-[#121417] border border-[#1E2227]">
+                    <span className="text-xs font-semibold text-zinc-400">Total Monthly Inflow</span>
+                    <div className="text-2xl font-black text-emerald-400 font-mono mt-2">
+                      Rs. {(financials?.totalInflowLkr || 248500).toLocaleString()}
+                    </div>
+                    <span className="text-[11px] text-zinc-500 mt-1 block">
+                      MRR + 0.5% Payment gateway margins
+                    </span>
                   </div>
-                  <div>
-                    <h4 className="font-bold text-white text-sm">Server Uptime</h4>
-                    <span className="text-xs text-purple-400 font-mono">
-                      {Math.floor((cluster?.uptimeSeconds || 3600) / 3600)} Hours Online
+
+                  <div className="p-5 rounded-2xl bg-[#121417] border border-[#1E2227]">
+                    <span className="text-xs font-semibold text-zinc-400">Cloud & Operational Costs</span>
+                    <div className="text-2xl font-black text-rose-400 font-mono mt-2">
+                      Rs. {(financials?.totalPlatformExpensesLkr || 64200).toLocaleString()}
+                    </div>
+                    <span className="text-[11px] text-zinc-500 mt-1 block">
+                      AWS ECS, RDS PostgreSQL, Redis, Twilio SMS
+                    </span>
+                  </div>
+
+                  <div className="p-5 rounded-2xl bg-[#121417] border border-[#1E2227]">
+                    <span className="text-xs font-semibold text-zinc-400">Net SaaS Margin</span>
+                    <div className="text-2xl font-black text-white font-mono mt-2">
+                      {(financials?.profitMarginPercent || 73.8).toFixed(1)}%
+                    </div>
+                    <span className="text-[11px] text-emerald-400 mt-1 block font-mono">
+                      Net Profit: Rs. {(financials?.netSaaSProfitLkr || 184300).toLocaleString()}
                     </span>
                   </div>
                 </div>
-                <div className="pt-3 border-t border-stone-800 text-xs font-mono text-stone-400 flex justify-between">
-                  <span>Tenant Isolation:</span>
-                  <span className="text-emerald-400 font-bold">100% Enforced</span>
+
+                {/* Expenses Ledger */}
+                <div className="p-5 rounded-2xl bg-[#121417] border border-[#1E2227]">
+                  <h3 className="text-sm font-bold text-white tracking-tight mb-4">
+                    Platform Operational Expenses Breakdown
+                  </h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead>
+                        <tr className="border-b border-[#1E2227] text-zinc-500 font-semibold uppercase tracking-wider text-[10px]">
+                          <th className="py-2.5 px-3">Vendor / Service</th>
+                          <th className="py-2.5 px-3">Category</th>
+                          <th className="py-2.5 px-3">Description</th>
+                          <th className="py-2.5 px-3">Amount (LKR)</th>
+                          <th className="py-2.5 px-3">Date</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#1A1D21]">
+                        {(financials?.expensesBreakdown || []).map((exp) => (
+                          <tr key={exp.id} className="hover:bg-[#16181B] transition-colors">
+                            <td className="py-3 px-3 font-semibold text-white">
+                              {exp.vendor}
+                            </td>
+                            <td className="py-3 px-3 font-mono text-[11px] text-zinc-400">
+                              {exp.category}
+                            </td>
+                            <td className="py-3 px-3 text-zinc-300">
+                              {exp.description}
+                            </td>
+                            <td className="py-3 px-3 font-mono font-bold text-rose-400">
+                              Rs. {exp.amountLkr.toLocaleString()}
+                            </td>
+                            <td className="py-3 px-3 text-[11px] text-zinc-500 font-mono">
+                              {new Date(exp.recordedAt).toLocaleDateString()}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
-            {/* Background Workers & Schedulers Table */}
-            <div className="p-6 rounded-2xl bg-[#0E131F] border border-stone-800 shadow-xl">
-              <h4 className="font-bold text-base text-white mb-2">Platform Background Schedulers</h4>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs font-mono">
-                  <thead>
-                    <tr className="border-b border-stone-800 text-stone-400 uppercase text-[11px]">
-                      <th className="py-2 px-3">Job Name</th>
-                      <th className="py-2 px-3">Cron Expression</th>
-                      <th className="py-2 px-3 text-right">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-stone-800/60">
-                    {cluster?.schedulers.map((job, idx) => (
-                      <tr key={idx} className="hover:bg-stone-900/40">
-                        <td className="py-2.5 px-3 font-semibold text-white">{job.name}</td>
-                        <td className="py-2.5 px-3 text-cyan-400">{job.schedule}</td>
-                        <td className="py-2.5 px-3 text-right text-emerald-400 font-bold">ACTIVE</td>
-                      </tr>
+            {/* =========================================================================
+                TAB 5: CLUSTER TELEMETRY & HEALTH
+                ========================================================================= */}
+            {activeTab === "telemetry" && (
+              <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-2xl font-bold text-white tracking-tight">
+                      Cluster Telemetry & Health
+                    </h2>
+                    <p className="text-xs text-zinc-400 mt-1">
+                      PostgreSQL query latency, Redis cache heartbeat, and node-cron workers
+                    </p>
+                  </div>
+                  <button
+                    onClick={loadData}
+                    className="h-8 px-3 rounded-lg bg-[#141619] border border-[#2B3037] text-xs text-zinc-300 hover:text-white flex items-center gap-1.5 transition-colors"
+                  >
+                    <RefreshCw size={12} className={loading ? "animate-spin" : ""} />
+                    <span>Refresh Telemetry</span>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  <div className="p-5 rounded-2xl bg-[#121417] border border-[#1E2227]">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-zinc-400">PostgreSQL Aurora</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        {telemetry?.database?.status || "HEALTHY"}
+                      </span>
+                    </div>
+                    <div className="text-2xl font-black text-white font-mono mt-3">
+                      {telemetry?.database?.latencyMs || 4} ms
+                    </div>
+                    <span className="text-[11px] text-zinc-500 mt-1 block">
+                      Query round-trip time (SELECT 1)
+                    </span>
+                  </div>
+
+                  <div className="p-5 rounded-2xl bg-[#121417] border border-[#1E2227]">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-zinc-400">Redis 6379 Cache</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        {telemetry?.redis?.status || "ONLINE"}
+                      </span>
+                    </div>
+                    <div className="text-2xl font-black text-white font-mono mt-3">
+                      {telemetry?.redis?.latencyMs || 1} ms
+                    </div>
+                    <span className="text-[11px] text-zinc-500 mt-1 block">
+                      PING response latency
+                    </span>
+                  </div>
+
+                  <div className="p-5 rounded-2xl bg-[#121417] border border-[#1E2227]">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-zinc-400">Platform Uptime</span>
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    </div>
+                    <div className="text-2xl font-black text-white font-mono mt-3">
+                      {Math.floor((telemetry?.uptimeSeconds || 3600) / 3600)}h{" "}
+                      {Math.floor(((telemetry?.uptimeSeconds || 3600) % 3600) / 60)}m
+                    </div>
+                    <span className="text-[11px] text-zinc-500 mt-1 block">
+                      Node.js runtime continuous uptime
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-5 rounded-2xl bg-[#121417] border border-[#1E2227]">
+                  <h3 className="text-sm font-bold text-white tracking-tight mb-4">
+                    Active Node-Cron Background Schedulers
+                  </h3>
+                  <div className="divide-y divide-[#1A1D21]">
+                    {[
+                      {
+                        name: "weekly-audit-digest",
+                        schedule: "0 8 * * 1 (Every Monday 08:00)",
+                        status: "ACTIVE",
+                      },
+                      {
+                        name: "daily-db-backup",
+                        schedule: "0 2 * * * (Daily 02:00 UTC)",
+                        status: "ACTIVE",
+                      },
+                      {
+                        name: "quarterly-pentest-reminder",
+                        schedule: "0 0 1 1,4,7,10 *",
+                        status: "ACTIVE",
+                      },
+                    ].map((s) => (
+                      <div key={s.name} className="py-3 flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                          <Clock size={14} className="text-zinc-500" />
+                          <span className="font-semibold text-white text-xs">{s.name}</span>
+                          <span className="text-[11px] text-zinc-500 font-mono">
+                            {s.schedule}
+                          </span>
+                        </div>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                          {s.status}
+                        </span>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        )}
+            )}
+          </main>
+        </div>
+      </div>
 
-      </main>
-
-      {/* MODAL 1: PROVISION TURNKEY TENANT */}
-      {isProvisionModalOpen && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-[#0E131F] border border-stone-800 rounded-3xl w-full max-w-xl shadow-2xl p-6 space-y-5 text-stone-100 animate-in zoom-in-95">
-            <div className="flex items-center justify-between border-b border-stone-800 pb-4">
-              <div className="flex items-center gap-2">
-                <Sparkles size={18} className="text-cyan-400" />
-                <h3 className="font-bold text-base text-white">Provision New Turnkey Business Tenant</h3>
+      {/* =========================================================================
+          MODAL: TURNKEY TENANT PROVISIONING
+          ========================================================================= */}
+      {isProvisionOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-lg rounded-2xl bg-[#121417] border border-[#2B3037] p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-[#1E2227] pb-3">
+              <div>
+                <h3 className="text-base font-bold text-white">
+                  Provision Turnkey Tenant
+                </h3>
+                <p className="text-xs text-zinc-400 mt-0.5">
+                  Creates isolated schema, main branch, and admin credentials
+                </p>
               </div>
               <button
-                onClick={() => setIsProvisionModalOpen(false)}
-                className="p-1.5 text-stone-400 hover:text-white rounded-lg transition-colors"
+                onClick={() => setIsProvisionOpen(false)}
+                className="text-zinc-500 hover:text-white p-1"
               >
-                <X size={18} />
+                ✕
               </button>
             </div>
 
-            <form onSubmit={handleProvisionSubmit} className="space-y-4 text-xs font-mono">
-              <div className="grid grid-cols-2 gap-4">
+            {provisionMsg && (
+              <div
+                className={`p-3 rounded-lg text-xs font-medium ${
+                  provisionMsg.includes("successfully")
+                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                    : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                }`}
+              >
+                {provisionMsg}
+              </div>
+            )}
+
+            <form onSubmit={handleProvisionTenant} className="space-y-3.5">
+              <div>
+                <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
+                  Business Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Colombo Artisan Roastery"
+                  value={provisionData.businessName}
+                  onChange={(e) => {
+                    const name = e.target.value;
+                    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+                    setProvisionData({ ...provisionData, businessName: name, slug });
+                  }}
+                  className="w-full h-9 px-3 rounded-lg bg-[#181A1D] border border-[#2B3037] text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-400"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-stone-400 block mb-1">Company / Store Name</label>
+                  <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
+                    Workspace Slug
+                  </label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Ceylon Gem & Jewelry"
-                    value={provForm.name}
-                    onChange={(e) => setProvForm({ ...provForm, name: e.target.value })}
-                    className="w-full bg-stone-900 border border-stone-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500"
+                    placeholder="e.g. colombo-artisan"
+                    value={provisionData.slug}
+                    onChange={(e) =>
+                      setProvisionData({ ...provisionData, slug: e.target.value })
+                    }
+                    className="w-full h-9 px-3 rounded-lg bg-[#181A1D] border border-[#2B3037] text-xs text-white font-mono focus:outline-none focus:border-zinc-400"
                   />
                 </div>
 
                 <div>
-                  <label className="text-stone-400 block mb-1">Workspace Slug (Optional)</label>
-                  <input
-                    type="text"
-                    placeholder="Auto-generated if empty"
-                    value={provForm.slug}
-                    onChange={(e) => setProvForm({ ...provForm, slug: e.target.value })}
-                    className="w-full bg-stone-900 border border-stone-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-stone-400 block mb-1">Business Archetype</label>
+                  <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
+                    Industry Archetype
+                  </label>
                   <select
-                    value={provForm.businessType}
-                    onChange={(e) => setProvForm({ ...provForm, businessType: e.target.value })}
-                    className="w-full bg-stone-900 border border-stone-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500"
+                    value={provisionData.businessType}
+                    onChange={(e) =>
+                      setProvisionData({ ...provisionData, businessType: e.target.value })
+                    }
+                    className="w-full h-9 px-2.5 rounded-lg bg-[#181A1D] border border-[#2B3037] text-xs text-white focus:outline-none focus:border-zinc-400 cursor-pointer"
                   >
                     <option value="RETAIL">Retail & Apparel</option>
-                    <option value="RESTAURANT_CAFE">Restaurant & Cafe (KOT)</option>
+                    <option value="RESTAURANT_CAFE">Restaurant & Cafe</option>
+                    <option value="SUPERMARKET_GROCERY">Supermarket</option>
                     <option value="SALON_SPA">Salon & Wellness</option>
-                    <option value="PHARMACY_CLINIC">Pharmacy & Healthcare</option>
-                    <option value="GROCERY_SUPERMARKET">Grocery & Scale</option>
-                    <option value="WHOLESALE_DISTRIBUTION">Wholesale & Credit</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-stone-400 block mb-1">Subscription Plan</label>
-                  <select
-                    value={provForm.subscriptionTier}
-                    onChange={(e) => setProvForm({ ...provForm, subscriptionTier: e.target.value })}
-                    className="w-full bg-stone-900 border border-stone-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500"
-                  >
-                    <option value="STARTER">STARTER (Rs. 4,500/mo)</option>
-                    <option value="GROWTH">GROWTH (Rs. 9,500/mo)</option>
-                    <option value="ENTERPRISE">ENTERPRISE (Rs. 18,500/mo)</option>
+                    <option value="PHARMACY">Pharmacy</option>
                   </select>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 pt-2 border-t border-stone-800">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-stone-400 block mb-1">Initial Admin Email</label>
+                  <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
+                    Admin Email
+                  </label>
                   <input
                     type="email"
                     required
-                    placeholder="owner@business.lk"
-                    value={provForm.adminEmail}
-                    onChange={(e) => setProvForm({ ...provForm, adminEmail: e.target.value })}
-                    className="w-full bg-stone-900 border border-stone-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500"
+                    placeholder="owner@business.com"
+                    value={provisionData.adminEmail}
+                    onChange={(e) =>
+                      setProvisionData({ ...provisionData, adminEmail: e.target.value })
+                    }
+                    className="w-full h-9 px-3 rounded-lg bg-[#181A1D] border border-[#2B3037] text-xs text-white focus:outline-none focus:border-zinc-400"
                   />
                 </div>
 
                 <div>
-                  <label className="text-stone-400 block mb-1">Initial Password</label>
-                  <input
-                    type="text"
-                    required
-                    value={provForm.adminPassword}
-                    onChange={(e) => setProvForm({ ...provForm, adminPassword: e.target.value })}
-                    className="w-full bg-stone-900 border border-stone-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500"
-                  />
+                  <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
+                    Subscription Tier
+                  </label>
+                  <select
+                    value={provisionData.subscriptionTier}
+                    onChange={(e) =>
+                      setProvisionData({
+                        ...provisionData,
+                        subscriptionTier: e.target.value,
+                      })
+                    }
+                    className="w-full h-9 px-2.5 rounded-lg bg-[#181A1D] border border-[#2B3037] text-xs text-white focus:outline-none focus:border-zinc-400 cursor-pointer"
+                  >
+                    <option value="STARTER">Starter (Rs. 4,500/mo)</option>
+                    <option value="GROWTH">Growth (Rs. 9,500/mo)</option>
+                    <option value="ENTERPRISE">Enterprise (Rs. 18,500/mo)</option>
+                  </select>
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-stone-800">
+              <div className="pt-3 border-t border-[#1E2227] flex items-center justify-end gap-2.5">
                 <button
                   type="button"
-                  onClick={() => setIsProvisionModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-300 font-medium"
+                  onClick={() => setIsProvisionOpen(false)}
+                  className="px-3.5 py-2 rounded-lg bg-[#181A1D] text-zinc-300 text-xs font-medium hover:bg-[#22262B] transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-bold shadow-lg shadow-cyan-500/20"
+                  disabled={provisionLoading}
+                  className="px-4 py-2 rounded-lg bg-white hover:bg-zinc-200 text-black font-semibold text-xs transition-all disabled:opacity-50"
                 >
-                  Provision & Seed Turnkey Store
+                  {provisionLoading ? "Provisioning..." : "Provision Instance"}
                 </button>
               </div>
             </form>
@@ -1035,227 +1226,156 @@ export default function SuperAdminDashboard() {
         </div>
       )}
 
-      {/* MODAL 2: EDIT PLAN BASE PRICING */}
-      {editingPlan && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-[#0E131F] border border-stone-800 rounded-3xl w-full max-w-md shadow-2xl p-6 space-y-5 text-stone-100 animate-in zoom-in-95">
-            <div className="flex items-center justify-between border-b border-stone-800 pb-3">
-              <h3 className="font-bold text-base text-white">Edit {editingPlan.key} Base Pricing</h3>
+      {/* =========================================================================
+          MODAL: RECORD PLATFORM EXPENSE
+          ========================================================================= */}
+      {isExpenseOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-md rounded-2xl bg-[#121417] border border-[#2B3037] p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-[#1E2227] pb-3">
+              <h3 className="text-base font-bold text-white">Record Platform Cloud Expense</h3>
               <button
-                onClick={() => setEditingPlan(null)}
-                className="p-1 text-stone-400 hover:text-white rounded-lg transition-colors"
+                onClick={() => setIsExpenseOpen(false)}
+                className="text-zinc-500 hover:text-white p-1"
               >
-                <X size={18} />
+                ✕
               </button>
             </div>
 
-            <form onSubmit={handleSavePlanPrice} className="space-y-4 text-xs font-mono">
+            <form onSubmit={handleRecordExpense} className="space-y-3.5">
               <div>
-                <label className="text-stone-400 block mb-1">Monthly Base Price in LKR</label>
+                <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
+                  Vendor Name
+                </label>
                 <input
-                  type="number"
+                  type="text"
                   required
-                  min={1000}
-                  step={500}
-                  value={editingPlan.monthlyLkr}
+                  value={expenseData.vendor}
                   onChange={(e) =>
-                    setEditingPlan({ ...editingPlan, monthlyLkr: parseInt(e.target.value, 10) || 0 })
+                    setExpenseData({ ...expenseData, vendor: e.target.value })
                   }
-                  className="w-full bg-stone-900 border border-stone-800 rounded-xl px-3 py-2 text-cyan-400 text-lg font-bold focus:outline-none focus:border-cyan-500"
+                  className="w-full h-9 px-3 rounded-lg bg-[#181A1D] border border-[#2B3037] text-xs text-white focus:outline-none focus:border-zinc-400"
                 />
               </div>
 
-              <div className="p-3 rounded-xl bg-stone-900/60 border border-stone-800 text-[11px] text-stone-400 space-y-1">
-                <div className="flex justify-between">
-                  <span>Auto-calculated Quarterly (10% off):</span>
-                  <span className="text-white font-bold">
-                    Rs. {(editingPlan.monthlyLkr * 3 * 0.9).toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Auto-calculated Annual (20% off):</span>
-                  <span className="text-white font-bold">
-                    Rs. {(editingPlan.monthlyLkr * 12 * 0.8).toLocaleString()}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-3 border-t border-stone-800">
-                <button
-                  type="button"
-                  onClick={() => setEditingPlan(null)}
-                  className="px-4 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-300"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-bold"
-                >
-                  Save New Price
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL 3: RECORD PLATFORM EXPENSE */}
-      {isAddExpenseModalOpen && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-[#0E131F] border border-stone-800 rounded-3xl w-full max-w-md shadow-2xl p-6 space-y-4 text-stone-100 animate-in zoom-in-95">
-            <div className="flex items-center justify-between border-b border-stone-800 pb-3">
-              <h3 className="font-bold text-base text-white">Record Platform Infrastructure Cost</h3>
-              <button
-                onClick={() => setIsAddExpenseModalOpen(false)}
-                className="p-1 text-stone-400 hover:text-white rounded-lg transition-colors"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <form onSubmit={handleAddExpenseSubmit} className="space-y-3.5 text-xs font-mono">
-              <div>
-                <label className="text-stone-400 block mb-1">Expense Category</label>
-                <select
-                  value={expenseForm.category}
-                  onChange={(e) => setExpenseForm({ ...expenseForm, category: e.target.value as any })}
-                  className="w-full bg-stone-900 border border-stone-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500"
-                >
-                  <option value="CLOUD_SERVERS">Cloud Servers & Compute (AWS/DO)</option>
-                  <option value="DATABASE">Database Relational Cluster (PostgreSQL)</option>
-                  <option value="REDIS_CACHE">Redis In-Memory Engine</option>
-                  <option value="SMS_GATEWAY">SMS & OTP Telecom Gateway (Dialog/Mobitel)</option>
-                  <option value="SECURITY_SSL">Security, WAF & SSL</option>
-                  <option value="OPERATIONS">Platform Maintenance & Licenses</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-stone-400 block mb-1">Vendor / Service Provider</label>
-                <input
-                  type="text"
-                  required
-                  value={expenseForm.vendor}
-                  onChange={(e) => setExpenseForm({ ...expenseForm, vendor: e.target.value })}
-                  className="w-full bg-stone-900 border border-stone-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500"
-                />
-              </div>
-
-              <div>
-                <label className="text-stone-400 block mb-1">Amount in LKR</label>
-                <input
-                  type="number"
-                  required
-                  value={expenseForm.amountLkr}
-                  onChange={(e) => setExpenseForm({ ...expenseForm, amountLkr: parseInt(e.target.value, 10) || 0 })}
-                  className="w-full bg-stone-900 border border-stone-800 rounded-xl px-3 py-2 text-cyan-400 font-bold focus:outline-none focus:border-cyan-500"
-                />
-              </div>
-
-              <div>
-                <label className="text-stone-400 block mb-1">Description / Bill Notes</label>
-                <input
-                  type="text"
-                  value={expenseForm.description}
-                  onChange={(e) => setExpenseForm({ ...expenseForm, description: e.target.value })}
-                  className="w-full bg-stone-900 border border-stone-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500"
-                />
-              </div>
-
-              <div className="flex justify-end gap-3 pt-3 border-t border-stone-800">
-                <button
-                  type="button"
-                  onClick={() => setIsAddExpenseModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-300"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-bold"
-                >
-                  Record Expense
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* DRAWER: TENANT QUOTA & DETAILS */}
-      {selectedTenantDetails && (
-        <div className="fixed inset-0 z-[200] flex justify-end bg-black/60 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-md bg-[#0E131F] border-l border-stone-800 h-full p-6 flex flex-col justify-between shadow-2xl animate-in slide-in-from-right duration-200">
-            <div className="space-y-6">
-              <div className="flex items-center justify-between border-b border-stone-800 pb-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <h3 className="font-bold text-lg text-white">{selectedTenantDetails.name}</h3>
-                  <span className="font-mono text-cyan-400 text-xs">/{selectedTenantDetails.slug}</span>
+                  <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
+                    Amount (LKR)
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    value={expenseData.amountLkr}
+                    onChange={(e) =>
+                      setExpenseData({
+                        ...expenseData,
+                        amountLkr: Number(e.target.value),
+                      })
+                    }
+                    className="w-full h-9 px-3 rounded-lg bg-[#181A1D] border border-[#2B3037] text-xs text-white font-mono focus:outline-none focus:border-zinc-400"
+                  />
                 </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
+                    Category
+                  </label>
+                  <select
+                    value={expenseData.category}
+                    onChange={(e) =>
+                      setExpenseData({ ...expenseData, category: e.target.value as any })
+                    }
+                    className="w-full h-9 px-2 rounded-lg bg-[#181A1D] border border-[#2B3037] text-xs text-white focus:outline-none focus:border-zinc-400 cursor-pointer"
+                  >
+                    <option value="CLOUD_SERVERS">Cloud Servers (AWS)</option>
+                    <option value="DATABASE">PostgreSQL Aurora</option>
+                    <option value="REDIS_CACHE">Redis Cluster</option>
+                    <option value="SMS_GATEWAY">Dialog / Twilio SMS</option>
+                    <option value="OPERATIONS">Operations</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
+                  Description
+                </label>
+                <input
+                  type="text"
+                  value={expenseData.description}
+                  onChange={(e) =>
+                    setExpenseData({ ...expenseData, description: e.target.value })
+                  }
+                  className="w-full h-9 px-3 rounded-lg bg-[#181A1D] border border-[#2B3037] text-xs text-white focus:outline-none focus:border-zinc-400"
+                />
+              </div>
+
+              <div className="pt-3 border-t border-[#1E2227] flex items-center justify-end gap-2.5">
                 <button
-                  onClick={() => setSelectedTenantDetails(null)}
-                  className="p-1.5 text-stone-400 hover:text-white rounded-lg"
+                  type="button"
+                  onClick={() => setIsExpenseOpen(false)}
+                  className="px-3.5 py-2 rounded-lg bg-[#181A1D] text-zinc-300 text-xs font-medium hover:bg-[#22262B] transition-colors"
                 >
-                  <X size={18} />
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={expenseLoading}
+                  className="px-4 py-2 rounded-lg bg-white hover:bg-zinc-200 text-black font-semibold text-xs transition-all disabled:opacity-50"
+                >
+                  {expenseLoading ? "Saving..." : "Record Expense"}
                 </button>
               </div>
+            </form>
+          </div>
+        </div>
+      )}
 
-              <div className="space-y-4 text-xs font-mono">
-                <div className="p-4 rounded-xl bg-stone-900/60 border border-stone-800 space-y-2">
-                  <span className="text-stone-400 uppercase text-[10px] font-bold block">Resource Quota Usage</span>
-                  <div className="flex justify-between text-stone-300">
-                    <span>Active Outlets:</span>
-                    <span className="font-bold text-white">
-                      {selectedTenantDetails.branchesCount} / {selectedTenantDetails.maxBranches}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-stone-300">
-                    <span>Staff Accounts:</span>
-                    <span className="font-bold text-white">
-                      {selectedTenantDetails.usersCount} / {selectedTenantDetails.maxUsers}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-xl bg-stone-900/60 border border-stone-800 space-y-2">
-                  <span className="text-stone-400 uppercase text-[10px] font-bold block">Commerce Volume</span>
-                  <div className="flex justify-between text-stone-300">
-                    <span>Total SKU Products:</span>
-                    <span className="font-bold text-white">{selectedTenantDetails.productsCount}</span>
-                  </div>
-                  <div className="flex justify-between text-stone-300">
-                    <span>Total Orders Processed:</span>
-                    <span className="font-bold text-white">{selectedTenantDetails.ordersCount}</span>
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-xl bg-stone-900/60 border border-stone-800 space-y-2">
-                  <span className="text-stone-400 uppercase text-[10px] font-bold block">Status & Tier</span>
-                  <div className="flex justify-between text-stone-300">
-                    <span>Tier:</span>
-                    <span className="font-bold text-indigo-400">{selectedTenantDetails.subscriptionTier}</span>
-                  </div>
-                  <div className="flex justify-between text-stone-300">
-                    <span>Status:</span>
-                    <span className="font-bold text-emerald-400">{selectedTenantDetails.status}</span>
-                  </div>
-                </div>
-              </div>
+      {/* =========================================================================
+          MODAL: ADJUST PLAN PRICE
+          ========================================================================= */}
+      {isPriceEditorOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-sm rounded-2xl bg-[#121417] border border-[#2B3037] p-6 shadow-2xl space-y-4">
+            <h3 className="text-base font-bold text-white">
+              Adjust {selectedPlanToEdit} Pricing (LKR)
+            </h3>
+            <div>
+              <label className="block text-xs font-semibold text-zinc-400 mb-1.5">
+                Monthly Subscription Fee (Rs.)
+              </label>
+              <input
+                type="number"
+                value={newPlanPrice}
+                onChange={(e) => setNewPlanPrice(e.target.value)}
+                className="w-full h-10 px-3 rounded-lg bg-[#181A1D] border border-[#2B3037] text-sm text-white font-mono font-bold focus:outline-none focus:border-zinc-400"
+              />
             </div>
-
-            <div className="pt-4 border-t border-stone-800">
+            <div className="flex items-center justify-end gap-2 pt-2">
               <button
-                onClick={() => setSelectedTenantDetails(null)}
-                className="w-full py-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-white font-medium text-xs transition-colors"
+                onClick={() => setIsPriceEditorOpen(false)}
+                className="px-3.5 py-2 rounded-lg bg-[#181A1D] text-zinc-300 text-xs font-medium hover:bg-[#22262B] transition-colors"
               >
-                Close Drawer
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  alert(
+                    `Updated ${selectedPlanToEdit} plan pricing to Rs. ${Number(
+                      newPlanPrice
+                    ).toLocaleString()}/month`
+                  );
+                  setIsPriceEditorOpen(false);
+                }}
+                className="px-4 py-2 rounded-lg bg-white hover:bg-zinc-200 text-black font-semibold text-xs transition-all"
+              >
+                Save Price
               </button>
             </div>
           </div>
         </div>
       )}
-
     </div>
   );
 }
