@@ -29,6 +29,7 @@ import {
   Plus,
   Layers,
   Cpu,
+  LogOut,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import Image from "next/image";
@@ -486,6 +487,18 @@ export default function POSPage() {
             <Maximize size={14} />
             <span className="hidden sm:inline">{isFullscreen ? "Exit Full Screen" : "Full Screen"}</span>
           </button>
+          <button 
+            onClick={() => {
+              if (confirm("Are you sure you want to log out of the POS terminal?")) {
+                useAuthStore.getState().logout('/login');
+              }
+            }}
+            className="flex items-center gap-1.5 text-xs font-inter font-semibold text-rose-500 hover:text-rose-400 hover:bg-rose-950/20 border border-rose-500/20 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+            title="Log out of Cashier Terminal"
+          >
+            <LogOut size={14} />
+            <span className="hidden sm:inline">Logout</span>
+          </button>
         </div>
       </div>
 
@@ -509,6 +522,13 @@ export default function POSPage() {
             className="px-8 py-3 bg-primary text-white font-inter font-bold rounded-xl shadow-lg hover:bg-primary-hover hover:-translate-y-1 transition-all"
           >
             Open Shift Now
+          </button>
+          <button
+            onClick={() => useAuthStore.getState().logout('/login')}
+            className="mt-4 text-xs font-inter text-muted hover:text-rose-500 flex items-center gap-1.5 transition-colors cursor-pointer"
+          >
+            <LogOut size={13} />
+            <span>Sign out ({user?.name || user?.email || 'Cashier'})</span>
           </button>
         </div>
       ) : posMode === "RETURNS" ? (
