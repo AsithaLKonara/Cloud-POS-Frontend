@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { format } from "date-fns";
 import { Search, Loader2, Store, Calendar, FileText, Download, RotateCcw, AlertCircle, Truck, Package, Clock, CheckCircle2, ArrowLeftRight, Eye, X, ExternalLink } from "lucide-react";
+import { useBranches } from "@/hooks/useInventory";
+import { useOrders } from "@/hooks/useOrders";
+import { useReturns } from "@/hooks/useReturns";
+import { useBranchReport } from "@/hooks/useReports";
 
 const formatPrice = (price: number) =>
   new Intl.NumberFormat("en-LK", { style: "currency", currency: "LKR" }).format(price);
@@ -13,6 +19,15 @@ const RETURN_STATUS_CONFIG: Record<string, { icon: any; bg: string; color: strin
   RECEIVED: { icon: Package, bg: "bg-indigo-100", color: "text-indigo-700", label: "Inspecting" },
   REFUNDED: { icon: CheckCircle2, bg: "bg-emerald-100", color: "text-emerald-700", label: "Refunded" },
   REJECTED: { icon: AlertCircle, bg: "bg-red-100", color: "text-red-700", label: "Rejected" },
+};
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case "COMPLETED": return "bg-emerald-50 text-emerald-700 border-emerald-200";
+    case "PENDING": return "bg-amber-50 text-amber-700 border-amber-200";
+    case "CANCELLED": return "bg-red-50 text-red-700 border-red-200";
+    default: return "bg-stone-50 text-stone-700 border-stone-200";
+  }
 };
 
 export default function POSSalesClient() {
