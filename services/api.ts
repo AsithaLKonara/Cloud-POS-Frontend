@@ -46,6 +46,18 @@ api.interceptors.request.use(
       // the response interceptor handles the retry below.
     }
 
+    // Attach multi-tenant header if active
+    if (typeof window !== "undefined") {
+      const activeTenant = localStorage.getItem("laural_tenant_id") || localStorage.getItem("active_tenant_id");
+      const activeTenantSlug = localStorage.getItem("laural_tenant_slug") || localStorage.getItem("active_tenant_slug");
+      if (activeTenant && !config.headers["x-tenant-id"]) {
+        config.headers["x-tenant-id"] = activeTenant;
+      }
+      if (activeTenantSlug && !config.headers["x-tenant-slug"]) {
+        config.headers["x-tenant-slug"] = activeTenantSlug;
+      }
+    }
+
     return config;
   },
   (error) => {

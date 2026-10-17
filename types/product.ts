@@ -9,6 +9,8 @@ export interface ProductVariant {
   costPrice?: number;
   wholesalePrice?: number | null;
   packUnit?: string | null;
+  unit?: string | null;
+  attributes?: Record<string, any> | null;
   unitVolumeLiters?: number | null;
   stockStatus: string;
   quantity: number;
@@ -37,7 +39,10 @@ export interface Product {
   categoryId: string | null;
   category?: { id: string; name: string; slug: string; };
   status?: string;
-  productType?: string; // LUBRICANT, FILTER, BATTERY, CAR_CARE, SPARE_PART, ACCESSORY, SERVICE, GENERAL
+  productType?: string; // PHYSICAL, SERVICE, DIGITAL, etc.
+  trackInventory?: boolean;
+  unit?: string;
+  attributes?: Record<string, any> | null;
   brand?: string | null;
   viscosity?: string | null;
   oilType?: string | null;
