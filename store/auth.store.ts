@@ -64,9 +64,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  logout: async (redirectTo = "/login") => {
+  logout: async (redirectTo?: string) => {
     try {
-      // 1. Clear Next.js server cookies via local route handler
+      // 1. Clear Next.js server cookies via local route handler (fire-and-forget)
       fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
       // 2. Clear backend express cookies & refresh token
       await authService.logout().catch(() => {});
@@ -93,14 +93,24 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isLoading: false,
       });
 
-      if (typeof window !== "undefined") {
-        window.location.replace(redirectTo || "/login");
+      // ONLY navigate if a destination is requested AND we are not already on that destination
+      if (redirectTo && typeof window !== "undefined") {
+        const currentPath = window.location.pathname;
+        if (currentPath !== redirectTo) {
+          window.location.replace(redirectTo);
+        }
       }
     }
   },
 
   initAuth: async () => {
     if (typeof window === "undefined") {
+      set({ isLoading: false });
+      return;
+    }
+
+    // If user is already on /login or /register, do not attempt background token validation
+    if (window.location.pathname === "/login" || window.location.pathname === "/register") {
       set({ isLoading: false });
       return;
     }
@@ -138,14 +148,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             const refreshed = await authService.refresh();
             get().setAuth(refreshed.user);
           } catch {
-            get().logout();
+            set({ user: null, isAuthenticated: false, isLoading: false });
           }
-        } else if (!cachedUser) {
-          get().logout();
+        } else {
+          set({ user: null, isAuthenticated: false, isLoading: false });
         }
       }
     } catch {
-      set({ user: null, isAuthenticated: false });
+      set({ user: null, isAuthenticated: false, isLoading: false });
     } finally {
       set({ isLoading: false });
     }

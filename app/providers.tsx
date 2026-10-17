@@ -28,6 +28,13 @@ function CsrfInitializer() {
 
 function AuthInitializer() {
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const path = window.location.pathname;
+      if (path === "/login" || path === "/register") {
+        useAuthStore.setState({ isLoading: false });
+        return;
+      }
+    }
     useAuthStore.getState().initAuth();
   }, []);
 

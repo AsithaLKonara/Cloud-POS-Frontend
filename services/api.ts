@@ -109,11 +109,21 @@ api.interceptors.response.use(
         document.cookie = "laural_refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
         document.cookie = "laural_role=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
         
-        // Notify Zustand to update UI state
-        // We import dynamically to avoid circular dependencies if any
-        import("@/store/auth.store").then(({ useAuthStore }) => {
-          useAuthStore.getState().logout();
-        });
+        const currentPath = window.location.pathname;
+        const reqUrl = error.config?.url || "";
+        const isAuthEndpoint = reqUrl.includes("/auth/me") || reqUrl.includes("/auth/login") || reqUrl.includes("/auth/refresh");
+
+        // Only trigger an active redirect if user is on a protected route (not on /login, /register, etc.)
+        if (currentPath !== "/login" && currentPath !== "/register" && !isAuthEndpoint) {
+          import("@/store/auth.store").then(({ useAuthStore }) => {
+            useAuthStore.getState().logout("/login");
+          });
+        } else {
+          // Silently mark store as logged out without redirecting or looping
+          import("@/store/auth.store").then(({ useAuthStore }) => {
+            useAuthStore.setState({ user: null, isAuthenticated: false, isLoading: false });
+          });
+        }
       }
     }
 

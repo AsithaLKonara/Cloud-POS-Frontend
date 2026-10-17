@@ -323,7 +323,7 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form action="#" method="POST" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {/* Optional Workspace / Tenant Identifier */}
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
