@@ -54,6 +54,7 @@ export type CheckoutFormData = z.infer<typeof checkoutSchema>;
 export const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(1, "Password is required"),
+  tenantSlug: z.string().optional(),
   _honeypot: z.string().optional(),
   turnstileToken: z.string().optional(),
 }).strict();
