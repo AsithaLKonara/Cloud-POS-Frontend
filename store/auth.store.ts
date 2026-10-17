@@ -64,14 +64,27 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  logout: async (redirectTo?: string) => {
+  logout: async (redirectTo = "/login") => {
     try {
-      await authService.logout();
+      // 1. Clear Next.js server cookies via local route handler
+      fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+      // 2. Clear backend express cookies & refresh token
+      await authService.logout().catch(() => {});
     } catch {
       // Ignore
     } finally {
       if (typeof window !== "undefined") {
         localStorage.removeItem(USER_KEY);
+        localStorage.removeItem("laural_user");
+        localStorage.removeItem("laural_tenant_id");
+        localStorage.removeItem("laural_tenant_slug");
+        localStorage.removeItem("active_tenant_id");
+        localStorage.removeItem("active_tenant_slug");
+
+        // Clear all possible cookies in client
+        document.cookie = "laural_access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+        document.cookie = "laural_refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+        document.cookie = "laural_role=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
       }
 
       set({
@@ -80,8 +93,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isLoading: false,
       });
 
-      if (redirectTo && typeof window !== "undefined") {
-        window.location.href = redirectTo;
+      if (typeof window !== "undefined") {
+        window.location.replace(redirectTo || "/login");
       }
     }
   },

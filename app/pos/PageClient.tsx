@@ -488,11 +488,7 @@ export default function POSPage() {
             <span className="hidden sm:inline">{isFullscreen ? "Exit Full Screen" : "Full Screen"}</span>
           </button>
           <button 
-            onClick={() => {
-              if (confirm("Are you sure you want to log out of the POS terminal?")) {
-                useAuthStore.getState().logout('/login');
-              }
-            }}
+            onClick={() => useAuthStore.getState().logout('/login')}
             className="flex items-center gap-1.5 text-xs font-inter font-semibold text-rose-500 hover:text-rose-400 hover:bg-rose-950/20 border border-rose-500/20 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
             title="Log out of Cashier Terminal"
           >
