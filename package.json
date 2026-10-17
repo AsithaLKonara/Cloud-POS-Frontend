@@ -1,7 +1,7 @@
 {
-  "name": "laural-clothing-frontend",
-  "version": "1.0.0",
-  "description": "Storefront, Admin and POS UI for Laural Clothing",
+  "name": "xonit-pos-frontend",
+  "version": "2.0.0",
+  "description": "Universal Multi-Tenant POS, ERP & Storefront UI for XONIT POS",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

@@ -29,10 +29,10 @@ const urbanist = Urbanist({
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | Cloud POS & ERP",
-    default: "Cloud POS & ERP | Inter-Branch Oil Retail System",
+    template: "%s | XONIT POS - Universal Enterprise Platform",
+    default: "XONIT POS | The Universal Multi-Tenant Enterprise Platform",
   },
-  description: "Enterprise Inter-Branch POS, ERP, and CRM System for Oil & Lubricant Retail.",
+  description: "Next-generation Universal Multi-Tenant POS, ERP, CRM & P&L Platform for Retail, Restaurants, Salons, Pharmacies, Groceries, Wholesale & Services in Sri Lanka.",
   icons: {
     icon: [
       { url: "/favicon.svg", type: "image/svg+xml" },

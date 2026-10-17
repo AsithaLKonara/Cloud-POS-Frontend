@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <defs>
+    <linearGradient id="xonitBgLg" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0B0F19" />
+      <stop offset="50%" stop-color="#05070C" />
+      <stop offset="100%" stop-color="#000000" />
+    </linearGradient>
+
+    <linearGradient id="xStroke1Lg" x1="10" y1="10" x2="38" y2="38" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#22D3EE" />
+      <stop offset="45%" stop-color="#06B6D4" />
+      <stop offset="100%" stop-color="#6366F1" />
+    </linearGradient>
+
+    <linearGradient id="xStroke2Lg" x1="38" y1="10" x2="10" y2="38" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#A855F7" />
+      <stop offset="55%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#06B6D4" />
+    </linearGradient>
+
+    <filter id="neonGlowLg" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="2" flood-color="#06B6D4" flood-opacity="0.7" />
+      <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#6366F1" flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <rect width="48" height="48" rx="12" fill="url(#xonitBgLg)" stroke="#1E293B" stroke-width="1.5" />
+
+  <g filter="url(#neonGlowLg)">
+    <path
+      d="M11 11L18 11L37 37L30 37Z"
+      fill="url(#xStroke1Lg)"
+    />
+    <path
+      d="M37 11L30 11L23.3 20L27.2 25L37 11Z"
+      fill="url(#xStroke2Lg)"
+    />
+    <path
+      d="M20.8 28L16.9 23L11 37L18 37L20.8 28Z"
+      fill="url(#xStroke2Lg)"
+    />
+    <circle cx="24" cy="24" r="2.2" fill="#FFFFFF" opacity="0.95" />
+    <circle cx="24" cy="24" r="4.2" fill="#38BDF8" opacity="0.35" />
+  </g>
+</svg>
