@@ -31,6 +31,8 @@ import {
   HardDrive,
   X,
   LogOut,
+  Globe,
+  Sparkles,
 } from "lucide-react";
 
 interface NavItem {
@@ -75,16 +77,16 @@ export default function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean, setIs
       ]
     },
     {
-      label: "Item Catalog",
+      label: "Catalog & Pricing",
       items: [
-        { name: "Oil & Non-Oil Items", icon: Box, href: "/admin/products", permission: "products:view" },
-        { name: "Categories & Grades", icon: Tags, href: "/admin/categories", permission: ["categories:manage", "products:view"] },
+        { name: "Products & Items", icon: Box, href: "/admin/products", permission: "products:view" },
+        { name: "Categories & Tags", icon: Tags, href: "/admin/categories", permission: ["categories:manage", "products:view"] },
       ]
     },
     {
       label: "CRM & Accounts",
       items: [
-        { name: "Customers & Garages", icon: Users, href: "/admin/customers", permission: "customers:view" },
+        { name: "Customers & Accounts", icon: Users, href: "/admin/customers", permission: "customers:view" },
       ]
     },
     {
@@ -112,21 +114,22 @@ export default function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean, setIs
   })).filter(group => group.items.length > 0);
 
   const primaryRole = user?.roles?.[0] || "Staff User";
+  const userIsSuper = isSuperAdmin() || user?.email === "admin@xonit.space";
 
   return (
     <aside className={`fixed left-0 top-0 bottom-0 w-[240px] bg-surface border-r border-border flex flex-col z-50 transition-transform duration-300 md:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
       {/* Logo Area */}
       <div className="h-[64px] flex items-center justify-between px-5 border-b border-border shrink-0 bg-surface">
         <Link href="/admin" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 shadow-sm">
-            <Box size={18} />
+          <div className="w-8 h-8 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-500 shadow-sm font-black text-sm">
+            X
           </div>
           <div className="flex flex-col">
             <span className="font-inter font-bold tracking-wider text-foreground text-xs uppercase leading-none">
-              OIL POS & ERP
+              XONIT POS
             </span>
             <span className="font-inter text-[10px] text-muted tracking-wide mt-0.5">
-              Multi-Branch Suite
+              Cloud Multi-Tenant
             </span>
           </div>
         </Link>
@@ -139,6 +142,25 @@ export default function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean, setIs
 
       {/* Navigation (Permanently Expanded Categories) */}
       <div className="flex-1 overflow-y-auto py-4 px-3 flex flex-col gap-4 scrollbar-thin">
+        {userIsSuper && (
+          <div className="mb-1">
+            <Link
+              href="/superadmin"
+              className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-gradient-to-r from-violet-600/15 via-fuchsia-600/10 to-indigo-600/15 border border-violet-500/30 text-violet-400 hover:text-violet-300 hover:border-violet-400/50 transition-all shadow-sm group"
+            >
+              <div className="w-6 h-6 rounded-lg bg-violet-500/20 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                <Globe size={14} className="text-violet-400" />
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-[11px] font-bold tracking-wide uppercase leading-tight flex items-center gap-1">
+                  XONIT Platform
+                  <Sparkles size={10} className="text-amber-400" />
+                </span>
+                <span className="text-[9px] text-zinc-400 truncate">Super Admin Center</span>
+              </div>
+            </Link>
+          </div>
+        )}
         {visibleGroups.map((group, idx) => {
           return (
             <div key={idx} className="flex flex-col gap-1">

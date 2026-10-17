@@ -1,0 +1,121 @@
+import { api } from './api';
+
+export interface PlatformKPIs {
+  totalTenants: number;
+  activeTenants: number;
+  trialTenants: number;
+  suspendedTenants: number;
+  cancelledTenants: number;
+  totalBranches: number;
+  totalUsers: number;
+  platformGmvLkr: number;
+  totalOrders: number;
+  mrrLkr: number;
+  arrLkr: number;
+}
+
+export interface PlatformExpenseItem {
+  id: string;
+  category: 'CLOUD_SERVERS' | 'DATABASE' | 'REDIS_CACHE' | 'SMS_GATEWAY' | 'SECURITY_SSL' | 'OPERATIONS';
+  amountLkr: number;
+  vendor: string;
+  description: string;
+  recordedAt: string;
+}
+
+export interface PlatformFinancials {
+  mrrLkr: number;
+  arrLkr: number;
+  grossSubscriptionRevenueLkr: number;
+  gatewayMarginRevenueLkr: number;
+  totalInflowLkr: number;
+  totalPlatformExpensesLkr: number;
+  netSaaSProfitLkr: number;
+  profitMarginPercent: number;
+  expensesBreakdown: PlatformExpenseItem[];
+  recentInvoices: Array<{
+    id: string;
+    tenantName?: string;
+    amountLkr: number;
+    billingCycle?: string;
+    status: string;
+    invoiceNumber: string;
+    issuedAt: string;
+  }>;
+}
+
+export interface TenantRegistryItem {
+  id: string;
+  name: string;
+  slug: string;
+  businessType: string;
+  status: 'ACTIVE' | 'SUSPENDED' | 'TRIAL' | 'CANCELLED';
+  subscriptionTier: string;
+  maxBranches: number;
+  maxUsers: number;
+  branchesCount: number;
+  usersCount: number;
+  productsCount: number;
+  ordersCount: number;
+  createdAt: string;
+  settings?: any;
+}
+
+export interface ClusterTelemetry {
+  database: {
+    status: 'HEALTHY' | 'DEGRADED';
+    latencyMs: number;
+  };
+  redis: {
+    status: 'ONLINE' | 'OFFLINE';
+    latencyMs: number;
+  };
+  schedulers: Array<{
+    name: string;
+    schedule: string;
+    status: 'ACTIVE';
+  }>;
+  uptimeSeconds: number;
+}
+
+export const superAdminService = {
+  async getKPIs(): Promise<PlatformKPIs> {
+    const res = await api.get('/superadmin/kpis');
+    return res.data.data;
+  },
+
+  async getFinancials(): Promise<PlatformFinancials> {
+    const res = await api.get('/superadmin/financials');
+    return res.data.data;
+  },
+
+  async addExpense(expense: Omit<PlatformExpenseItem, 'id' | 'recordedAt'>): Promise<PlatformExpenseItem> {
+    const res = await api.post('/superadmin/expenses', expense);
+    return res.data.data;
+  },
+
+  async getTenants(params?: { search?: string; status?: string; businessType?: string }): Promise<TenantRegistryItem[]> {
+    const res = await api.get('/superadmin/tenants', { params });
+    return res.data.data;
+  },
+
+  async updateTenantStatus(tenantId: string, status: 'ACTIVE' | 'SUSPENDED' | 'TRIAL' | 'CANCELLED'): Promise<any> {
+    const res = await api.patch(`/superadmin/tenants/${tenantId}/status`, { status });
+    return res.data.data;
+  },
+
+  async extendTrial(tenantId: string, days = 14): Promise<any> {
+    const res = await api.patch(`/superadmin/tenants/${tenantId}/trial`, { days });
+    return res.data.data;
+  },
+
+  async provisionTenant(payload: any): Promise<any> {
+    const res = await api.post('/superadmin/tenants/provision', payload);
+    return res.data.data;
+  },
+
+  async getClusterTelemetry(): Promise<ClusterTelemetry> {
+    const res = await api.get('/superadmin/cluster');
+    return res.data.data;
+  },
+};

@@ -145,10 +145,12 @@ export default function LoginPage() {
         deviceFingerprint,
       });
 
-      const roles = (result.user.roles || []).map((r: string) => r.toUpperCase());
-      if (roles.includes("CASHIER") || roles.includes("POS_OPERATOR")) {
+      const roles = (result.user.roles || []).map((r: string) => r.toUpperCase().replace(/[\s_]/g, ""));
+      if (roles.includes("SUPERADMIN") || roles.includes("SYSTEMOWNER") || result.user.email === "admin@xonit.space") {
+        router.push("/superadmin");
+      } else if (roles.includes("CASHIER") || roles.includes("POSOPERATOR")) {
         router.push("/pos");
-      } else if (roles.includes("BRANCH_MANAGER")) {
+      } else if (roles.includes("BRANCHMANAGER")) {
         router.push("/branch-admin");
       } else {
         router.push("/admin");
