@@ -28,6 +28,7 @@ import {
   Sparkles,
   Plus,
   Layers,
+  Cpu,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import Image from "next/image";
@@ -39,6 +40,7 @@ import PosReturnsMode from "@/components/pos/PosReturnsMode";
 import PosDispatchTicket from "@/components/pos/PosDispatchTicket";
 import PosExchangeTicket from "@/components/pos/PosExchangeTicket";
 import PosShiftModal from "@/components/pos/PosShiftModal";
+import HardwareSettingsModal from "@/components/hardware/HardwareSettingsModal";
 import Link from "next/link";
 import { useInfiniteProducts, useScanBarcode } from "@/hooks/useProducts";
 import { useIntersection } from "@/hooks/useIntersection";
@@ -140,6 +142,7 @@ export default function POSPage() {
   
   const [heldCarts, setHeldCarts] = useState<{id: string, time: string, items: any[]}[]>([]);
   const [isHeldCartsModalOpen, setIsHeldCartsModalOpen] = useState(false);
+  const [isHardwareModalOpen, setIsHardwareModalOpen] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('posHeldCarts');
@@ -467,6 +470,14 @@ export default function POSPage() {
                 {heldCarts.length}
               </span>
             )}
+          </button>
+          <button 
+            onClick={() => setIsHardwareModalOpen(true)}
+            className="hidden md:flex items-center gap-1.5 text-sm font-inter text-cyan-400 hover:text-cyan-300 hover:bg-cyan-950/30 border border-cyan-500/20 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+            title="Configure 80mm printers, cash drawers, scales, scanners, customer display"
+          >
+            <Cpu size={15} />
+            <span className="font-semibold text-xs">Hardware</span>
           </button>
           <button 
             onClick={toggleFullscreen}
@@ -990,6 +1001,9 @@ export default function POSPage() {
       
 
       {/* Modals */}
+      {isHardwareModalOpen && (
+        <HardwareSettingsModal onClose={() => setIsHardwareModalOpen(false)} />
+      )}
       {shiftModalMode && (
         <PosShiftModal 
           mode={shiftModalMode}

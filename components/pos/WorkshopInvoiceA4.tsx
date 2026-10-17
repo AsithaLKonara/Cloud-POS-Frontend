@@ -55,9 +55,9 @@ const WorkshopInvoiceA4 = forwardRef<HTMLDivElement, WorkshopInvoiceProps>((prop
       <div className="flex justify-between items-start border-b-2 border-stone-900 pb-6 mb-6">
         <div>
           <h1 className="text-2xl font-black tracking-tight text-stone-900 uppercase">
-            {branchName || "Lanka Oil Retailers"}
+            {branchName || "XONIT Flagship Store"}
           </h1>
-          <p className="text-xs text-stone-600 mt-1">Automotive Lubricants, Filters, Batteries & Workshop Supplies</p>
+          <p className="text-xs text-stone-600 mt-1">Enterprise Retail, Wholesale & Commercial Supplies</p>
           <p className="text-xs text-stone-500">{branchAddress || "Central Distribution Hub"}</p>
           <p className="text-xs text-stone-500">Hotline: {branchPhone || "+94 11 234 5678"}</p>
         </div>
@@ -173,7 +173,7 @@ const WorkshopInvoiceA4 = forwardRef<HTMLDivElement, WorkshopInvoiceProps>((prop
           </div>
         </div>
         <div>
-          <p className="font-bold text-stone-800 mb-8">For {branchName || "Oil Retailers"}:</p>
+          <p className="font-bold text-stone-800 mb-8">For {branchName || "XONIT POS"}:</p>
           <div className="border-t border-dashed border-stone-400 pt-1 text-stone-500">
             Authorized Store Officer Signature & Stamp
           </div>
@@ -182,7 +182,7 @@ const WorkshopInvoiceA4 = forwardRef<HTMLDivElement, WorkshopInvoiceProps>((prop
 
       {/* Footer */}
       <div className="text-center text-[10px] text-stone-400 mt-16 pt-4 border-t border-stone-100">
-        Thank you for your business. Genuine oils & lubricants guaranteed. No returns on unsealed containers.
+        Thank you for your business. Quality guaranteed. Powered by XONIT POS Enterprise.
       </div>
     </div>
   );

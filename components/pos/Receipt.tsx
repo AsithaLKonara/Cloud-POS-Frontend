@@ -58,10 +58,10 @@ const Receipt = forwardRef<HTMLDivElement, ReceiptProps>((props, ref) => {
     <div ref={ref} className="print-receipt" style={containerStyle}>
       {/* Store Header */}
       <div style={{ textAlign: "center", marginBottom: "4px" }}>
-        <img src="/logo.png" alt="LAURAL" style={{ height: "24px", margin: "0 auto 4px", filter: "grayscale(100%) brightness(0)", objectFit: "contain" }} />
+        <div style={{ fontSize: "14px", fontWeight: "900", letterSpacing: "1px" }}>XONIT POS</div>
         {branchName && <div style={{ fontSize: "12px", fontWeight: "bold" }}>{branchName}</div>}
         <div style={{ fontSize: "10px" }}>{branchAddress || "Point of Sale Receipt"}</div>
-        <div style={{ fontSize: "10px", marginTop: "2px" }}>Tel: {branchPhone || "+94 77 123 4567"}</div>
+        <div style={{ fontSize: "10px", marginTop: "2px" }}>Tel: {branchPhone || "+94 11 234 5678"}</div>
       </div>
 
       {divider}
@@ -150,12 +150,12 @@ const Receipt = forwardRef<HTMLDivElement, ReceiptProps>((props, ref) => {
       <div style={{ textAlign: "center", fontSize: "10px", marginTop: "4px" }}>
         <div style={{ fontWeight: "bold" }}>Thank you for your business!</div>
         <div style={{ fontSize: "9px", marginTop: "2px", lineHeight: "1.3" }}>
-          Genuine Oils & Parts Guaranteed.<br />Unsealed containers cannot be returned.
+          Quality Guaranteed. Thank you for shopping with us.
         </div>
         <div style={{ marginTop: "6px", fontFamily: "monospace", fontSize: "9px", letterSpacing: "1px", wordBreak: "break-all" }}>
           #{orderId}
         </div>
-        <div style={{ fontSize: "8px", color: "#888", marginTop: "4px" }}>Cloud POS System</div>
+        <div style={{ fontSize: "8px", color: "#888", marginTop: "4px" }}>Powered by XONIT POS Enterprise</div>
       </div>
     </div>
   );
