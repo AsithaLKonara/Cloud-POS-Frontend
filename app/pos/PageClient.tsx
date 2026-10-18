@@ -30,9 +30,12 @@ import {
   Layers,
   Cpu,
   LogOut,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { useTheme } from "@/components/theme/ThemeProvider";
 import VariantSelectionModal from "@/components/pos/VariantSelectionModal";
 import PaymentModal from "@/components/pos/PaymentModal";
 import CustomerSelectionModal from "@/components/pos/CustomerSelectionModal";
@@ -58,6 +61,7 @@ import { useAuthStore } from "@/store/auth.store";
 export default function POSPage() {
   const router = useRouter();
   const { user } = useAuthStore();
+  const { theme, toggleTheme } = useTheme();
   
   const [terminalId, setTerminalId] = useState("TERM-001");
   useEffect(() => {
@@ -416,8 +420,9 @@ export default function POSPage() {
               <ArrowLeft size={16} />
             </div>
           </Link>
-          <h1 className="font-bold text-lg tracking-widest uppercase flex items-center gap-2">
-            <LayoutGrid size={18} /> OIL RETAIL POS
+          <h1 className="font-bold text-lg tracking-wider uppercase flex items-center gap-2 text-foreground">
+            <LayoutGrid size={18} className="text-amber-500" />
+            <span>XONIT <span className="text-amber-500 font-black">POS</span></span>
           </h1>
           
           {/* Mode Switcher */}
@@ -474,15 +479,37 @@ export default function POSPage() {
           </button>
           <button 
             onClick={() => setIsHardwareModalOpen(true)}
-            className="hidden md:flex items-center gap-1.5 text-sm font-inter text-cyan-400 hover:text-cyan-300 hover:bg-cyan-950/30 border border-cyan-500/20 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+            className="hidden md:flex items-center gap-1.5 text-sm font-inter text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 bg-cyan-50 dark:bg-cyan-950/30 hover:bg-cyan-100 dark:hover:bg-cyan-950/50 border border-cyan-500/20 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
             title="Configure 80mm printers, cash drawers, scales, scanners, customer display"
           >
             <Cpu size={15} />
             <span className="font-semibold text-xs">Hardware</span>
           </button>
+
+          {/* Light / Dark Mode Toggle Button */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="flex items-center gap-1.5 bg-background hover:bg-surface border border-border px-3 py-1.5 rounded-lg transition-all text-xs font-inter cursor-pointer shadow-sm group"
+            title={theme === "dark" ? "Switch to Calm Light Theme" : "Switch to Deep Dark Theme"}
+            aria-label="Toggle POS Theme"
+          >
+            {theme === "dark" ? (
+              <>
+                <Sun size={15} className="text-amber-400 group-hover:rotate-45 transition-transform" />
+                <span className="hidden sm:inline font-semibold text-slate-200">Light</span>
+              </>
+            ) : (
+              <>
+                <Moon size={15} className="text-slate-700 group-hover:-rotate-12 transition-transform" />
+                <span className="hidden sm:inline font-semibold text-slate-700">Dark</span>
+              </>
+            )}
+          </button>
+
           <button 
             onClick={toggleFullscreen}
-            className="flex items-center gap-2 bg-background hover:bg-border border border-border px-3 py-1.5 rounded transition-colors text-sm font-inter md:ml-4"
+            className="flex items-center gap-2 bg-background hover:bg-surface border border-border px-3 py-1.5 rounded-lg transition-colors text-xs font-inter"
           >
             <Maximize size={14} />
             <span className="hidden sm:inline">{isFullscreen ? "Exit Full Screen" : "Full Screen"}</span>
@@ -594,7 +621,7 @@ export default function POSPage() {
             </div>
 
             {/* Quick Item Type Filter Bar (Zero Emojis, Clean Vector Icons) */}
-            <div className="px-4 py-2 border-b border-border flex gap-2 overflow-x-auto shrink-0 scrollbar-hide bg-surface/50">
+            <div className="px-4 py-2 border-b border-border flex gap-2 overflow-x-auto shrink-0 no-scrollbar bg-surface/50">
               {[
                 { id: "ALL", label: "All Items", icon: Layers },
                 { id: "LUBRICANT", label: "Oils & Lubricants", icon: Droplets },
@@ -625,7 +652,7 @@ export default function POSPage() {
 
             {/* Viscosity / Oil Grade Fast Filter (Active when Lubricants or All selected) */}
             {(selectedType === "ALL" || selectedType === "LUBRICANT") && (
-              <div className="px-4 py-2 border-b border-border flex gap-1.5 overflow-x-auto shrink-0 scrollbar-hide bg-background/60">
+              <div className="px-4 py-2 border-b border-border flex gap-1.5 overflow-x-auto shrink-0 no-scrollbar bg-background/60">
                 <span className="text-[11px] font-bold text-muted self-center uppercase tracking-wider mr-1">Grade:</span>
                 {["ALL", "0W-20", "5W-30", "5W-40", "10W-30", "10W-40", "15W-40", "20W-50", "ATF", "80W-90"].map((grade) => (
                   <button
@@ -644,7 +671,7 @@ export default function POSPage() {
             )}
 
             {/* Products Container: Grid or List */}
-            <div className="flex-1 overflow-y-auto p-4 bg-background pb-24 lg:pb-4">
+            <div className="flex-1 overflow-y-auto p-4 bg-background pb-24 lg:pb-4 custom-scrollbar">
               {posViewMode === "GRID" ? (
                 <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
                   {filteredProducts.map((p: any) => {
@@ -855,7 +882,7 @@ export default function POSPage() {
                     onClick={() => setIsCustomerModalOpen(true)}
                     className={`flex items-center gap-2 text-xs font-inter px-3 py-1.5 rounded-lg transition-colors ${
                       selectedCustomer 
-                        ? 'bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 font-bold' 
+                        ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-800 hover:bg-amber-200 dark:hover:bg-amber-900/60 font-bold' 
                         : 'text-primary bg-primary-soft hover:bg-primary/20 font-semibold'
                     }`}
                   >
@@ -869,20 +896,20 @@ export default function POSPage() {
 
               {/* Selected Customer Credit Banner */}
               {selectedCustomer && (
-                <div className="px-4 py-2 bg-amber-50/70 border-b border-amber-200/60 flex items-center justify-between text-xs font-inter shrink-0">
+                <div className="px-4 py-2 bg-amber-500/10 border-b border-amber-500/20 flex items-center justify-between text-xs font-inter shrink-0">
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-amber-900 truncate max-w-[170px]">
+                    <span className="font-bold text-foreground truncate max-w-[170px]">
                       {selectedCustomer.companyName || selectedCustomer.name}
                     </span>
                     {selectedCustomer.vehicleNumber && (
-                      <span className="font-mono text-[10px] bg-white px-1.5 py-0.5 rounded border border-amber-200 font-semibold text-stone-700">
+                      <span className="font-mono text-[10px] bg-surface px-1.5 py-0.5 rounded border border-border font-semibold text-muted">
                         {selectedCustomer.vehicleNumber}
                       </span>
                     )}
                   </div>
                   <div className="text-right">
-                    <span className="text-[10px] text-stone-500 block">Balance Owed</span>
-                    <span className="font-mono font-bold text-amber-800">
+                    <span className="text-[10px] text-muted block">Balance Owed</span>
+                    <span className="font-mono font-bold text-amber-600 dark:text-amber-400">
                       Rs. {(selectedCustomer.creditBalance || 0).toLocaleString()}
                     </span>
                   </div>
@@ -890,7 +917,7 @@ export default function POSPage() {
               )}
 
               {/* Cart Items */}
-              <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
+              <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 custom-scrollbar">
                 {cart.length === 0 ? (
                   <div className="flex-1 flex flex-col items-center justify-center text-muted gap-2 h-full opacity-60">
                     <p className="font-inter text-sm">Cart is empty</p>
@@ -915,7 +942,7 @@ export default function POSPage() {
                             {item.packUnit || item.size || 'Standard Unit'}
                           </span>
                           {(item.viscosity || item.partNumber) && (
-                            <span className="font-mono text-[11px] font-bold text-stone-700">
+                            <span className="font-mono text-[11px] font-bold text-muted">
                               {item.viscosity || item.partNumber}
                             </span>
                           )}
@@ -931,7 +958,7 @@ export default function POSPage() {
                               >
                                 -0.5L
                               </button>
-                              <span className="font-mono font-black text-sm px-2 text-stone-900">
+                              <span className="font-mono font-black text-sm px-2 text-foreground">
                                 {item.qty} L
                               </span>
                               <button 
@@ -967,11 +994,11 @@ export default function POSPage() {
                   <div className="flex flex-col gap-2">
                     <span className="font-inter font-bold text-sm text-muted">Applied Vouchers</span>
                     {cartVouchers.map(v => (
-                      <div key={v.code} className="flex justify-between items-center bg-emerald-50 text-emerald-800 px-3 py-2 rounded-lg border border-emerald-200">
+                      <div key={v.code} className="flex justify-between items-center bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-800">
                         <span className="font-mono text-xs font-bold">{v.code}</span>
                         <div className="flex items-center gap-3">
                           <span className="font-inter font-bold">-Rs. {v.amount.toLocaleString()}</span>
-                          <button onClick={() => setCartVouchers(prev => prev.filter(cv => cv.code !== v.code))} className="text-emerald-600 hover:text-emerald-900"><Trash2 size={14} /></button>
+                          <button onClick={() => setCartVouchers(prev => prev.filter(cv => cv.code !== v.code))} className="text-emerald-600 hover:text-emerald-900 dark:hover:text-emerald-200"><Trash2 size={14} /></button>
                         </div>
                       </div>
                     ))}
@@ -988,12 +1015,10 @@ export default function POSPage() {
                       }
                       setIsPaymentModalOpen(true);
                     }}
-                    className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover disabled:bg-stone-300 disabled:cursor-not-allowed rounded-xl py-4 transition-colors shadow-lg shadow-primary/20"
+                    className="w-full flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 disabled:bg-stone-200 dark:disabled:bg-stone-800 disabled:text-stone-400 dark:disabled:text-stone-600 disabled:cursor-not-allowed text-slate-950 font-inter font-bold text-base rounded-xl py-4 transition-all shadow-lg shadow-amber-500/20"
                   >
-                    <span className="font-inter font-bold text-lg text-white">
-                      Charge
-                    </span>
-                    <ChevronRight size={20} className="text-white" />
+                    <span>Charge</span>
+                    <ChevronRight size={20} className="text-slate-950" />
                   </button>
                 </div>
                 <div className="grid grid-cols-2 gap-3 mt-2">
@@ -1004,7 +1029,7 @@ export default function POSPage() {
                   >
                     Hold Cart
                   </button>
-                  <button onClick={clearCart} className="bg-error-soft hover:bg-red-200 text-error hover:text-red-700 font-inter font-semibold py-3 rounded-lg text-sm transition-colors border border-error-soft">
+                  <button onClick={clearCart} className="bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 font-inter font-semibold py-3 rounded-lg text-sm transition-colors border border-rose-200 dark:border-rose-900/60">
                     Clear All
                   </button>
                 </div>
