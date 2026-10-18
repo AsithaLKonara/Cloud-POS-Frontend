@@ -35,7 +35,7 @@ export default function SuperAdminSidebar({
   setActiveTab,
   isOpen = true,
   setIsOpen,
-  tenantCount = 38,
+  tenantCount = 0,
 }: SuperAdminSidebarProps) {
   const { user, logout } = useAuthStore();
   const [showPromoCard, setShowPromoCard] = useState(true);

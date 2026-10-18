@@ -78,7 +78,68 @@ export interface ClusterTelemetry {
   uptimeSeconds: number;
 }
 
+export interface MonthlyAnalyticsSeriesItem {
+  month: string;
+  monthKey: string;
+  revenueLkr: number;
+  gmvLkr: number;
+  orderCount: number;
+  newTenantsCount: number;
+}
+
+export interface PlatformMoMGrowth {
+  mrrGrowthPct: number;
+  tenantsGrowthPct: number;
+  gmvGrowthPct: number;
+  ordersGrowthPct: number;
+}
+
+export interface MonthlyAnalyticsResponse {
+  series: MonthlyAnalyticsSeriesItem[];
+  momGrowth: PlatformMoMGrowth;
+}
+
+export interface PlatformRevenueStream {
+  id: string;
+  name: string;
+  amountLkr: number;
+  pct: number;
+  color: string;
+  dotClass: string;
+  highlight?: boolean;
+}
+
+export interface PlatformRevenueBreakdownResponse {
+  totalInflowLkr: number;
+  streams: PlatformRevenueStream[];
+}
+
+export interface TopOutletPerformanceItem {
+  id: string;
+  branchName: string;
+  tenantName: string;
+  businessType: string;
+  totalOrders: number;
+  gmvLkr: number;
+  velocityPct: number;
+}
+
 export const superAdminService = {
+  async getMonthlyAnalytics(): Promise<MonthlyAnalyticsResponse> {
+    const res = await api.get('/superadmin/analytics/monthly');
+    return res.data.data;
+  },
+
+  async getRevenueBreakdown(): Promise<PlatformRevenueBreakdownResponse> {
+    const res = await api.get('/superadmin/analytics/breakdown');
+    return res.data.data;
+  },
+
+  async getTopOutlets(limit = 5): Promise<TopOutletPerformanceItem[]> {
+    const res = await api.get('/superadmin/analytics/top-outlets', { params: { limit } });
+    return res.data.data;
+  },
+
   async getKPIs(): Promise<PlatformKPIs> {
     const res = await api.get('/superadmin/kpis');
     return res.data.data;
@@ -125,5 +186,20 @@ export const superAdminService = {
 
   async recordExpense(expense: Omit<PlatformExpenseItem, 'id' | 'recordedAt'>): Promise<PlatformExpenseItem> {
     return this.addExpense(expense);
+  },
+
+  async updatePlanPrice(tier: string, monthlyLkr: number): Promise<any> {
+    const res = await api.patch(`/superadmin/plans/${tier}/price`, { monthlyLkr });
+    return res.data.data;
+  },
+
+  async generateInvoice(payload: { tenantId: string; billingCycle?: string; amountLkr?: number }): Promise<any> {
+    const res = await api.post('/superadmin/invoices', payload);
+    return res.data.data;
+  },
+
+  async updateInvoiceStatus(invoiceId: string, status: string): Promise<any> {
+    const res = await api.patch(`/superadmin/invoices/${invoiceId}/status`, { status });
+    return res.data.data;
   },
 };

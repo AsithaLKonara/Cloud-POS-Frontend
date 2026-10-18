@@ -8,6 +8,9 @@ import {
   PlatformFinancials,
   TenantRegistryItem,
   ClusterTelemetry,
+  MonthlyAnalyticsResponse,
+  PlatformRevenueBreakdownResponse,
+  TopOutletPerformanceItem,
 } from "@/services/superadmin.service";
 import SuperAdminSidebar from "@/components/superadmin/SuperAdminSidebar";
 import SuperAdminHeader from "@/components/superadmin/SuperAdminHeader";
@@ -59,6 +62,9 @@ export default function SuperAdminDashboard() {
   const [financials, setFinancials] = useState<PlatformFinancials | null>(null);
   const [tenants, setTenants] = useState<TenantRegistryItem[]>([]);
   const [telemetry, setTelemetry] = useState<ClusterTelemetry | null>(null);
+  const [monthlyAnalytics, setMonthlyAnalytics] = useState<MonthlyAnalyticsResponse | null>(null);
+  const [breakdown, setBreakdown] = useState<PlatformRevenueBreakdownResponse | null>(null);
+  const [topOutlets, setTopOutlets] = useState<TopOutletPerformanceItem[]>([]);
 
   // Modals
   const [isProvisionOpen, setIsProvisionOpen] = useState(false);
@@ -66,6 +72,13 @@ export default function SuperAdminDashboard() {
   const [isPriceEditorOpen, setIsPriceEditorOpen] = useState(false);
   const [selectedPlanToEdit, setSelectedPlanToEdit] = useState("STARTER");
   const [newPlanPrice, setNewPlanPrice] = useState("4500");
+  const [priceUpdating, setPriceUpdating] = useState(false);
+  const [planOverrides, setPlanOverrides] = useState<Record<string, number>>({
+    STARTER: 4500,
+    GROWTH: 9500,
+    PRO: 9500,
+    ENTERPRISE: 18500,
+  });
 
   // Provision Form State
   const [provisionData, setProvisionData] = useState({
@@ -101,17 +114,23 @@ export default function SuperAdminDashboard() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [kpiRes, finRes, tenantsRes, telemRes] = await Promise.all([
+      const [kpiRes, finRes, tenantsRes, telemRes, monthlyRes, breakdownRes, outletsRes] = await Promise.all([
         superAdminService.getKPIs().catch(() => null),
         superAdminService.getFinancials().catch(() => null),
         superAdminService.getTenants().catch(() => []),
         superAdminService.getTelemetry().catch(() => null),
+        superAdminService.getMonthlyAnalytics().catch(() => null),
+        superAdminService.getRevenueBreakdown().catch(() => null),
+        superAdminService.getTopOutlets(5).catch(() => []),
       ]);
 
       if (kpiRes) setKpis(kpiRes);
       if (finRes) setFinancials(finRes);
       if (tenantsRes) setTenants(tenantsRes);
       if (telemRes) setTelemetry(telemRes);
+      if (monthlyRes) setMonthlyAnalytics(monthlyRes);
+      if (breakdownRes) setBreakdown(breakdownRes);
+      if (outletsRes) setTopOutlets(outletsRes);
     } finally {
       setLoading(false);
     }
@@ -166,6 +185,27 @@ export default function SuperAdminDashboard() {
     }
   };
 
+  const handleSavePrice = async () => {
+    const priceNum = parseInt(newPlanPrice, 10);
+    if (isNaN(priceNum) || priceNum <= 0) return;
+    setPriceUpdating(true);
+    try {
+      await superAdminService.updatePlanPrice(selectedPlanToEdit, priceNum);
+      setPlanOverrides((prev) => ({
+        ...prev,
+        [selectedPlanToEdit]: priceNum,
+        ...(selectedPlanToEdit === "GROWTH" ? { PRO: priceNum } : {}),
+        ...(selectedPlanToEdit === "PRO" ? { GROWTH: priceNum } : {}),
+      }));
+      await loadData();
+      setIsPriceEditorOpen(false);
+    } catch (err: any) {
+      alert(err?.response?.data?.message || err?.message || "Failed to update plan pricing");
+    } finally {
+      setPriceUpdating(false);
+    }
+  };
+
   const handleUpdateTenantStatus = async (
     tenantId: string,
     status: "ACTIVE" | "SUSPENDED" | "TRIAL" | "CANCELLED"
@@ -208,7 +248,7 @@ export default function SuperAdminDashboard() {
           setActiveTab={setActiveTab}
           isOpen={sidebarOpen}
           setIsOpen={setSidebarOpen}
-          tenantCount={tenants.length || 38}
+          tenantCount={kpis?.totalTenants ?? tenants.length}
         />
 
         {/* Main Viewport */}
@@ -261,30 +301,50 @@ export default function SuperAdminDashboard() {
 
                 {/* 4 Top Metric KPI Cards (Matching Reference Screenshot) */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {/* Card 1: Total Revenue */}
+                  {/* Card 1: Total Revenue (MRR) */}
                   <div className="p-5 rounded-2xl bg-[#121417] border border-[#1E2227] flex flex-col justify-between hover:border-zinc-700 transition-colors group">
                     <div className="flex items-start justify-between">
                       <span className="text-xs font-semibold text-zinc-400">
-                        Total Revenue
+                        Monthly Recurring Revenue
                       </span>
-                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 font-mono">
-                        <TrendingUp size={11} />
-                        +12%
-                      </span>
+                      {(() => {
+                        const growth = monthlyAnalytics?.momGrowth.mrrGrowthPct ?? 0;
+                        const isUp = growth >= 0;
+                        return (
+                          <span
+                            className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full border font-mono ${
+                              isUp
+                                ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
+                                : "text-rose-400 bg-rose-500/10 border-rose-500/20"
+                            }`}
+                          >
+                            {isUp ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
+                            {isUp ? `+${growth}%` : `${growth}%`}
+                          </span>
+                        );
+                      })()}
                     </div>
 
                     <div className="my-3">
                       <div className="text-2xl sm:text-3xl font-black text-white font-mono tracking-tight">
-                        Rs. {(kpis?.mrrLkr || 248500).toLocaleString()}
+                        Rs. {(kpis?.mrrLkr ?? 0).toLocaleString()}
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-zinc-300 font-medium mt-1">
-                        <span>Trending up this month</span>
-                        <TrendingUp size={13} className="text-emerald-400" />
+                        <span>
+                          {(monthlyAnalytics?.momGrowth.mrrGrowthPct ?? 0) >= 0
+                            ? "Trending up this month"
+                            : "Contracted this period"}
+                        </span>
+                        {(monthlyAnalytics?.momGrowth.mrrGrowthPct ?? 0) >= 0 ? (
+                          <TrendingUp size={13} className="text-emerald-400" />
+                        ) : (
+                          <TrendingDown size={13} className="text-rose-400" />
+                        )}
                       </div>
                     </div>
 
                     <div className="pt-2 border-t border-[#1C2025] text-[11px] text-zinc-500 font-mono">
-                      Projected ARR: Rs. {(kpis?.arrLkr || 2982000).toLocaleString()}
+                      Projected ARR: Rs. {(kpis?.arrLkr ?? 0).toLocaleString()}
                     </div>
                   </div>
 
@@ -292,26 +352,46 @@ export default function SuperAdminDashboard() {
                   <div className="p-5 rounded-2xl bg-[#121417] border border-[#1E2227] flex flex-col justify-between hover:border-zinc-700 transition-colors group">
                     <div className="flex items-start justify-between">
                       <span className="text-xs font-semibold text-zinc-400">
-                        Active Customers
+                        Active Tenants
                       </span>
-                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 font-mono">
-                        <TrendingUp size={11} />
-                        +5.2%
-                      </span>
+                      {(() => {
+                        const growth = monthlyAnalytics?.momGrowth.tenantsGrowthPct ?? 0;
+                        const isUp = growth >= 0;
+                        return (
+                          <span
+                            className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full border font-mono ${
+                              isUp
+                                ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
+                                : "text-rose-400 bg-rose-500/10 border-rose-500/20"
+                            }`}
+                          >
+                            {isUp ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
+                            {isUp ? `+${growth}%` : `${growth}%`}
+                          </span>
+                        );
+                      })()}
                     </div>
 
                     <div className="my-3">
                       <div className="text-2xl sm:text-3xl font-black text-white font-mono tracking-tight">
-                        {(kpis?.totalTenants || tenants.length || 38).toLocaleString()}
+                        {(kpis?.totalTenants ?? tenants.length ?? 0).toLocaleString()}
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-zinc-300 font-medium mt-1">
-                        <span>Strong user retention</span>
-                        <TrendingUp size={13} className="text-emerald-400" />
+                        <span>
+                          {(monthlyAnalytics?.momGrowth.tenantsGrowthPct ?? 0) >= 0
+                            ? "Strong tenant adoption"
+                            : "Tenant churn detected"}
+                        </span>
+                        {(monthlyAnalytics?.momGrowth.tenantsGrowthPct ?? 0) >= 0 ? (
+                          <TrendingUp size={13} className="text-emerald-400" />
+                        ) : (
+                          <TrendingDown size={13} className="text-rose-400" />
+                        )}
                       </div>
                     </div>
 
                     <div className="pt-2 border-t border-[#1C2025] text-[11px] text-zinc-500 font-mono">
-                      {kpis?.activeTenants || 34} Active • {kpis?.trialTenants || 4} Free Trial
+                      {kpis?.activeTenants ?? 0} Active • {kpis?.trialTenants ?? 0} Free Trial
                     </div>
                   </div>
 
@@ -321,51 +401,79 @@ export default function SuperAdminDashboard() {
                       <span className="text-xs font-semibold text-zinc-400">
                         Total Orders
                       </span>
-                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-full border border-rose-500/20 font-mono">
-                        <TrendingDown size={11} />
-                        -2.1%
-                      </span>
+                      {(() => {
+                        const growth = monthlyAnalytics?.momGrowth.ordersGrowthPct ?? 0;
+                        const isUp = growth >= 0;
+                        return (
+                          <span
+                            className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full border font-mono ${
+                              isUp
+                                ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
+                                : "text-rose-400 bg-rose-500/10 border-rose-500/20"
+                            }`}
+                          >
+                            {isUp ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
+                            {isUp ? `+${growth}%` : `${growth}%`}
+                          </span>
+                        );
+                      })()}
                     </div>
 
                     <div className="my-3">
                       <div className="text-2xl sm:text-3xl font-black text-white font-mono tracking-tight">
-                        {(kpis?.totalOrders || 1247).toLocaleString()}
+                        {(kpis?.totalOrders ?? 0).toLocaleString()}
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-zinc-300 font-medium mt-1">
-                        <span>Down 2% this period</span>
-                        <TrendingDown size={13} className="text-rose-400" />
+                        <span>
+                          {(monthlyAnalytics?.momGrowth.ordersGrowthPct ?? 0) >= 0
+                            ? "Order volume expanding"
+                            : "Volume down this period"}
+                        </span>
+                        {(monthlyAnalytics?.momGrowth.ordersGrowthPct ?? 0) >= 0 ? (
+                          <TrendingUp size={13} className="text-emerald-400" />
+                        ) : (
+                          <TrendingDown size={13} className="text-rose-400" />
+                        )}
                       </div>
                     </div>
 
                     <div className="pt-2 border-t border-[#1C2025] text-[11px] text-zinc-500 font-mono">
-                      GMV: Rs. {((kpis?.platformGmvLkr || 18450200) / 1000000).toFixed(2)}M processed
+                      GMV: Rs. {((kpis?.platformGmvLkr ?? 0) / 1000000).toFixed(2)}M processed
                     </div>
                   </div>
 
-                  {/* Card 4: Conversion Rate / Net Margin */}
+                  {/* Card 4: SaaS Net Margin */}
                   <div className="p-5 rounded-2xl bg-[#121417] border border-[#1E2227] flex flex-col justify-between hover:border-zinc-700 transition-colors group">
                     <div className="flex items-start justify-between">
                       <span className="text-xs font-semibold text-zinc-400">
-                        Conversion Rate
+                        Net Profit Margin
                       </span>
                       <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 font-mono">
                         <TrendingUp size={11} />
-                        +8.3%
+                        {(financials?.profitMarginPercent ?? 0).toFixed(1)}%
                       </span>
                     </div>
 
                     <div className="my-3">
                       <div className="text-2xl sm:text-3xl font-black text-white font-mono tracking-tight">
-                        {(financials?.profitMarginPercent || 73.8).toFixed(2)}%
+                        {(financials?.profitMarginPercent ?? 0).toFixed(1)}%
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-zinc-300 font-medium mt-1">
-                        <span>Steady performance increase</span>
-                        <TrendingUp size={13} className="text-emerald-400" />
+                        <span>
+                          {(financials?.netSaaSProfitLkr ?? 0) >= 0
+                            ? "Profitable SaaS operational health"
+                            : "High infrastructure overhead"}
+                        </span>
+                        {(financials?.netSaaSProfitLkr ?? 0) >= 0 ? (
+                          <TrendingUp size={13} className="text-emerald-400" />
+                        ) : (
+                          <TrendingDown size={13} className="text-rose-400" />
+                        )}
                       </div>
                     </div>
 
                     <div className="pt-2 border-t border-[#1C2025] text-[11px] text-zinc-500 font-mono">
-                      SaaS Net Profit: Rs. {(financials?.netSaaSProfitLkr || 184300).toLocaleString()}
+                      SaaS Net Profit: Rs. {(financials?.netSaaSProfitLkr ?? 0).toLocaleString()}
                     </div>
                   </div>
                 </div>
@@ -374,13 +482,15 @@ export default function SuperAdminDashboard() {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
                   <div className="lg:col-span-7">
                     <SalesPerformanceChart
-                      mrrLkr={kpis?.mrrLkr || 248500}
-                      totalGmvLkr={kpis?.platformGmvLkr || 18450200}
+                      series={monthlyAnalytics?.series || []}
+                      mrrLkr={kpis?.mrrLkr || 0}
+                      totalGmvLkr={kpis?.platformGmvLkr || 0}
                     />
                   </div>
                   <div className="lg:col-span-5">
                     <RevenueBreakdownChart
-                      mrrLkr={kpis?.mrrLkr || 248500}
+                      breakdown={breakdown ?? undefined}
+                      mrrLkr={kpis?.mrrLkr || 0}
                     />
                   </div>
                 </div>
@@ -419,52 +529,14 @@ export default function SuperAdminDashboard() {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-[#1A1D21]">
-                          {(financials?.recentInvoices || [
-                            {
-                              id: "1",
-                              tenantName: "Velvet Threads Boutique",
-                              amountLkr: 18500,
-                              billingCycle: "MONTHLY",
-                              status: "PAID",
-                              invoiceNumber: "INV-2026-001",
-                              issuedAt: new Date().toISOString(),
-                            },
-                            {
-                              id: "2",
-                              tenantName: "Artisan Cafe & Bakery",
-                              amountLkr: 9500,
-                              billingCycle: "MONTHLY",
-                              status: "PAID",
-                              invoiceNumber: "INV-2026-002",
-                              issuedAt: new Date(Date.now() - 86400000).toISOString(),
-                            },
-                            {
-                              id: "3",
-                              tenantName: "Colombo Central Superstore",
-                              amountLkr: 18500,
-                              billingCycle: "ANNUAL",
-                              status: "PAID",
-                              invoiceNumber: "INV-2026-003",
-                              issuedAt: new Date(Date.now() - 172800000).toISOString(),
-                            },
-                            {
-                              id: "4",
-                              tenantName: "Luxe Spa & Wellness",
-                              amountLkr: 4500,
-                              billingCycle: "TRIAL",
-                              status: "TRIAL",
-                              invoiceNumber: "INV-2026-004",
-                              issuedAt: new Date(Date.now() - 259200000).toISOString(),
-                            },
-                          ])
-                            .slice(0, 4)
-                            .map((inv) => (
+                          {financials?.recentInvoices && financials.recentInvoices.length > 0 ? (
+                            financials.recentInvoices.slice(0, 5).map((inv) => (
                               <tr key={inv.id} className="hover:bg-[#16181B] transition-colors">
                                 <td className="py-3 px-3 font-medium text-white">
-                                  {inv.tenantName}
+                                  {inv.tenantName || "Platform Merchant"}
                                 </td>
                                 <td className="py-3 px-3 font-mono text-zinc-400">
-                                  {inv.billingCycle}
+                                  {inv.billingCycle || "MONTHLY"}
                                 </td>
                                 <td className="py-3 px-3 font-bold font-mono text-zinc-100">
                                   Rs. {inv.amountLkr.toLocaleString()}
@@ -484,7 +556,14 @@ export default function SuperAdminDashboard() {
                                   {new Date(inv.issuedAt).toLocaleDateString()}
                                 </td>
                               </tr>
-                            ))}
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan={5} className="py-8 text-center text-zinc-500 font-mono text-xs">
+                                No billing invoices generated yet. Automated ledger cycles on next renewal.
+                              </td>
+                            </tr>
+                          )}
                         </tbody>
                       </table>
                     </div>
@@ -499,49 +578,46 @@ export default function SuperAdminDashboard() {
                             Top Performing Outlets
                           </h3>
                           <p className="text-xs text-zinc-400 mt-0.5">
-                            High velocity tenants across Sri Lanka
+                            High velocity merchant branches across Sri Lanka
                           </p>
                         </div>
                       </div>
 
                       <div className="space-y-3.5">
-                        {[
-                          {
-                            name: "Velvet Threads - Colombo 03",
-                            type: "Apparel & Fashion",
-                            orders: 412,
-                            pct: 92,
-                          },
-                          {
-                            name: "Artisan Bistro - Kandy",
-                            type: "Restaurant & Cafe",
-                            orders: 348,
-                            pct: 78,
-                          },
-                          {
-                            name: "Luxe Spa - Galle Fort",
-                            type: "Salon & Wellness",
-                            orders: 224,
-                            pct: 54,
-                          },
-                        ].map((outlet) => (
-                          <div key={outlet.name} className="space-y-1.5">
-                            <div className="flex items-center justify-between text-xs">
-                              <span className="font-semibold text-zinc-200">
-                                {outlet.name}
-                              </span>
-                              <span className="font-mono text-zinc-400">
-                                {outlet.orders} orders
-                              </span>
+                        {topOutlets.length > 0 ? (
+                          topOutlets.map((outlet) => (
+                            <div key={outlet.id} className="space-y-1.5">
+                              <div className="flex items-center justify-between text-xs">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <span className="font-semibold text-zinc-200 truncate">
+                                    {outlet.branchName}
+                                  </span>
+                                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-400 font-mono shrink-0">
+                                    {outlet.businessType}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2 font-mono shrink-0">
+                                  <span className="text-zinc-400">
+                                    {outlet.totalOrders} orders
+                                  </span>
+                                  <span className="text-zinc-500 text-[10px]">
+                                    (Rs. {outlet.gmvLkr.toLocaleString()})
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="w-full h-1.5 rounded-full bg-[#1C2025] overflow-hidden">
+                                <div
+                                  className="h-full rounded-full bg-emerald-500 transition-all duration-500"
+                                  style={{ width: `${Math.max(outlet.velocityPct, 4)}%` }}
+                                />
+                              </div>
                             </div>
-                            <div className="w-full h-1.5 rounded-full bg-[#1C2025] overflow-hidden">
-                              <div
-                                className="h-full rounded-full bg-emerald-500 transition-all duration-500"
-                                style={{ width: `${outlet.pct}%` }}
-                              />
-                            </div>
+                          ))
+                        ) : (
+                          <div className="py-8 text-center text-zinc-500 font-mono text-xs">
+                            No branch order activity recorded yet across tenant outlets.
                           </div>
-                        ))}
+                        )}
                       </div>
                     </div>
 
@@ -749,14 +825,14 @@ export default function SuperAdminDashboard() {
                     {
                       tier: "STARTER",
                       name: "Starter Merchant",
-                      priceLkr: 4500,
+                      priceLkr: planOverrides.STARTER ?? 4500,
                       features: ["1 Branch Included", "Up to 3 Cashiers", "Core POS & Inventory", "Standard Receipts"],
                       color: "border-blue-500/30",
                     },
                     {
                       tier: "GROWTH",
                       name: "Growth Multi-Store",
-                      priceLkr: 9500,
+                      priceLkr: planOverrides.GROWTH ?? 9500,
                       features: ["Up to 3 Branches", "Up to 10 Staff", "LankaQR & PayHere APIs", "Full P&L Reports"],
                       color: "border-emerald-500/40",
                       badge: "Most Popular",
@@ -764,7 +840,7 @@ export default function SuperAdminDashboard() {
                     {
                       tier: "ENTERPRISE",
                       name: "Enterprise Multi-Tenant",
-                      priceLkr: 18500,
+                      priceLkr: planOverrides.ENTERPRISE ?? 18500,
                       features: ["Unlimited Branches", "Unlimited Staff", "Dedicated DB Schema", "24/7 Priority SLA"],
                       color: "border-purple-500/30",
                     },
@@ -893,7 +969,7 @@ export default function SuperAdminDashboard() {
                   <div className="p-5 rounded-2xl bg-[#121417] border border-[#1E2227]">
                     <span className="text-xs font-semibold text-zinc-400">Total Monthly Inflow</span>
                     <div className="text-2xl font-black text-emerald-400 font-mono mt-2">
-                      Rs. {(financials?.totalInflowLkr || 248500).toLocaleString()}
+                      Rs. {(financials?.totalInflowLkr ?? 0).toLocaleString()}
                     </div>
                     <span className="text-[11px] text-zinc-500 mt-1 block">
                       MRR + 0.5% Payment gateway margins
@@ -903,7 +979,7 @@ export default function SuperAdminDashboard() {
                   <div className="p-5 rounded-2xl bg-[#121417] border border-[#1E2227]">
                     <span className="text-xs font-semibold text-zinc-400">Cloud & Operational Costs</span>
                     <div className="text-2xl font-black text-rose-400 font-mono mt-2">
-                      Rs. {(financials?.totalPlatformExpensesLkr || 64200).toLocaleString()}
+                      Rs. {(financials?.totalPlatformExpensesLkr ?? 0).toLocaleString()}
                     </div>
                     <span className="text-[11px] text-zinc-500 mt-1 block">
                       AWS ECS, RDS PostgreSQL, Redis, Twilio SMS
@@ -913,10 +989,10 @@ export default function SuperAdminDashboard() {
                   <div className="p-5 rounded-2xl bg-[#121417] border border-[#1E2227]">
                     <span className="text-xs font-semibold text-zinc-400">Net SaaS Margin</span>
                     <div className="text-2xl font-black text-white font-mono mt-2">
-                      {(financials?.profitMarginPercent || 73.8).toFixed(1)}%
+                      {(financials?.profitMarginPercent ?? 0).toFixed(1)}%
                     </div>
                     <span className="text-[11px] text-emerald-400 mt-1 block font-mono">
-                      Net Profit: Rs. {(financials?.netSaaSProfitLkr || 184300).toLocaleString()}
+                      Net Profit: Rs. {(financials?.netSaaSProfitLkr ?? 0).toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -990,13 +1066,17 @@ export default function SuperAdminDashboard() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                   <div className="p-5 rounded-2xl bg-[#121417] border border-[#1E2227]">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-zinc-400">PostgreSQL Aurora</span>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                        {telemetry?.database?.status || "HEALTHY"}
+                      <span className="text-xs font-semibold text-zinc-400">PostgreSQL RDS Cluster</span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
+                        telemetry?.database?.status === "HEALTHY"
+                          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                          : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                      }`}>
+                        {telemetry?.database?.status ?? "CONNECTING..."}
                       </span>
                     </div>
                     <div className="text-2xl font-black text-white font-mono mt-3">
-                      {telemetry?.database?.latencyMs || 4} ms
+                      {telemetry?.database?.latencyMs ?? 0} ms
                     </div>
                     <span className="text-[11px] text-zinc-500 mt-1 block">
                       Query round-trip time (SELECT 1)
@@ -1005,13 +1085,17 @@ export default function SuperAdminDashboard() {
 
                   <div className="p-5 rounded-2xl bg-[#121417] border border-[#1E2227]">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-zinc-400">Redis 6379 Cache</span>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                        {telemetry?.redis?.status || "ONLINE"}
+                      <span className="text-xs font-semibold text-zinc-400">Redis 6379 Sentinel</span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
+                        telemetry?.redis?.status === "ONLINE"
+                          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                          : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                      }`}>
+                        {telemetry?.redis?.status ?? "CONNECTING..."}
                       </span>
                     </div>
                     <div className="text-2xl font-black text-white font-mono mt-3">
-                      {telemetry?.redis?.latencyMs || 1} ms
+                      {telemetry?.redis?.latencyMs ?? 0} ms
                     </div>
                     <span className="text-[11px] text-zinc-500 mt-1 block">
                       PING response latency
@@ -1024,8 +1108,8 @@ export default function SuperAdminDashboard() {
                       <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                     </div>
                     <div className="text-2xl font-black text-white font-mono mt-3">
-                      {Math.floor((telemetry?.uptimeSeconds || 3600) / 3600)}h{" "}
-                      {Math.floor(((telemetry?.uptimeSeconds || 3600) % 3600) / 60)}m
+                      {Math.floor((telemetry?.uptimeSeconds ?? 0) / 3600)}h{" "}
+                      {Math.floor(((telemetry?.uptimeSeconds ?? 0) % 3600) / 60)}m
                     </div>
                     <span className="text-[11px] text-zinc-500 mt-1 block">
                       Node.js runtime continuous uptime
@@ -1038,23 +1122,11 @@ export default function SuperAdminDashboard() {
                     Active Node-Cron Background Schedulers
                   </h3>
                   <div className="divide-y divide-[#1A1D21]">
-                    {[
-                      {
-                        name: "weekly-audit-digest",
-                        schedule: "0 8 * * 1 (Every Monday 08:00)",
-                        status: "ACTIVE",
-                      },
-                      {
-                        name: "daily-db-backup",
-                        schedule: "0 2 * * * (Daily 02:00 UTC)",
-                        status: "ACTIVE",
-                      },
-                      {
-                        name: "quarterly-pentest-reminder",
-                        schedule: "0 0 1 1,4,7,10 *",
-                        status: "ACTIVE",
-                      },
-                    ].map((s) => (
+                    {(telemetry?.schedulers && telemetry.schedulers.length > 0 ? telemetry.schedulers : [
+                      { name: "weekly-audit-digest", schedule: "0 8 * * 1 (Every Monday 08:00)", status: "ACTIVE" },
+                      { name: "daily-db-backup", schedule: "0 2 * * * (Daily 02:00 UTC)", status: "ACTIVE" },
+                      { name: "quarterly-pentest-reminder", schedule: "0 0 1 1,4,7,10 *", status: "ACTIVE" },
+                    ]).map((s) => (
                       <div key={s.name} className="py-3 flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
                           <Clock size={14} className="text-zinc-500" />
@@ -1360,17 +1432,12 @@ export default function SuperAdminDashboard() {
                 Cancel
               </button>
               <button
-                onClick={() => {
-                  alert(
-                    `Updated ${selectedPlanToEdit} plan pricing to Rs. ${Number(
-                      newPlanPrice
-                    ).toLocaleString()}/month`
-                  );
-                  setIsPriceEditorOpen(false);
-                }}
-                className="px-4 py-2 rounded-lg bg-white hover:bg-zinc-200 text-black font-semibold text-xs transition-all"
+                disabled={priceUpdating}
+                onClick={handleSavePrice}
+                className="px-4 py-2 rounded-lg bg-white hover:bg-zinc-200 disabled:opacity-50 text-black font-semibold text-xs transition-all flex items-center gap-1.5"
               >
-                Save Price
+                {priceUpdating && <RefreshCw size={12} className="animate-spin" />}
+                <span>{priceUpdating ? "Saving..." : "Save Price"}</span>
               </button>
             </div>
           </div>

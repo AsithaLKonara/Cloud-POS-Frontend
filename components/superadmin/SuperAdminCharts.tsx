@@ -2,44 +2,78 @@
 
 import React, { useState } from "react";
 import { Download, ChevronDown, TrendingUp } from "lucide-react";
+import {
+  MonthlyAnalyticsSeriesItem,
+  PlatformRevenueBreakdownResponse,
+  PlatformRevenueStream,
+} from "@/services/superadmin.service";
 
 interface SuperAdminChartsProps {
+  series?: MonthlyAnalyticsSeriesItem[];
+  breakdown?: PlatformRevenueBreakdownResponse;
   mrrLkr?: number;
   totalGmvLkr?: number;
 }
 
 export function SalesPerformanceChart({
-  mrrLkr = 248500,
-  totalGmvLkr = 18450200,
+  series = [],
+  mrrLkr = 0,
+  totalGmvLkr = 0,
 }: SuperAdminChartsProps) {
   const [period, setPeriod] = useState("Last 12 mon");
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
 
-  // 12 Months data points (normalized to 100 for SVG height)
-  const monthlyData = [
-    { month: "Jan", revenue: 95000, gmv: 7400000, y: 78 },
-    { month: "Feb", revenue: 112000, gmv: 8900000, y: 72 },
-    { month: "Mar", revenue: 128000, gmv: 10200000, y: 65 },
-    { month: "Apr", revenue: 135000, gmv: 11500000, y: 62 },
-    { month: "May", revenue: 149000, gmv: 12800000, y: 56 },
-    { month: "Jun", revenue: 168000, gmv: 13900000, y: 48 },
-    { month: "Jul", revenue: 182000, gmv: 15100000, y: 42 },
-    { month: "Aug", revenue: 195000, gmv: 16200000, y: 36 },
-    { month: "Sep", revenue: 212000, gmv: 16900000, y: 28 },
-    { month: "Oct", revenue: 228000, gmv: 17500000, y: 22 },
-    { month: "Nov", revenue: 239000, gmv: 18100000, y: 16 },
-    { month: "Dec", revenue: mrrLkr || 248500, gmv: totalGmvLkr || 18450200, y: 12 },
-  ];
+  // Filter series based on selected period
+  const displayData = React.useMemo(() => {
+    if (!series || series.length === 0) {
+      // Default empty 12 months array
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      return months.map((m) => ({
+        month: m,
+        monthKey: m,
+        revenueLkr: 0,
+        gmvLkr: 0,
+        orderCount: 0,
+        newTenantsCount: 0,
+      }));
+    }
+    if (period === "Last 6 mon") {
+      return series.slice(-6);
+    }
+    if (period === "Year to Date") {
+      const currentYear = new Date().getFullYear();
+      const ytd = series.filter((d) => d.monthKey.startsWith(String(currentYear)));
+      return ytd.length > 0 ? ytd : series.slice(-6);
+    }
+    return series.slice(-12);
+  }, [series, period]);
 
-  // Generate SVG path points
-  const points = monthlyData
-    .map((d, i) => `${(i / (monthlyData.length - 1)) * 500 + 40},${d.y + 20}`)
-    .join(" ");
+  // Compute scale ceiling (minimum Rs. 50,000 for aesthetic proportions)
+  const maxRevenue = React.useMemo(() => {
+    const highest = Math.max(...displayData.map((d) => d.revenueLkr), mrrLkr, 50000);
+    // Round up to nice number
+    const magnitude = Math.pow(10, Math.floor(Math.log10(highest)));
+    return Math.ceil(highest / magnitude) * magnitude;
+  }, [displayData, mrrLkr]);
 
-  const areaPath = `M 40,160 L 40,${monthlyData[0].y + 20} ${points.replace(
-    /^[0-9]+,[0-9]+ /,
-    ""
-  )} L 540,160 Z`;
+  // Generate SVG path coordinates
+  const n = displayData.length;
+  const coords = displayData.map((d, i) => {
+    const x = n > 1 ? (i / (n - 1)) * 500 + 40 : 290;
+    // Base line at y = 140, ceiling at y = 20 (height = 120)
+    const ratio = Math.min(Math.max(d.revenueLkr / maxRevenue, 0), 1);
+    const y = 140 - ratio * 120;
+    return { x, y, data: d };
+  });
+
+  const points = coords.map((c) => `${c.x},${c.y}`).join(" ");
+  const areaPath =
+    coords.length > 0
+      ? `M ${coords[0].x},140 L ${coords[0].x},${coords[0].y} ${coords
+          .slice(1)
+          .map((c) => `L ${c.x},${c.y}`)
+          .join(" ")} L ${coords[coords.length - 1].x},140 Z`
+      : "";
 
   return (
     <div className="p-5 rounded-2xl bg-[#121417] border border-[#1E2227] flex flex-col justify-between">
@@ -50,7 +84,7 @@ export function SalesPerformanceChart({
             Sales Performance
           </h3>
           <p className="text-xs text-zinc-400 mt-0.5">
-            Monthly recurring SaaS inflows vs targets
+            Monthly recurring SaaS inflows vs targets (Real PostgreSQL time-series)
           </p>
         </div>
 
@@ -74,8 +108,13 @@ export function SalesPerformanceChart({
           <button
             onClick={() => {
               const csv =
-                "Month,MRR_LKR,GMV_LKR\n" +
-                monthlyData.map((d) => `${d.month},${d.revenue},${d.gmv}`).join("\n");
+                "Month,MonthKey,MRR_LKR,GMV_LKR,Orders\n" +
+                displayData
+                  .map(
+                    (d) =>
+                      `${d.month},${d.monthKey},${d.revenueLkr},${d.gmvLkr},${d.orderCount}`
+                  )
+                  .join("\n");
               const blob = new Blob([csv], { type: "text/csv" });
               const url = URL.createObjectURL(blob);
               const a = document.createElement("a");
@@ -107,58 +146,58 @@ export function SalesPerformanceChart({
 
           {/* Gridlines */}
           <line x1="40" y1="20" x2="560" y2="20" stroke="#1F2329" strokeDasharray="3 3" />
-          <line x1="40" y1="55" x2="560" y2="55" stroke="#1F2329" strokeDasharray="3 3" />
-          <line x1="40" y1="90" x2="560" y2="90" stroke="#1F2329" strokeDasharray="3 3" />
-          <line x1="40" y1="125" x2="560" y2="125" stroke="#1F2329" strokeDasharray="3 3" />
-          <line x1="40" y1="160" x2="560" y2="160" stroke="#2B3037" />
+          <line x1="40" y1="50" x2="560" y2="50" stroke="#1F2329" strokeDasharray="3 3" />
+          <line x1="40" y1="80" x2="560" y2="80" stroke="#1F2329" strokeDasharray="3 3" />
+          <line x1="40" y1="110" x2="560" y2="110" stroke="#1F2329" strokeDasharray="3 3" />
+          <line x1="40" y1="140" x2="560" y2="140" stroke="#2B3037" />
 
           {/* Y Axis Labels */}
-          <text x="32" y="24" textAnchor="end" className="text-[10px] fill-zinc-500 font-mono">
-            Rs. 250K
+          <text x="34" y="24" textAnchor="end" className="text-[10px] fill-zinc-500 font-mono">
+            Rs. {Math.round(maxRevenue >= 1000 ? maxRevenue / 1000 : maxRevenue)}K
           </text>
-          <text x="32" y="59" textAnchor="end" className="text-[10px] fill-zinc-500 font-mono">
-            Rs. 180K
+          <text x="34" y="54" textAnchor="end" className="text-[10px] fill-zinc-500 font-mono">
+            Rs. {Math.round((maxRevenue * 0.75) / 1000)}K
           </text>
-          <text x="32" y="94" textAnchor="end" className="text-[10px] fill-zinc-500 font-mono">
-            Rs. 120K
+          <text x="34" y="84" textAnchor="end" className="text-[10px] fill-zinc-500 font-mono">
+            Rs. {Math.round((maxRevenue * 0.5) / 1000)}K
           </text>
-          <text x="32" y="129" textAnchor="end" className="text-[10px] fill-zinc-500 font-mono">
-            Rs. 60K
+          <text x="34" y="114" textAnchor="end" className="text-[10px] fill-zinc-500 font-mono">
+            Rs. {Math.round((maxRevenue * 0.25) / 1000)}K
           </text>
-          <text x="32" y="164" textAnchor="end" className="text-[10px] fill-zinc-500 font-mono">
+          <text x="34" y="144" textAnchor="end" className="text-[10px] fill-zinc-500 font-mono">
             Rs. 0
           </text>
 
           {/* Filled Area */}
-          <path d={areaPath} fill="url(#areaGrad)" />
+          {areaPath && <path d={areaPath} fill="url(#areaGrad)" />}
 
           {/* Smooth Line */}
-          <polyline
-            fill="none"
-            stroke="#3B82F6"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            points={points}
-          />
+          {points && (
+            <polyline
+              fill="none"
+              stroke="#3B82F6"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              points={points}
+            />
+          )}
 
           {/* Interactive Data Dots & X Axis Labels */}
-          {monthlyData.map((d, idx) => {
-            const cx = (idx / (monthlyData.length - 1)) * 500 + 40;
-            const cy = d.y + 20;
+          {coords.map((c, idx) => {
             const isHovered = hoverIndex === idx;
 
             return (
               <g
-                key={d.month}
+                key={c.data.monthKey || c.data.month}
                 className="cursor-pointer group"
                 onMouseEnter={() => setHoverIndex(idx)}
                 onMouseLeave={() => setHoverIndex(null)}
               >
                 <circle
-                  cx={cx}
-                  cy={cy}
-                  r={isHovered ? 5 : 3}
+                  cx={c.x}
+                  cy={c.y}
+                  r={isHovered ? 5 : 3.5}
                   className={`${
                     isHovered
                       ? "fill-white stroke-[#3B82F6] stroke-2"
@@ -166,14 +205,14 @@ export function SalesPerformanceChart({
                   } transition-all`}
                 />
                 <text
-                  x={cx}
-                  y="176"
+                  x={c.x}
+                  y="160"
                   textAnchor="middle"
                   className={`text-[10px] font-mono ${
                     isHovered ? "fill-white font-bold" : "fill-zinc-500"
                   }`}
                 >
-                  {d.month}
+                  {c.data.month}
                 </text>
               </g>
             );
@@ -181,21 +220,24 @@ export function SalesPerformanceChart({
         </svg>
 
         {/* Hover Tooltip Overlay */}
-        {hoverIndex !== null && (
+        {hoverIndex !== null && coords[hoverIndex] && (
           <div
-            className="absolute -top-3 pointer-events-none p-2 rounded-lg bg-[#181A1D] border border-[#2B3037] shadow-xl text-left transform -translate-x-1/2 z-10"
+            className="absolute -top-3 pointer-events-none p-2.5 rounded-lg bg-[#181A1D] border border-[#2B3037] shadow-xl text-left transform -translate-x-1/2 z-10"
             style={{
-              left: `${(hoverIndex / (monthlyData.length - 1)) * 86 + 7}%`,
+              left: `${(hoverIndex / (coords.length - 1)) * 84 + 8}%`,
             }}
           >
             <span className="text-[10px] text-zinc-400 block font-mono">
-              {monthlyData[hoverIndex].month} 2026
+              {coords[hoverIndex].data.month} ({coords[hoverIndex].data.monthKey})
             </span>
             <span className="text-xs font-bold text-white block font-mono">
-              Rs. {monthlyData[hoverIndex].revenue.toLocaleString()} MRR
+              Rs. {coords[hoverIndex].data.revenueLkr.toLocaleString()} MRR
             </span>
-            <span className="text-[10px] text-emerald-400 font-mono">
-              Rs. {(monthlyData[hoverIndex].gmv / 1000000).toFixed(2)}M GMV
+            <span className="text-[10px] text-emerald-400 block font-mono">
+              Rs. {coords[hoverIndex].data.gmvLkr.toLocaleString()} GMV
+            </span>
+            <span className="text-[10px] text-zinc-400 block font-mono">
+              {coords[hoverIndex].data.orderCount} Orders • {coords[hoverIndex].data.newTenantsCount} New Tenants
             </span>
           </div>
         )}
@@ -205,45 +247,71 @@ export function SalesPerformanceChart({
 }
 
 export function RevenueBreakdownChart({
-  mrrLkr = 248500,
+  breakdown,
+  mrrLkr = 0,
 }: SuperAdminChartsProps) {
   const [selectedSource, setSelectedSource] = useState("all");
 
-  const streams = [
-    {
-      id: "subscriptions",
-      name: "Subscriptions",
-      amountLkr: Math.round(mrrLkr * 0.45),
-      pct: 45,
-      color: "#3B82F6",
-      dotClass: "bg-blue-500",
-    },
-    {
-      id: "gateway",
-      name: "One-time Sales (0.5% Gateway)",
-      amountLkr: Math.round(mrrLkr * 0.3),
-      pct: 30,
-      color: "#10B981",
-      dotClass: "bg-emerald-500",
-      highlight: true,
-    },
-    {
-      id: "branches",
-      name: "Branch Addons",
-      amountLkr: Math.round(mrrLkr * 0.15),
-      pct: 15,
-      color: "#F59E0B",
-      dotClass: "bg-amber-500",
-    },
-    {
-      id: "services",
-      name: "Partnerships & APIs",
-      amountLkr: Math.round(mrrLkr * 0.1),
-      pct: 10,
-      color: "#8B5CF6",
-      dotClass: "bg-purple-500",
-    },
-  ];
+  const streams = React.useMemo(() => {
+    if (breakdown?.streams && breakdown.streams.length > 0) {
+      return breakdown.streams;
+    }
+    return [
+      {
+        id: "subscriptions",
+        name: "Subscriptions",
+        amountLkr: mrrLkr,
+        pct: 100,
+        color: "#3B82F6",
+        dotClass: "bg-blue-500",
+      },
+      {
+        id: "gateway",
+        name: "One-time Sales (0.5% Gateway)",
+        amountLkr: 0,
+        pct: 0,
+        color: "#10B981",
+        dotClass: "bg-emerald-500",
+        highlight: true,
+      },
+      {
+        id: "branches",
+        name: "Branch Addons",
+        amountLkr: 0,
+        pct: 0,
+        color: "#F59E0B",
+        dotClass: "bg-amber-500",
+      },
+      {
+        id: "services",
+        name: "Partnerships & APIs",
+        amountLkr: 0,
+        pct: 0,
+        color: "#8B5CF6",
+        dotClass: "bg-purple-500",
+      },
+    ];
+  }, [breakdown, mrrLkr]);
+
+  const totalInflow = breakdown?.totalInflowLkr ?? mrrLkr;
+
+  // Compute SVG Donut Segment Arcs dynamically based on real percentages
+  const C = 2 * Math.PI * 38; // 238.76 circumference
+  const arcs = React.useMemo(() => {
+    let accumulatedPct = 0;
+    return streams
+      .filter((s) => s.pct > 0)
+      .map((s) => {
+        const arcLength = (s.pct / 100) * C;
+        const offset = -(accumulatedPct / 100) * C;
+        accumulatedPct += s.pct;
+        return {
+          ...s,
+          arcLength,
+          offset,
+        };
+      });
+  }, [streams, C]);
 
   return (
     <div className="p-5 rounded-2xl bg-[#121417] border border-[#1E2227] flex flex-col justify-between">
@@ -254,7 +322,7 @@ export function RevenueBreakdownChart({
             Revenue Breakdown
           </h3>
           <p className="text-xs text-zinc-400 mt-0.5">
-            Revenue distribution by source
+            Real-time platform distribution by source (PostgreSQL live)
           </p>
         </div>
 
@@ -293,59 +361,31 @@ export function RevenueBreakdownChart({
               stroke="#1C2025"
               strokeWidth="10"
             />
-            {/* Subscriptions segment (45%) */}
-            <circle
-              cx="50"
-              cy="50"
-              r="38"
-              fill="transparent"
-              stroke="#3B82F6"
-              strokeWidth="10"
-              strokeDasharray="107.4 238.7"
-              strokeDashoffset="0"
-            />
-            {/* Gateway segment (30%) */}
-            <circle
-              cx="50"
-              cy="50"
-              r="38"
-              fill="transparent"
-              stroke="#10B981"
-              strokeWidth="10"
-              strokeDasharray="71.6 238.7"
-              strokeDashoffset="-107.4"
-            />
-            {/* Branch segment (15%) */}
-            <circle
-              cx="50"
-              cy="50"
-              r="38"
-              fill="transparent"
-              stroke="#F59E0B"
-              strokeWidth="10"
-              strokeDasharray="35.8 238.7"
-              strokeDashoffset="-179"
-            />
-            {/* API segment (10%) */}
-            <circle
-              cx="50"
-              cy="50"
-              r="38"
-              fill="transparent"
-              stroke="#8B5CF6"
-              strokeWidth="10"
-              strokeDasharray="23.9 238.7"
-              strokeDashoffset="-214.8"
-            />
+
+            {/* Dynamic circle segments */}
+            {arcs.map((arc) => (
+              <circle
+                key={arc.id}
+                cx="50"
+                cy="50"
+                r="38"
+                fill="transparent"
+                stroke={arc.color}
+                strokeWidth="10"
+                strokeDasharray={`${arc.arcLength.toFixed(1)} ${(C - arc.arcLength).toFixed(1)}`}
+                strokeDashoffset={arc.offset.toFixed(1)}
+                className="transition-all duration-500"
+              />
+            ))}
           </svg>
 
           {/* Center KPI */}
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
             <span className="text-base font-black text-white font-mono tracking-tight">
-              Rs. {Math.round(mrrLkr / 1000)}K
+              Rs. {Math.round(totalInflow / 1000)}K
             </span>
             <span className="text-[10px] text-zinc-500 font-medium uppercase tracking-wider">
-              Revenue
+              Inflow
             </span>
           </div>
         </div>
