@@ -15,6 +15,8 @@ const config: Config = {
         signature: ["var(--font-signature)", "sans-serif"],
         inria: ["var(--font-inria)", "serif"],
         urbanist: ["var(--font-urbanist)", "sans-serif"],
+        display: ["'Space Grotesk'", "sans-serif"],
+        modern: ["'Plus Jakarta Sans'", "sans-serif"],
       },
       borderRadius: {
         lg: "var(--radius, 0.75rem)",

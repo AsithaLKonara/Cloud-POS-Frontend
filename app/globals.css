@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -148,6 +150,30 @@
   @keyframes marquee {
     0% { transform: translateX(0%); }
     100% { transform: translateX(-50%); }
+  }
+
+  /* Hero 3D & Parallax Display Utilities */
+  .font-display {
+    font-family: 'Space Grotesk', var(--font-urbanist), sans-serif;
+  }
+  .font-modern {
+    font-family: 'Plus Jakarta Sans', var(--font-inter), sans-serif;
+  }
+  .hero-xonit-text {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.72) 20%, rgba(200, 215, 255, 0.3) 55%, rgba(100, 120, 180, 0.02) 85%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-glow-blue {
+    background: radial-gradient(circle 650px at 50% 68%, rgba(0, 68, 255, 0.45), rgba(0, 32, 140, 0.18) 50%, transparent 80%);
+  }
+  .hero-capsule-nav {
+    background: rgba(8, 12, 22, 0.88);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.15);
   }
 }
 

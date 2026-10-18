@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowRight,
   CheckCircle2,
@@ -88,285 +89,186 @@ export default function LandingPage() {
       className="min-h-screen bg-[#030712] text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200 overflow-x-hidden font-sans"
     >
       {/* =========================================================================
-          TOP NAVIGATION BAR (Matching Pen Draft Header)
+          FIGMA HERO NAVBAR: Capsule Navigation Island + Official XONIT Space Brand
           ========================================================================= */}
-      <header className="sticky top-0 z-50 w-full backdrop-blur-xl bg-[#030712]/80 border-b border-slate-800/80 transition-all">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          {/* Left Brand with Neon X Vector Logo */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-transform duration-300">
-              <svg className="w-5 h-5 text-white" viewBox="0 0 32 32" fill="none">
-                <path d="M7.5 7.5L12.5 7.5L24.5 24.5L19.5 24.5Z" fill="currentColor" />
-                <path d="M24.5 7.5L19.5 7.5L15.3 13.5L17.8 17L24.5 7.5Z" fill="currentColor" opacity="0.85" />
-                <path d="M14.2 18.5L11.7 15L7.5 24.5L12.5 24.5L14.2 18.5Z" fill="currentColor" opacity="0.85" />
-              </svg>
-            </div>
-            <div>
-              <span className="text-xl font-black tracking-tight text-white flex items-center gap-1.5">
-                XONIT <span className="text-cyan-400 font-medium text-xs px-1.5 py-0.5 rounded bg-cyan-500/10 border border-cyan-500/20">POS</span>
-              </span>
-              <p className="text-[10px] font-mono tracking-widest text-slate-400 uppercase">Universal SaaS</p>
-            </div>
+      <header className="fixed top-0 left-0 w-full z-50 pointer-events-none transition-all duration-300">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 h-20 sm:h-24 flex items-center justify-between">
+          {/* Left Brand: Official XONIT Space White Vector Logo */}
+          <Link href="/" className="pointer-events-auto flex items-center gap-3 group">
+            <Image
+              src="/logo/xonit-cover-white.png"
+              alt="XONIT Space"
+              width={130}
+              height={32}
+              priority
+              className="h-7 sm:h-8 w-auto object-contain brightness-110 group-hover:opacity-90 transition-opacity"
+            />
           </Link>
 
-          {/* Center Navigation Links */}
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
-            <a href="#hero" className="hover:text-cyan-400 transition-colors">Overview</a>
-            <a href="#solutions" className="hover:text-cyan-400 transition-colors">Solutions</a>
-            <a href="#hardware" className="hover:text-cyan-400 transition-colors">Hardware</a>
-            <a href="#fintech" className="hover:text-cyan-400 transition-colors">Sri Lanka Fintech</a>
-            <a href="#pricing" className="hover:text-cyan-400 transition-colors">Pricing in LKR</a>
+          {/* Center: Figma Floating Capsule Island */}
+          <nav className="pointer-events-auto hidden md:flex items-center gap-1 sm:gap-2 px-6 py-2.5 rounded-full bg-black/85 backdrop-blur-2xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.6)]">
+            <a
+              href="#hero"
+              className="px-4 py-1.5 rounded-full text-xs lg:text-sm font-modern font-medium text-white transition-all bg-white/10"
+            >
+              Overview
+            </a>
+            <a
+              href="#solutions"
+              className="px-4 py-1.5 rounded-full text-xs lg:text-sm font-modern font-medium text-white/70 hover:text-white hover:bg-white/5 transition-all"
+            >
+              Solutions
+            </a>
+            <a
+              href="#hardware"
+              className="px-4 py-1.5 rounded-full text-xs lg:text-sm font-modern font-medium text-white/70 hover:text-white hover:bg-white/5 transition-all"
+            >
+              Hardware
+            </a>
+            <a
+              href="#fintech"
+              className="px-4 py-1.5 rounded-full text-xs lg:text-sm font-modern font-medium text-white/70 hover:text-white hover:bg-white/5 transition-all"
+            >
+              Sri Lanka Fintech
+            </a>
+            <a
+              href="#pricing"
+              className="px-4 py-1.5 rounded-full text-xs lg:text-sm font-modern font-medium text-white/70 hover:text-white hover:bg-white/5 transition-all"
+            >
+              Pricing
+            </a>
           </nav>
 
-          {/* Right Action Buttons */}
-          <div className="flex items-center gap-3">
+          {/* Right: Sign in & White Pill Free Trial Button */}
+          <div className="pointer-events-auto flex items-center gap-3 sm:gap-4">
             <Link
               href="/login"
-              className="text-xs sm:text-sm font-medium text-slate-300 hover:text-white px-3.5 py-2 rounded-xl transition-colors"
+              className="text-xs sm:text-sm font-modern font-medium text-white/80 hover:text-white px-3 py-2 transition-colors"
             >
               Sign In
             </Link>
             <Link
               href="/login"
-              className="text-xs sm:text-sm font-semibold bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white px-4 sm:px-5 py-2.5 rounded-xl shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/30 transition-all flex items-center gap-1.5"
+              className="text-xs sm:text-sm font-modern font-bold bg-white hover:bg-slate-100 text-black px-5 py-2.5 rounded-full shadow-lg shadow-white/15 hover:shadow-white/25 hover:scale-105 active:scale-95 transition-all duration-200"
             >
-              <span>Start Free Trial</span>
-              <ArrowRight className="w-4 h-4" />
+              Start Free Trial
             </Link>
           </div>
         </div>
       </header>
 
       {/* =========================================================================
-          HERO SECTION: 4-LAYER PARALLAX (Faithful implementation of Pen Draft)
+          FIGMA HERO SECTION: 4-LAYER PARALLAX WITH GRAPHITE LAPTOP MOCKUP
           ========================================================================= */}
       <section
         id="hero"
-        className="relative min-h-[92vh] flex flex-col items-center justify-center pt-8 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden"
+        className="relative min-h-[105vh] sm:min-h-[110vh] flex flex-col items-center justify-start pt-28 sm:pt-36 pb-24 px-4 sm:px-6 overflow-hidden bg-[#020512]"
       >
-        {/* -----------------------------------------------------------------------
-            LAYER 1 (Deepest Background): Cursor-Following Interactive Glow & Stars
-            ----------------------------------------------------------------------- */}
+        {/* Layer 0: Figma Ambient Blue Radial Glow & Gradient */}
         <div
-          className="absolute inset-0 pointer-events-none transition-opacity duration-700"
+          className="absolute inset-0 pointer-events-none"
           style={{
-            background: `radial-gradient(circle 500px at ${mousePos.x}% ${mousePos.y}%, rgba(6, 182, 212, 0.15), rgba(99, 102, 241, 0.08) 40%, transparent 80%)`,
+            background:
+              "radial-gradient(circle 800px at 50% 48%, rgba(0, 57, 214, 0.42), rgba(0, 18, 98, 0.22) 50%, transparent 75%)",
           }}
         />
-        {/* Cosmic Grid Matrix */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b0e_1px,transparent_1px),linear-gradient(to_bottom,#1e293b0e_1px,transparent_1px)] bg-[size:44px_44px] pointer-events-none" />
-
-        {/* -----------------------------------------------------------------------
-            LAYER 2 (Massive Background Typography): "XONIT" in Giant 3D Lettering
-            ----------------------------------------------------------------------- */}
+        {/* Interactive Mouse Glow Bloom */}
         <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 select-none pointer-events-none z-0 w-full text-center"
+          className="absolute inset-0 pointer-events-none transition-opacity duration-700 opacity-70"
           style={{
-            transform: `translate(-50%, calc(-50% + ${scrollY * 0.12}px))`,
+            background: `radial-gradient(circle 550px at ${mousePos.x}% ${mousePos.y}%, rgba(0, 102, 255, 0.25), transparent 70%)`,
           }}
-        >
-          <span className="text-[18vw] sm:text-[20vw] font-black tracking-[-0.08em] text-transparent bg-clip-text bg-gradient-to-b from-slate-600/30 via-slate-800/10 to-transparent leading-none block">
-            XONIT
-          </span>
-        </div>
+        />
+        {/* Fine background subtle grid */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:48px_48px] pointer-events-none" />
 
         {/* Top Floating Badge */}
-        <div className="relative z-20 mb-4 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-cyan-500/30 text-xs font-semibold text-cyan-300 shadow-lg shadow-cyan-500/10 backdrop-blur-md">
-          <Sparkles className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
-          <span>Universal Multi-Tenant POS, ERP & P&L Platform for Sri Lanka</span>
+        <div className="relative z-20 mb-3 sm:mb-5 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900/80 border border-blue-500/30 text-xs font-modern font-semibold text-blue-300 shadow-xl shadow-blue-500/10 backdrop-blur-md">
+          <Sparkles className="w-3.5 h-3.5 text-blue-400 animate-pulse" />
+          <span>Universal Enterprise Multi-Tenant POS Platform for Sri Lanka</span>
         </div>
 
-        {/* -----------------------------------------------------------------------
-            LAYER 4 (Foreground Typography & CTA): Floating crisp above the 3D stage
-            ----------------------------------------------------------------------- */}
-        <div className="relative z-20 text-center max-w-4xl mx-auto mb-8">
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight leading-[1.08]">
-            One Enterprise Platform. <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-400">
-              Any Business in Sri Lanka.
-            </span>
-          </h1>
-
-          <p className="mt-5 text-base sm:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">
-            From high-volume fashion boutiques and dine-in restaurants to luxury salons, pharmacies, and wholesale depots. Fast cashier checkout, live multi-branch inventory, and automated GAAP accounting.
-          </p>
-
-          {/* Primary CTA Cluster */}
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
-              href="/login"
-              className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-bold text-sm shadow-xl shadow-cyan-500/25 hover:shadow-cyan-500/40 transition-all flex items-center justify-center gap-2 group"
-            >
-              <span>Start 14-Day Free Trial</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-
-            <a
-              href="#solutions"
-              className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-slate-900/80 hover:bg-slate-800/80 border border-slate-700/80 text-slate-200 font-semibold text-sm transition-colors flex items-center justify-center gap-2"
-            >
-              <span>Explore Industry Presets</span>
-              <ChevronRight className="w-4 h-4 text-slate-400" />
-            </a>
-          </div>
-
-          {/* Quick Sri Lankan Trust Badges */}
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-y-2 gap-x-6 text-xs text-slate-400">
-            <span className="flex items-center gap-1.5 text-slate-300">
-              <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400" /> No credit card required
-            </span>
-            <span className="flex items-center gap-1.5 text-slate-300">
-              <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400" /> All pricing in LKR
-            </span>
-            <span className="flex items-center gap-1.5 text-slate-300">
-              <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400" /> 80mm ESC/POS hardware ready
-            </span>
-          </div>
-        </div>
-
-        {/* -----------------------------------------------------------------------
-            LAYER 3 (3D Perspective / Tilted POS & ERP Dashboard Screen)
-            ----------------------------------------------------------------------- */}
-        <div
-          className="relative z-10 w-full max-w-5xl mx-auto transition-transform duration-300"
-          style={{
-            perspective: "1200px",
-            transform: `translateY(${scrollY * -0.05}px)`,
-          }}
-        >
-          {/* Tilted Glass Screen Mockup */}
+        {/* Main Stage Container (Holds Giant XONIT, Floating Laptop, and Overlapping Headline) */}
+        <div className="relative z-10 w-full max-w-6xl mx-auto flex flex-col items-center justify-center mt-2 sm:mt-4">
+          {/* Layer 1: Giant Background XONIT Display Typography */}
           <div
-            className="rounded-2xl sm:rounded-3xl border border-slate-700/80 bg-slate-950/90 shadow-2xl shadow-cyan-500/10 backdrop-blur-2xl overflow-hidden transition-all duration-500"
+            className="absolute top-[38%] left-1/2 -translate-x-1/2 -translate-y-1/2 select-none pointer-events-none z-0 w-full text-center transition-transform duration-200"
             style={{
-              transform: "rotateX(12deg) rotateY(-1deg)",
-              transformOrigin: "center top",
+              transform: `translate(-50%, calc(-50% + ${scrollY * 0.14}px))`,
             }}
           >
-            {/* Window Top Header Bar */}
-            <div className="h-11 px-4 sm:px-6 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-rose-500/80" />
-                <span className="w-3 h-3 rounded-full bg-amber-500/80" />
-                <span className="w-3 h-3 rounded-full bg-emerald-500/80" />
-                <span className="text-xs font-mono text-slate-400 ml-2 hidden sm:inline">
-                  XONIT TERMINAL • CMB-01 REGISTER • TABLE 14 (DINE_IN)
-                </span>
-              </div>
-              <div className="flex items-center gap-3 text-xs font-mono">
-                <span className="text-emerald-400 flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  ESC/POS ONLINE
-                </span>
-                <span className="text-slate-400 hidden sm:inline">LKR Active</span>
-              </div>
+            <span className="font-display font-black text-[clamp(110px,22vw,310px)] tracking-[-0.04em] text-transparent bg-clip-text bg-gradient-to-b from-white/70 via-white/15 to-transparent leading-none block drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
+              XONIT
+            </span>
+          </div>
+
+          {/* Layer 2: Floating Graphite Laptop Mockup with 3D Tilt */}
+          <div
+            className="relative z-10 w-full flex items-center justify-center transition-transform duration-300 ease-out py-2"
+            style={{
+              transform: `translateY(${scrollY * -0.06}px) perspective(1400px) rotateX(${((mousePos.y - 50) * -0.035).toFixed(2)}deg) rotateY(${((mousePos.x - 50) * 0.035).toFixed(2)}deg)`,
+            }}
+          >
+            <div className="relative w-full max-w-[880px] lg:max-w-[1020px] aspect-[16/10] max-h-[640px] flex items-center justify-center">
+              <Image
+                src="/floating-laptop-mockup.png"
+                alt="Floating Graphite Laptop XONIT POS Mockup"
+                fill
+                sizes="(max-width: 1024px) 100vw, 1020px"
+                priority
+                className="object-contain drop-shadow-[0_35px_80px_rgba(0,0,0,0.95)] filter"
+              />
+            </div>
+          </div>
+
+          {/* Layer 3: Overlapping Hero Headline from Figma */}
+          <div
+            className="relative z-20 text-center max-w-4xl mx-auto -mt-10 sm:-mt-16 lg:-mt-20 transition-transform duration-200"
+            style={{
+              transform: `translateY(${scrollY * -0.03}px)`,
+            }}
+          >
+            <h1 className="font-display font-black text-3xl sm:text-5xl lg:text-[64px] text-white tracking-[-0.03em] leading-[1.08] text-center drop-shadow-[0_4px_30px_rgba(0,0,0,0.95)]">
+              One Enterprise Platform. <br />
+              <span className="text-white">
+                Any Business in Sri Lanka.
+              </span>
+            </h1>
+
+            <p className="mt-4 sm:mt-5 text-sm sm:text-base lg:text-lg text-slate-300 font-modern max-w-2xl mx-auto leading-relaxed drop-shadow-md">
+              From high-volume fashion boutiques and dine-in restaurants to luxury salons, pharmacies, and wholesale depots. Fast cashier checkout, live multi-branch inventory, and automated GAAP accounting.
+            </p>
+
+            {/* Primary Action Buttons */}
+            <div className="mt-7 sm:mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+              <Link
+                href="/login"
+                className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-white hover:bg-slate-100 text-black font-modern font-bold text-sm shadow-xl shadow-white/20 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 group"
+              >
+                <span>Start 14-Day Free Trial</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+
+              <a
+                href="#solutions"
+                className="w-full sm:w-auto px-7 py-3.5 rounded-full bg-black/60 hover:bg-black/80 border border-white/20 text-white font-modern font-semibold text-sm backdrop-blur-md transition-all flex items-center justify-center gap-2"
+              >
+                <span>Explore Industry Presets</span>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
+              </a>
             </div>
 
-            {/* Inner POS Mockup Interface */}
-            <div className="p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 bg-gradient-to-b from-slate-950/80 to-[#02050E]">
-              {/* Left Side: Real-time Stats & Fast Cart */}
-              <div className="lg:col-span-7 space-y-4">
-                {/* Metric Strip */}
-                <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
-                  <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800">
-                    <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider block">Today Sales</span>
-                    <span className="text-base sm:text-xl font-black text-cyan-400 mt-0.5 block">Rs. 487,250</span>
-                    <span className="text-[10px] text-emerald-400 font-mono mt-0.5 block">↑ 18.4% vs yesterday</span>
-                  </div>
-                  <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800">
-                    <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider block">Completed Orders</span>
-                    <span className="text-base sm:text-xl font-black text-white mt-0.5 block">142</span>
-                    <span className="text-[10px] text-slate-400 font-mono mt-0.5 block">0 returns today</span>
-                  </div>
-                  <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800">
-                    <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider block">Net Profit (EBIT)</span>
-                    <span className="text-base sm:text-xl font-black text-emerald-400 mt-0.5 block">Rs. 182,400</span>
-                    <span className="text-[10px] text-cyan-400 font-mono mt-0.5 block">Margin: 37.4%</span>
-                  </div>
-                </div>
-
-                {/* Quick Products / Catalog Grid */}
-                <div className="p-3.5 rounded-xl bg-slate-900/50 border border-slate-800/80">
-                  <div className="flex items-center justify-between mb-2.5">
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-300">Quick-Pick Speed Grid</span>
-                    <span className="text-[11px] font-mono text-cyan-400">TOUCH READY</span>
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    <div className="p-2.5 rounded-lg bg-slate-800/60 border border-slate-700/60 hover:border-cyan-400 transition-colors cursor-pointer">
-                      <span className="text-xs font-semibold text-white block truncate">Artisan Cappuccino</span>
-                      <span className="text-[11px] font-mono text-cyan-400 block mt-1">Rs. 950.00</span>
-                    </div>
-                    <div className="p-2.5 rounded-lg bg-slate-800/60 border border-slate-700/60 hover:border-cyan-400 transition-colors cursor-pointer">
-                      <span className="text-xs font-semibold text-white block truncate">Linen Oxford Shirt</span>
-                      <span className="text-[11px] font-mono text-cyan-400 block mt-1">Rs. 5,400.00</span>
-                    </div>
-                    <div className="p-2.5 rounded-lg bg-slate-800/60 border border-slate-700/60 hover:border-cyan-400 transition-colors cursor-pointer">
-                      <span className="text-xs font-semibold text-white block truncate">Hair Styling & Spa</span>
-                      <span className="text-[11px] font-mono text-cyan-400 block mt-1">Rs. 3,500.00</span>
-                    </div>
-                    <div className="p-2.5 rounded-lg bg-slate-800/60 border border-slate-700/60 hover:border-cyan-400 transition-colors cursor-pointer">
-                      <span className="text-xs font-semibold text-white block truncate">Paracetamol 500mg</span>
-                      <span className="text-[11px] font-mono text-cyan-400 block mt-1">Rs. 240.00</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Side: Active Ticket & Split Tender Bar */}
-              <div className="lg:col-span-5 p-4 rounded-xl bg-slate-900/80 border border-slate-800 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                    <div>
-                      <span className="text-xs font-black text-white uppercase tracking-wider">Active Ticket #CMB-1082</span>
-                      <span className="text-[10px] text-slate-400 block">Customer: Nimal Perera (VIP Bronze)</span>
-                    </div>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                      DINE IN • TABLE 4
-                    </span>
-                  </div>
-
-                  {/* Line Items */}
-                  <div className="py-2.5 space-y-2 text-xs">
-                    <div className="flex items-center justify-between text-slate-200">
-                      <span>2x Grilled Chicken Panini</span>
-                      <span className="font-mono">Rs. 3,200.00</span>
-                    </div>
-                    <div className="flex items-center justify-between text-slate-200">
-                      <span>2x Iced Caramel Macchiato</span>
-                      <span className="font-mono">Rs. 2,200.00</span>
-                    </div>
-                    <div className="flex items-center justify-between text-slate-400 text-[11px]">
-                      <span>Discounts (Loyalty Tier 5%)</span>
-                      <span className="font-mono text-emerald-400">- Rs. 270.00</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Subtotal & Split Tender Action */}
-                <div className="pt-3 border-t border-slate-800">
-                  <div className="flex items-center justify-between text-sm font-bold text-white mb-2.5">
-                    <span>Total Due (LKR)</span>
-                    <span className="text-lg font-black text-cyan-400 font-mono">Rs. 5,130.00</span>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-1.5 mb-2">
-                    <button className="py-2 px-1 text-[11px] font-bold rounded bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors">
-                      💵 Cash
-                    </button>
-                    <button className="py-2 px-1 text-[11px] font-bold rounded bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors">
-                      💳 Card
-                    </button>
-                    <button className="py-2 px-1 text-[11px] font-bold rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-mono text-[10px]">
-                      🇱🇰 LankaQR
-                    </button>
-                  </div>
-
-                  <button className="w-full py-2.5 rounded-lg bg-gradient-to-r from-cyan-500 to-indigo-600 font-bold text-xs text-white shadow-md shadow-cyan-500/20 flex items-center justify-center gap-1.5">
-                    <Printer className="w-3.5 h-3.5" />
-                    <span>Print 80mm Receipt & Kick Drawer</span>
-                  </button>
-                </div>
-              </div>
+            {/* Quick Sri Lankan Trust Badges */}
+            <div className="mt-6 sm:mt-7 flex flex-wrap items-center justify-center gap-y-2 gap-x-6 text-xs text-slate-400 font-modern">
+              <span className="flex items-center gap-1.5 text-slate-300">
+                <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" /> No credit card required
+              </span>
+              <span className="flex items-center gap-1.5 text-slate-300">
+                <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" /> All pricing in LKR
+              </span>
+              <span className="flex items-center gap-1.5 text-slate-300">
+                <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" /> 80mm ESC/POS hardware ready
+              </span>
             </div>
           </div>
         </div>
