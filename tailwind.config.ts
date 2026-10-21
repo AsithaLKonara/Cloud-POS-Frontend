@@ -10,8 +10,9 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
+        manrope: ["'Manrope'", "sans-serif"],
         poppins: ["var(--font-poppins)"],
-        inter: ["var(--font-inter)", "sans-serif"],
+        inter: ["'Inter'", "sans-serif"],
         signature: ["var(--font-signature)", "sans-serif"],
         inria: ["var(--font-inria)", "serif"],
         urbanist: ["var(--font-urbanist)", "sans-serif"],
@@ -25,6 +26,14 @@ const config: Config = {
         sm: "calc(var(--radius, 0.75rem) - 4px)",
       },
       colors: {
+        obsidian: '#050706',
+        carbon: '#0B100F',
+        forest: '#11211B',
+        'electric-emerald': '#00C987',
+        'oxidized-teal': '#42C0C8',
+        porcelain: '#F4F5F1',
+        silversage: '#A5B1AA',
+        graphite: '#26322C',
         background: 'var(--background)',
         foreground: 'var(--foreground)',
         surface: {
