@@ -17,6 +17,7 @@ const config: Config = {
         urbanist: ["var(--font-urbanist)", "sans-serif"],
         display: ["'Space Grotesk'", "sans-serif"],
         modern: ["'Plus Jakarta Sans'", "sans-serif"],
+        ibm: ["'IBM Plex Mono'", "monospace"],
       },
       borderRadius: {
         lg: "var(--radius, 0.75rem)",

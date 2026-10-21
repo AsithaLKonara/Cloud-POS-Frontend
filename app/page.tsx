@@ -85,71 +85,102 @@ export default function LandingPage() {
 
   return (
     <div
-      onMouseMove={handleMouseMove}
-      className="min-h-screen bg-[#030712] text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200 overflow-x-hidden font-sans"
+      className="min-h-screen bg-black text-white relative selection:bg-cyan-500/30 selection:text-cyan-200 overflow-x-hidden font-sans"
     >
       {/* =========================================================================
-          FIGMA HERO NAVBAR: Capsule Navigation Island + Official White Brand Logo
+          GLOBAL PUBLIC SAAS BACKGROUND: Gradient Wallpapers.png + Figma Glows
           ========================================================================= */}
-      <header className="fixed top-0 left-0 w-full z-50 pointer-events-none transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 h-16 sm:h-20 flex items-center justify-between">
-          {/* Left Brand: High-contrast tight white logo */}
-          <Link href="/" className="pointer-events-auto flex items-center gap-3 group">
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <Image
+          src="/gradient-wallpaper.png"
+          alt="Global SaaS Wallpaper"
+          fill
+          priority
+          className="object-cover object-center opacity-85"
+        />
+        {/* Figma Blue/Indigo Linear Gradient Overlay */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(360deg, rgba(0, 57, 214, 0.38) 0%, rgba(0, 0, 98, 0.25) 50%, rgba(0, 0, 0, 0.6) 100%)",
+          }}
+        />
+        {/* Figma Cyan Glow Union Layer */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(59.85% 59.85% at 54.97% 40.15%, rgba(66, 192, 200, 0.35) 0%, rgba(66, 192, 200, 0) 100%)",
+          }}
+        />
+        {/* Ambient Dark Scrim for High-Contrast Readability */}
+        <div className="absolute inset-0 bg-black/40" />
+      </div>
+
+      {/* =========================================================================
+          FIGMA HERO NAVBAR (Frame 21): Full Glass Capsule Header
+          width: 1041px; height: 64px; top: 26px; border-radius: 1000px;
+          ========================================================================= */}
+      <header className="fixed top-5 sm:top-[26px] left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-[1041px] h-16 sm:h-[64px] z-50">
+        <div className="w-full h-full rounded-full bg-black/40 backdrop-blur-2xl border border-white/[0.14] shadow-[0_8px_32px_rgba(0,0,0,0.65)] px-4 sm:px-8 flex items-center justify-between">
+          {/* Frame 16: Brand Logo */}
+          <Link href="/" className="flex items-center gap-2 group shrink-0">
             <Image
               src="/logo/xonit-white-trimmed.png"
               alt="XONIT Space"
-              width={140}
-              height={26}
+              width={110}
+              height={24}
               priority
-              className="h-6 sm:h-7 lg:h-8 w-auto object-contain brightness-125 group-hover:opacity-90 transition-opacity"
+              className="h-6 sm:h-7 w-auto object-contain brightness-125 group-hover:opacity-90 transition-opacity"
             />
           </Link>
 
-          {/* Center: Figma Floating Capsule Island (Desktop & Laptop) */}
-          <nav className="pointer-events-auto hidden md:flex items-center gap-1 sm:gap-2 px-5 py-2 rounded-full bg-black/85 backdrop-blur-2xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.6)]">
+          {/* Frame 17: Center Navigation Links */}
+          <nav className="hidden md:flex items-center gap-1 lg:gap-3">
             <a
               href="#hero"
-              className="px-3.5 py-1.5 rounded-full text-xs lg:text-sm font-modern font-medium text-white transition-all bg-white/10"
+              className="px-3.5 py-1.5 rounded-full text-sm lg:text-[15px] font-inter font-normal text-white transition-all bg-white/10"
             >
               Overview
             </a>
             <a
               href="#solutions"
-              className="px-3.5 py-1.5 rounded-full text-xs lg:text-sm font-modern font-medium text-white/70 hover:text-white hover:bg-white/5 transition-all"
+              className="px-3.5 py-1.5 rounded-full text-sm lg:text-[15px] font-inter font-normal text-white/80 hover:text-white hover:bg-white/5 transition-all"
             >
               Solutions
             </a>
             <a
               href="#hardware"
-              className="px-3.5 py-1.5 rounded-full text-xs lg:text-sm font-modern font-medium text-white/70 hover:text-white hover:bg-white/5 transition-all"
+              className="px-3.5 py-1.5 rounded-full text-sm lg:text-[15px] font-inter font-normal text-white/80 hover:text-white hover:bg-white/5 transition-all"
             >
               Hardware
             </a>
             <a
               href="#fintech"
-              className="px-3.5 py-1.5 rounded-full text-xs lg:text-sm font-modern font-medium text-white/70 hover:text-white hover:bg-white/5 transition-all"
+              className="px-3.5 py-1.5 rounded-full text-sm lg:text-[15px] font-inter font-normal text-white/80 hover:text-white hover:bg-white/5 transition-all"
             >
               Sri Lanka Fintech
             </a>
             <a
               href="#pricing"
-              className="px-3.5 py-1.5 rounded-full text-xs lg:text-sm font-modern font-medium text-white/70 hover:text-white hover:bg-white/5 transition-all"
+              className="px-3.5 py-1.5 rounded-full text-sm lg:text-[15px] font-inter font-normal text-white/80 hover:text-white hover:bg-white/5 transition-all"
             >
               Pricing
             </a>
           </nav>
 
-          {/* Right: Sign in & White Pill Free Trial Button */}
-          <div className="pointer-events-auto flex items-center gap-2.5 sm:gap-4">
+          {/* Frame 20: Right Action Buttons */}
+          <div className="flex items-center gap-3 sm:gap-6 shrink-0">
             <Link
               href="/login"
-              className="hidden sm:inline-block text-xs sm:text-sm font-modern font-medium text-white/80 hover:text-white px-2.5 py-1.5 transition-colors"
+              className="text-white hover:text-white/80 font-inter text-sm sm:text-base font-normal px-2 py-1 transition-colors"
             >
-              Sign In
+              Sign in
             </Link>
             <Link
               href="/login"
-              className="text-xs sm:text-sm font-modern font-bold bg-white hover:bg-slate-100 text-black px-4 sm:px-5 py-2 sm:py-2.5 rounded-full shadow-lg shadow-white/15 hover:shadow-white/25 hover:scale-105 active:scale-95 transition-all duration-200"
+              className="bg-white hover:bg-slate-100 text-black font-inter text-sm sm:text-base font-normal px-5 sm:px-6 py-2 sm:py-2.5 rounded-[24px] shadow-lg shadow-white/10 active:scale-95 transition-all"
             >
               Start Free Trial
             </Link>
@@ -158,173 +189,78 @@ export default function LandingPage() {
       </header>
 
       {/* =========================================================================
-          FIGMA HERO SECTION: VIEWPORT-AWARE RESPONSIVE 4-LAYER PARALLAX
-          Fits gracefully inside laptop viewports (MacBook ~700-800px) and mobile screens
+          FIGMA HERO SECTION (MacBook Air - 3): Exact Figma Geometry & Hierarchy
+          width: 1280px; height: 832px;
           ========================================================================= */}
       <section
         id="hero"
-        className="relative min-h-screen lg:h-[100dvh] lg:min-h-[680px] lg:max-h-[920px] flex flex-col items-center justify-between pt-16 sm:pt-20 pb-6 sm:pb-8 px-4 sm:px-6 overflow-hidden bg-[#020512]"
+        className="relative w-full min-h-[832px] lg:h-[832px] max-w-[1280px] mx-auto flex flex-col items-center justify-center overflow-hidden px-4 pt-24 sm:pt-28 pb-12 sm:pb-16 z-10"
       >
-        {/* Layer 0: Volumetric Lighting & Atmospheric Glow */}
-        {/* Top-down ambient spotlight */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(ellipse 70% 40% at 50% -5%, rgba(59, 130, 246, 0.35), rgba(0, 57, 214, 0.15) 45%, transparent 75%)",
-          }}
-        />
-        {/* Center core cobalt bloom behind laptop */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(circle 650px at 50% 42%, rgba(0, 68, 255, 0.42), rgba(0, 18, 98, 0.22) 52%, transparent 75%)",
-          }}
-        />
-        {/* Interactive Mouse Glow Bloom */}
-        <div
-          className="absolute inset-0 pointer-events-none transition-opacity duration-700 opacity-60"
-          style={{
-            background: `radial-gradient(circle 500px at ${mousePos.x}% ${mousePos.y}%, rgba(59, 130, 246, 0.22), transparent 70%)`,
-          }}
-        />
-        {/* Fine architectural radial-masked grid */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:44px_44px] pointer-events-none [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
-
-        {/* Top Floating Badge */}
-        <div className="relative z-20 mt-2 sm:mt-3 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/80 border border-blue-500/30 text-[11px] sm:text-xs font-modern font-semibold text-blue-300 shadow-xl shadow-blue-500/10 backdrop-blur-md">
-          <Sparkles className="w-3.5 h-3.5 text-blue-400 animate-pulse shrink-0" />
-          <span className="truncate">Universal Enterprise Multi-Tenant POS Platform for Sri Lanka</span>
+        {/* Frame 15: Giant Background XONIT Typography */}
+        <div className="absolute top-[32%] sm:top-[30%] left-1/2 -translate-x-1/2 -translate-y-1/2 select-none pointer-events-none z-0 w-full text-center">
+          <span
+            className="font-inter font-black text-[clamp(80px,20vw,300px)] leading-none text-transparent bg-clip-text block tracking-tight drop-shadow-[0_20px_50px_rgba(0,0,0,0.85)]"
+            style={{
+              background:
+                "linear-gradient(180deg, rgba(255, 255, 255, 0.68) 30.77%, rgba(153, 153, 153, 0) 79.33%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+            }}
+          >
+            XONIT
+          </span>
         </div>
 
-        {/* Center Stage: Laptop Mockup + Giant XONIT + Floating Live SaaS Badges */}
-        <div className="relative z-10 w-full max-w-5xl mx-auto flex flex-col items-center justify-center my-auto">
-          {/* Layer 1: Giant Background XONIT Display Typography (Proportional & Responsive) */}
-          <div
-            className="absolute top-[42%] left-1/2 -translate-x-1/2 -translate-y-1/2 select-none pointer-events-none z-0 w-full text-center transition-transform duration-200"
-            style={{
-              transform: `translate(-50%, calc(-50% + ${scrollY * 0.1}px))`,
-            }}
-          >
-            <span className="font-display font-black text-[clamp(54px,14vw,180px)] tracking-[-0.04em] text-transparent bg-clip-text bg-gradient-to-b from-white/75 via-white/15 to-transparent leading-none block drop-shadow-[0_15px_40px_rgba(0,0,0,0.8)]">
-              XONIT
-            </span>
-          </div>
-
-          {/* 4 Floating Live Feature Chips (Desktop & Laptop Viewports) */}
-          {/* Chip 1: Top Left - 0.2s Cashier Checkout */}
-          <div className="hidden lg:flex items-center gap-2.5 px-3.5 py-2 rounded-2xl bg-slate-950/80 backdrop-blur-xl border border-white/10 shadow-2xl shadow-black/80 animate-float-slow absolute -left-12 xl:-left-20 top-2 z-20 pointer-events-none">
-            <div className="w-7 h-7 rounded-lg bg-amber-500/15 border border-amber-500/25 flex items-center justify-center shrink-0">
-              <Zap className="w-3.5 h-3.5 text-amber-400" />
-            </div>
-            <div className="text-left">
-              <div className="text-[11px] font-bold text-white leading-tight">0.2s Cashier Checkout</div>
-              <div className="text-[9px] font-mono text-slate-400">Touch & Barcode Ready</div>
-            </div>
-          </div>
-
-          {/* Chip 2: Bottom Left - LankaQR Sync */}
-          <div className="hidden lg:flex items-center gap-2.5 px-3.5 py-2 rounded-2xl bg-slate-950/80 backdrop-blur-xl border border-white/10 shadow-2xl shadow-black/80 animate-float-delayed absolute -left-8 xl:-left-14 bottom-4 z-20 pointer-events-none">
-            <div className="w-7 h-7 rounded-lg bg-cyan-500/15 border border-cyan-500/25 flex items-center justify-center shrink-0">
-              <QrCode className="w-3.5 h-3.5 text-cyan-400" />
-            </div>
-            <div className="text-left">
-              <div className="text-[11px] font-bold text-white leading-tight">🇱🇰 LankaQR & Cards</div>
-              <div className="text-[9px] font-mono text-cyan-300">Instant Reconciliation</div>
-            </div>
-          </div>
-
-          {/* Chip 3: Top Right - Multi-Branch Sync */}
-          <div className="hidden lg:flex items-center gap-2.5 px-3.5 py-2 rounded-2xl bg-slate-950/80 backdrop-blur-xl border border-white/10 shadow-2xl shadow-black/80 animate-float-delayed absolute -right-12 xl:-right-20 top-2 z-20 pointer-events-none">
-            <div className="w-7 h-7 rounded-lg bg-indigo-500/15 border border-indigo-500/25 flex items-center justify-center shrink-0">
-              <Store className="w-3.5 h-3.5 text-indigo-400" />
-            </div>
-            <div className="text-left">
-              <div className="text-[11px] font-bold text-white leading-tight">Multi-Branch Stock</div>
-              <div className="text-[9px] font-mono text-indigo-300">Live Central Sync</div>
-            </div>
-          </div>
-
-          {/* Chip 4: Bottom Right - Automated GAAP P&L */}
-          <div className="hidden lg:flex items-center gap-2.5 px-3.5 py-2 rounded-2xl bg-slate-950/80 backdrop-blur-xl border border-white/10 shadow-2xl shadow-black/80 animate-float-slow absolute -right-8 xl:-right-14 bottom-4 z-20 pointer-events-none">
-            <div className="w-7 h-7 rounded-lg bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center shrink-0">
-              <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
-            </div>
-            <div className="text-left">
-              <div className="text-[11px] font-bold text-white leading-tight">Automated GAAP P&L</div>
-              <div className="text-[9px] font-mono text-emerald-300">Live Profit Tracking</div>
-            </div>
-          </div>
-
-          {/* Layer 2: Floating Graphite Laptop Mockup (Viewport Constrained for Laptop & Mobile Screens) */}
-          <div
-            className="relative z-10 w-full flex items-center justify-center transition-transform duration-300 ease-out"
-            style={{
-              transform: `translateY(${scrollY * -0.05}px) perspective(1400px) rotateX(${((mousePos.y - 50) * -0.03).toFixed(2)}deg) rotateY(${((mousePos.x - 50) * 0.03).toFixed(2)}deg)`,
-            }}
-          >
-            <div className="relative w-full max-w-[320px] sm:max-w-[560px] md:max-w-[700px] lg:max-w-[820px] aspect-[16/10] h-[28vh] sm:h-[34vh] lg:h-[40vh] max-h-[380px] min-h-[190px] flex items-center justify-center">
-              <Image
-                src="/floating-laptop-mockup.png"
-                alt="Floating Graphite Laptop XONIT POS Mockup"
-                fill
-                sizes="(max-width: 640px) 320px, (max-width: 1024px) 680px, 820px"
-                priority
-                className="object-contain drop-shadow-[0_25px_60px_rgba(0,10,40,0.95)] filter"
-              />
-            </div>
+        {/* Frame 14: Floating Graphite Laptop Mockup with Figma Gradient & 4.45px Blur */}
+        <div className="relative z-10 w-full flex items-center justify-center">
+          <div className="relative w-full max-w-[860px] lg:max-w-[1020px] aspect-[16/10] h-[36vh] sm:h-[46vh] lg:h-[510px] flex items-center justify-center">
+            <Image
+              src="/floating-laptop-mockup.png"
+              alt="Floating Graphite Laptop POS Mockup"
+              fill
+              sizes="(max-width: 1024px) 100vw, 1020px"
+              priority
+              className="object-contain filter blur-[2px] sm:blur-[4.45px] drop-shadow-[0_30px_70px_rgba(0,0,0,0.95)]"
+            />
+            {/* Figma Dark Linear Gradient Mask */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background:
+                  "linear-gradient(180deg, rgba(0, 0, 0, 0) 32.21%, rgba(0, 0, 0, 0.91) 84.13%)",
+              }}
+            />
           </div>
         </div>
 
-        {/* Layer 3: Overlapping Hero Headline & Call To Action (Fits inside 100vh on Laptop & Mobile) */}
-        <div
-          className="relative z-20 text-center max-w-4xl mx-auto -mt-6 sm:-mt-10 lg:-mt-12 transition-transform duration-200 w-full bg-gradient-to-t from-[#020512] via-[#020512]/95 to-transparent pt-4 pb-1 px-4 rounded-3xl"
-          style={{
-            transform: `translateY(${scrollY * -0.02}px)`,
-          }}
-        >
-          <h1 className="font-display font-black text-2xl sm:text-4xl lg:text-[46px] xl:text-[52px] text-white tracking-[-0.03em] leading-[1.08] text-center drop-shadow-[0_4px_30px_rgba(0,0,0,0.95)]">
+        {/* Frame 22: Content Container Overlapping the Laptop Palm Rest */}
+        <div className="relative z-20 flex flex-col items-center justify-center text-center max-w-[866px] mx-auto -mt-16 sm:-mt-24 lg:-mt-32 px-4">
+          {/* Headline in IBM Plex Mono 700 bold */}
+          <h1 className="font-ibm font-bold text-3xl sm:text-5xl lg:text-[48px] text-white leading-tight lg:leading-[62px] text-center drop-shadow-[0_4px_30px_rgba(0,0,0,0.95)] max-w-[846px]">
             One Enterprise Platform. <br />
-            <span className="text-white">
-              Any Business in Sri Lanka.
-            </span>
+            Any Business in Sri Lanka.
           </h1>
 
-          <p className="mt-2.5 sm:mt-3 text-xs sm:text-sm lg:text-base text-slate-300 font-modern max-w-2xl mx-auto leading-relaxed drop-shadow-md">
+          {/* Subtitle in Inter 400 normal */}
+          <p className="mt-4 sm:mt-5 font-inter font-normal text-sm sm:text-lg lg:text-[20px] text-white leading-relaxed lg:leading-[26px] max-w-[670px] text-center drop-shadow-md">
             From high-volume fashion boutiques and dine-in restaurants to luxury salons, pharmacies, and wholesale depots. Fast cashier checkout, live multi-branch inventory, and automated GAAP accounting.
           </p>
 
-          {/* Primary Action Buttons */}
-          <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row items-center justify-center gap-2.5 sm:gap-4">
+          {/* Frame 20: CTA Buttons */}
+          <div className="mt-6 sm:mt-8 flex items-center justify-center gap-6">
             <Link
               href="/login"
-              className="w-full sm:w-auto px-7 py-3 rounded-full bg-white hover:bg-slate-100 text-black font-modern font-bold text-xs sm:text-sm shadow-xl shadow-white/20 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 group"
+              className="font-inter font-normal text-base sm:text-[20px] leading-[24px] text-white hover:text-white/80 px-4 py-2 transition-colors"
             >
-              <span>Start 14-Day Free Trial</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              Sign in
             </Link>
 
-            <a
-              href="#solutions"
-              className="w-full sm:w-auto px-6 py-3 rounded-full bg-black/60 hover:bg-black/80 border border-white/20 text-white font-modern font-semibold text-xs sm:text-sm backdrop-blur-md transition-all flex items-center justify-center gap-2"
+            <Link
+              href="/login"
+              className="font-inter font-normal text-base sm:text-[20px] leading-[24px] bg-white hover:bg-slate-100 text-black px-7 sm:px-8 py-2.5 sm:py-3 rounded-[24px] shadow-xl shadow-white/10 active:scale-95 transition-all"
             >
-              <span>Explore Industry Presets</span>
-              <ChevronRight className="w-4 h-4 text-slate-400" />
-            </a>
-          </div>
-
-          {/* Quick Sri Lankan Trust Badges */}
-          <div className="mt-4 sm:mt-5 flex flex-wrap items-center justify-center gap-y-1.5 gap-x-5 text-[11px] sm:text-xs text-slate-400 font-modern">
-            <span className="flex items-center gap-1.5 text-slate-300">
-              <CheckCircle2 className="w-3.5 h-3.5 text-blue-400 shrink-0" /> No credit card required
-            </span>
-            <span className="flex items-center gap-1.5 text-slate-300">
-              <CheckCircle2 className="w-3.5 h-3.5 text-blue-400 shrink-0" /> All pricing in LKR
-            </span>
-            <span className="flex items-center gap-1.5 text-slate-300">
-              <CheckCircle2 className="w-3.5 h-3.5 text-blue-400 shrink-0" /> 80mm ESC/POS ready
-            </span>
+              Start Free Trial
+            </Link>
           </div>
         </div>
       </section>
