@@ -152,6 +152,24 @@
     100% { transform: translateX(-50%); }
   }
 
+  @keyframes floatSlow {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-7px); }
+  }
+
+  @keyframes floatSlowReverse {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(7px); }
+  }
+
+  .animate-float-slow {
+    animation: floatSlow 5.5s ease-in-out infinite;
+  }
+
+  .animate-float-delayed {
+    animation: floatSlowReverse 6.5s ease-in-out 0.8s infinite;
+  }
+
   /* Hero 3D & Parallax Display Utilities */
   .font-display {
     font-family: 'Space Grotesk', var(--font-urbanist), sans-serif;
@@ -160,7 +178,7 @@
     font-family: 'Plus Jakarta Sans', var(--font-inter), sans-serif;
   }
   .hero-xonit-text {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.72) 20%, rgba(200, 215, 255, 0.3) 55%, rgba(100, 120, 180, 0.02) 85%);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.78) 15%, rgba(180, 205, 255, 0.28) 55%, rgba(2, 5, 18, 0) 85%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
