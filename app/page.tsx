@@ -319,25 +319,18 @@ export default function LandingPage() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           {/* Logo & Brand Identity */}
-          <Link href="/" className="flex items-center gap-3 group focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00C987] rounded-md">
-            <div className="relative w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center">
-              <Image
-                src="/logo/xonit-white-trimmed.png"
-                alt="XONIT POS Logo"
-                width={36}
-                height={36}
-                className="object-contain"
-                priority
-              />
-            </div>
-            <div className="flex flex-col">
-              <span className="font-manrope font-extrabold tracking-tight text-lg text-[#F4F5F1] group-hover:text-white transition-colors">
-                XONIT <span className="text-[#00C987] font-semibold text-xs tracking-widest ml-1 font-ibm">POS</span>
-              </span>
-              <span className="text-[10px] text-[#A5B1AA] tracking-wider uppercase font-ibm hidden sm:block">
-                Enterprise Cloud
-              </span>
-            </div>
+          <Link href="/" className="flex items-center gap-2.5 group focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00C987] rounded-md">
+            <Image
+              src="/logo/xonit-white-trimmed.png"
+              alt="XONIT POS"
+              width={130}
+              height={26}
+              className="h-6 sm:h-7 lg:h-8 w-auto object-contain brightness-110 group-hover:opacity-90 transition-opacity"
+              priority
+            />
+            <span className="text-[10px] font-ibm font-bold px-1.5 py-0.5 rounded bg-[#11211B] text-[#00C987] border border-[#26322C] tracking-wider uppercase">
+              POS
+            </span>
           </Link>
 
           {/* Desktop Navigation Links */}
@@ -1896,16 +1889,16 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
             {/* Col 1: Brand & Colombo Headquarters */}
             <div className="md:col-span-2">
-              <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-center gap-2.5 mb-4">
                 <Image
                   src="/logo/xonit-white-trimmed.png"
-                  alt="XONIT POS Logo"
-                  width={30}
-                  height={30}
-                  className="object-contain"
+                  alt="XONIT POS"
+                  width={120}
+                  height={24}
+                  className="h-6 w-auto object-contain brightness-110"
                 />
-                <span className="font-manrope font-extrabold text-base text-[#F4F5F1]">
-                  XONIT POS
+                <span className="text-[10px] font-ibm font-bold px-1.5 py-0.5 rounded bg-[#11211B] text-[#00C987] border border-[#26322C] tracking-wider uppercase">
+                  POS
                 </span>
               </div>
               <p className="text-xs text-[#A5B1AA] max-w-sm leading-relaxed mb-4">

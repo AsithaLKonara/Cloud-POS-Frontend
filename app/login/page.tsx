@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,20 +12,22 @@ import {
   Lock,
   Mail,
   ArrowRight,
+  ArrowUpRight,
   ShieldCheck,
   Zap,
   Building2,
   Store,
   CheckCircle2,
   Sparkles,
-  KeyRound,
   Utensils,
   Scissors,
   ShoppingBag,
   Layers,
   Cpu,
   Printer,
-  ChevronRight,
+  ChevronLeft,
+  ArrowLeft,
+  Warehouse,
 } from "lucide-react";
 import { loginSchema, LoginFormData } from "@/lib/validations";
 import { useAuthStore } from "@/store/auth.store";
@@ -46,9 +49,9 @@ interface MultiTenantDevAccount {
 const DEV_ACCOUNTS: MultiTenantDevAccount[] = [
   {
     role: "Super Platform Admin",
-    badgeColor: "text-cyan-400",
-    badgeBg: "bg-cyan-500/10",
-    badgeBorder: "border-cyan-500/30",
+    badgeColor: "text-[#00C987]",
+    badgeBg: "bg-[#00C987]/10",
+    badgeBorder: "border-[#00C987]/30",
     email: "admin@xonit.space",
     tenantSlug: "xonit-platform",
     businessType: "Global Platform Control",
@@ -58,9 +61,9 @@ const DEV_ACCOUNTS: MultiTenantDevAccount[] = [
   },
   {
     role: "Retail Boutique Admin",
-    badgeColor: "text-purple-400",
-    badgeBg: "bg-purple-500/10",
-    badgeBorder: "border-purple-500/30",
+    badgeColor: "text-[#42C0C8]",
+    badgeBg: "bg-[#42C0C8]/10",
+    badgeBorder: "border-[#42C0C8]/30",
     email: "retail.admin@xonit.space",
     tenantSlug: "velvet-threads",
     businessType: "Retail & Apparel",
@@ -71,8 +74,8 @@ const DEV_ACCOUNTS: MultiTenantDevAccount[] = [
   {
     role: "Restaurant & Cafe Manager",
     badgeColor: "text-amber-400",
-    badgeBg: "bg-amber-500/10",
-    badgeBorder: "border-amber-500/30",
+    badgeBg: "bg-amber-400/10",
+    badgeBorder: "border-amber-400/30",
     email: "bistro.admin@xonit.space",
     tenantSlug: "artisan-bistro",
     businessType: "Food & Beverage",
@@ -83,8 +86,8 @@ const DEV_ACCOUNTS: MultiTenantDevAccount[] = [
   {
     role: "Salon & Spa Director",
     badgeColor: "text-rose-400",
-    badgeBg: "bg-rose-500/10",
-    badgeBorder: "border-rose-500/30",
+    badgeBg: "bg-rose-400/10",
+    badgeBorder: "border-rose-400/30",
     email: "salon.admin@xonit.space",
     tenantSlug: "luxe-spa-wellness",
     businessType: "Salon & Wellness",
@@ -94,9 +97,9 @@ const DEV_ACCOUNTS: MultiTenantDevAccount[] = [
   },
   {
     role: "POS Terminal Cashier",
-    badgeColor: "text-emerald-400",
-    badgeBg: "bg-emerald-500/10",
-    badgeBorder: "border-emerald-500/30",
+    badgeColor: "text-[#00C987]",
+    badgeBg: "bg-[#00C987]/10",
+    badgeBorder: "border-[#00C987]/30",
     email: "cashier.colombo@xonit.space",
     tenantSlug: "colombo-central",
     businessType: "Checkout Register",
@@ -171,147 +174,174 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen w-full bg-[#030712] text-slate-100 flex flex-col lg:flex-row overflow-x-hidden selection:bg-cyan-500/30 selection:text-cyan-200">
+    <main className="min-h-screen w-full bg-[#050706] text-[#F4F5F1] font-inter flex flex-col lg:flex-row overflow-x-hidden selection:bg-[#00C987]/30 selection:text-[#00C987] antialiased">
       {/* =========================================================================
-          LEFT COLUMN: Company Details inspiring XONIT SPACE
+          LEFT COLUMN: Cinematic Editorial Branding (Obsidian × Emerald)
           ========================================================================= */}
-      <div className="w-full lg:w-[52%] xl:w-[55%] relative flex flex-col justify-between p-8 sm:p-12 lg:p-16 border-b lg:border-b-0 lg:border-r border-slate-800/80 bg-gradient-to-br from-[#060D1F] via-[#030611] to-[#010308] overflow-hidden">
-        {/* Ambient Space Glow & Grid Background */}
-        <div className="absolute -top-32 -left-32 w-96 h-96 bg-cyan-500/15 rounded-full blur-[140px] pointer-events-none" />
-        <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-indigo-600/15 rounded-full blur-[140px] pointer-events-none" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b0a_1px,transparent_1px),linear-gradient(to_bottom,#1e293b0a_1px,transparent_1px)] bg-[size:36px_36px] pointer-events-none" />
+      <div className="w-full lg:w-[50%] xl:w-[52%] relative flex flex-col justify-between p-8 sm:p-12 lg:p-16 border-b lg:border-b-0 lg:border-r border-[#26322C] bg-[#0B100F] overflow-hidden">
+        {/* Background Atmospheric Layer: Wallpaper texture & Emerald Bloom */}
+        <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
+          <div className="absolute inset-0 opacity-25 mix-blend-screen">
+            <Image
+              src="/gradient-wallpaper.png"
+              alt="Atmospheric Background"
+              fill
+              priority
+              className="object-cover object-top"
+            />
+          </div>
+          <div
+            className="absolute -top-[20%] -left-[10%] w-[55vw] h-[55vw] rounded-full filter blur-[130px] opacity-20 pointer-events-none"
+            style={{
+              background: "radial-gradient(circle, rgba(0, 201, 135, 0.4) 0%, rgba(66, 192, 200, 0.15) 60%, transparent 80%)",
+            }}
+          />
+          <div
+            className="absolute top-[40%] -right-[15%] w-[45vw] h-[45vw] rounded-full filter blur-[140px] opacity-15 pointer-events-none"
+            style={{
+              background: "radial-gradient(circle, rgba(66, 192, 200, 0.3) 0%, transparent 75%)",
+            }}
+          />
+          {/* Subtle grid pattern */}
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#26322c15_1px,transparent_1px),linear-gradient(to_bottom,#26322c15_1px,transparent_1px)] bg-[size:40px_40px]" />
+          {/* Giant Monospace Watermark */}
+          <div className="absolute top-[20%] -left-10 select-none opacity-[0.035] font-ibm font-black text-[16vw] leading-none text-white pointer-events-none uppercase">
+            XONIT
+          </div>
+        </div>
 
         {/* Brand Top Header */}
         <div className="relative z-10 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-transform duration-300">
-              <svg className="w-5 h-5 text-white" viewBox="0 0 32 32" fill="none">
-                <path d="M7.5 7.5L12.5 7.5L24.5 24.5L19.5 24.5Z" fill="currentColor" />
-                <path d="M24.5 7.5L19.5 7.5L15.3 13.5L17.8 17L24.5 7.5Z" fill="currentColor" opacity="0.85" />
-                <path d="M14.2 18.5L11.7 15L7.5 24.5L12.5 24.5L14.2 18.5Z" fill="currentColor" opacity="0.85" />
-              </svg>
-            </div>
-            <div>
-              <span className="text-xl font-black tracking-tight text-white flex items-center gap-1.5">
-                XONIT <span className="text-cyan-400 font-medium text-sm px-1.5 py-0.5 rounded-md bg-cyan-500/10 border border-cyan-500/20">SPACE</span>
-              </span>
-              <p className="text-[10px] uppercase font-mono tracking-widest text-slate-400">Enterprise POS & ERP</p>
-            </div>
+          <Link href="/" className="flex items-center gap-2.5 group focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00C987] rounded-md">
+            <Image
+              src="/logo/xonit-white-trimmed.png"
+              alt="XONIT POS"
+              width={130}
+              height={26}
+              className="h-6 sm:h-7 w-auto object-contain brightness-110 group-hover:opacity-90 transition-opacity"
+              priority
+            />
+            <span className="text-[10px] font-ibm font-bold px-1.5 py-0.5 rounded bg-[#11211B] text-[#00C987] border border-[#26322C] tracking-wider uppercase">
+              POS
+            </span>
           </Link>
 
-          <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>CLOUD POS CLUSTER • CMB-01</span>
+          <div className="hidden sm:flex items-center gap-2 text-xs font-ibm text-[#00C987] bg-[#11211B] border border-[#26322C] px-3 py-1 rounded-full">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#00C987] animate-pulse" />
+            <span>CLOUD CLUSTER · CMB-01 ONLINE</span>
           </div>
         </div>
 
-        {/* Center Presentation: XONIT SPACE Value Proposition */}
+        {/* Center Presentation: Headline & Operational Pillars */}
         <div className="relative z-10 my-10 lg:my-auto max-w-xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700/80 text-xs text-slate-300 font-medium mb-5">
-            <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Universal Multi-Tenant Operating System</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#11211B] border border-[#26322C] text-xs text-[#00C987] font-ibm mb-6">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#00C987]" />
+            <span>UNIVERSAL ENTERPRISE TERMINAL</span>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-[1.15]">
-            Powering Any Business in <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-400">Sri Lanka</span> at Scale.
+          <h1 className="font-manrope font-extrabold text-3xl sm:text-4xl lg:text-5xl text-[#F4F5F1] tracking-tight leading-[1.14]">
+            Unified counter operations. <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F4F5F1] via-[#F4F5F1] to-[#A5B1AA]">
+              From scan to daily close.
+            </span>
           </h1>
 
-          <p className="mt-4 text-sm sm:text-base text-slate-300/90 leading-relaxed font-normal">
-            Whether running high-volume fashion boutiques, bustling cafes with split-billing, luxury salons with appointment scheduling, or multi-branch wholesale depots — XONIT unifies checkout, inventory, and automated GAAP accounting.
+          <p className="mt-4 text-sm sm:text-base text-[#A5B1AA] leading-relaxed">
+            Sign in to access your role-based workstation. Whether managing multi-branch retail, dining floors with KOT routing, or bulk distribution, XONIT keeps every terminal in sync.
           </p>
 
-          {/* Key Feature Pillars */}
+          {/* 4 Capability Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mt-8">
-            <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-md hover:border-cyan-500/30 transition-colors">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+            <div className="p-3.5 rounded-xl bg-[#050706]/80 border border-[#26322C] hover:border-[#00C987]/40 transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-[#11211B] text-[#00C987] border border-[#26322C]">
                   <Zap className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-xs font-bold text-white">Sub-100ms POS Engine</h3>
-                  <p className="text-[11px] text-slate-400 mt-0.5">Split bills, table maps & thermal slips</p>
+                  <h3 className="font-manrope font-bold text-xs text-[#F4F5F1]">Sub-Second Checkout</h3>
+                  <p className="text-[11px] text-[#A5B1AA] mt-0.5">Barcode scanning & multi-tender pay</p>
                 </div>
               </div>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-md hover:border-indigo-500/30 transition-colors">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                  <Layers className="w-4 h-4" />
+            <div className="p-3.5 rounded-xl bg-[#050706]/80 border border-[#26322C] hover:border-[#42C0C8]/40 transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-[#11211B] text-[#42C0C8] border border-[#26322C]">
+                  <Warehouse className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-xs font-bold text-white">Strict Multi-Tenancy</h3>
-                  <p className="text-[11px] text-slate-400 mt-0.5">Isolated databases & compound keys</p>
+                  <h3 className="font-manrope font-bold text-xs text-[#F4F5F1]">Multi-Branch Inventory</h3>
+                  <p className="text-[11px] text-[#A5B1AA] mt-0.5">Zero-discrepancy stock transfers</p>
                 </div>
               </div>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-md hover:border-emerald-500/30 transition-colors">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  <Cpu className="w-4 h-4" />
+            <div className="p-3.5 rounded-xl bg-[#050706]/80 border border-[#26322C] hover:border-[#00C987]/40 transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-[#11211B] text-[#00C987] border border-[#26322C]">
+                  <Printer className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-xs font-bold text-white">Local Hardware Bridge</h3>
-                  <p className="text-[11px] text-slate-400 mt-0.5">80mm printer, scales & barcode scanner</p>
+                  <h3 className="font-manrope font-bold text-xs text-[#F4F5F1]">Hardware Print Bridge</h3>
+                  <p className="text-[11px] text-[#A5B1AA] mt-0.5">Zero-click silent 80mm ESC/POS</p>
                 </div>
               </div>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-md hover:border-purple-500/30 transition-colors">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-lg bg-purple-500/10 text-purple-400 border border-purple-500/20">
+            <div className="p-3.5 rounded-xl bg-[#050706]/80 border border-[#26322C] hover:border-[#42C0C8]/40 transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-[#11211B] text-[#42C0C8] border border-[#26322C]">
                   <Building2 className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-xs font-bold text-white">LankaQR & Local Fintech</h3>
-                  <p className="text-[11px] text-slate-400 mt-0.5">PayHere, Koko BNPL & instant LKR settlement</p>
+                  <h3 className="font-manrope font-bold text-xs text-[#F4F5F1]">LankaQR & Local Pay</h3>
+                  <p className="text-[11px] text-[#A5B1AA] mt-0.5">Koko BNPL, Card & LKR settlement</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Bottom Trust & Reliability Proof */}
-        <div className="relative z-10 pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+        {/* Bottom Trust Strip */}
+        <div className="relative z-10 pt-6 border-t border-[#26322C] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#A5B1AA]">
           <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1.5 text-slate-300">
-              <ShieldCheck className="w-4 h-4 text-cyan-400" />
-              <span>SOC2 Type II & Banking Grade SSL</span>
+            <span className="flex items-center gap-1.5 text-[#F4F5F1]">
+              <ShieldCheck className="w-4 h-4 text-[#00C987]" />
+              <span>Banking Grade SSL & Tenant Isolation</span>
             </span>
-            <span className="text-slate-600">•</span>
-            <span className="text-slate-400">Node-Print Client Ready</span>
+            <span>•</span>
+            <span>Node-Print Client Ready</span>
           </div>
-          <span className="font-mono text-slate-500">v2.4.0-ENTERPRISE</span>
+          <span className="font-ibm text-xs text-[#00C987]">v2.4.0-ENTERPRISE</span>
         </div>
       </div>
 
       {/* =========================================================================
-          RIGHT COLUMN: Cardless Full-Column Clean Login Form & Dev Seed Switcher
+          RIGHT COLUMN: Clean Sign In Form & 1-Click Multi-Tenant Accounts
           ========================================================================= */}
-      <div className="w-full lg:w-[48%] xl:w-[45%] flex flex-col justify-between p-8 sm:p-12 lg:p-16 bg-[#040814]/95 backdrop-blur-2xl overflow-y-auto">
+      <div className="w-full lg:w-[50%] xl:w-[48%] flex flex-col justify-between p-8 sm:p-12 lg:p-16 bg-[#050706] overflow-y-auto">
         {/* Top Action Bar */}
         <div className="flex items-center justify-between mb-8">
-          <span className="text-xs uppercase font-mono tracking-widest text-slate-500">
+          <span className="text-xs font-ibm uppercase tracking-widest text-[#A5B1AA]">
             Terminal Access Portal
           </span>
           <Link
             href="/"
-            className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-medium transition-colors"
+            className="text-xs text-[#A5B1AA] hover:text-[#00C987] flex items-center gap-1.5 font-medium transition-colors"
           >
-            <span>Back to SaaS Overview</span>
-            <ChevronRight className="w-3.5 h-3.5" />
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back to Website</span>
           </Link>
         </div>
 
-        {/* Cardless Form Container */}
+        {/* Form Container */}
         <div className="max-w-md w-full mx-auto my-auto py-4">
           <div className="mb-6">
-            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+            <h2 className="font-manrope font-extrabold text-2xl sm:text-3xl text-[#F4F5F1] tracking-tight">
               Sign In to Terminal
             </h2>
-            <p className="text-sm text-slate-400 mt-1.5 leading-relaxed">
-              Enter your workspace credentials or click any demo role below for 1-click access.
+            <p className="text-xs sm:text-sm text-[#A5B1AA] mt-1.5 leading-relaxed">
+              Enter your staff credentials or click any demo role below for 1-click test access.
             </p>
           </div>
 
@@ -326,38 +356,38 @@ export default function LoginPage() {
           <form action="#" method="POST" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {/* Optional Workspace / Tenant Identifier */}
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
-                Workspace / Tenant Slug <span className="text-slate-500 font-normal lowercase">(optional)</span>
+              <label className="block text-xs font-medium text-[#F4F5F1] mb-1.5">
+                Workspace / Tenant Slug <span className="text-[#A5B1AA] font-normal lowercase">(optional)</span>
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#A5B1AA]">
                   <Building2 className="w-4 h-4" />
                 </div>
                 <input
                   type="text"
                   placeholder="e.g. colombo-central or velvet-threads"
                   {...register("tenantSlug")}
-                  className="w-full h-11 pl-10 pr-4 bg-slate-900/60 border border-slate-800 rounded-xl text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all"
+                  className="w-full h-11 pl-10 pr-4 bg-[#0B100F] border border-[#26322C] rounded-xl text-sm text-[#F4F5F1] placeholder-[#A5B1AA]/40 focus:outline-none focus:border-[#00C987] focus:ring-1 focus:ring-[#00C987] transition-all"
                 />
               </div>
             </div>
 
             {/* Email Field */}
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
-                Staff Email / Username
+              <label className="block text-xs font-medium text-[#F4F5F1] mb-1.5">
+                Staff Email / Username *
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#A5B1AA]">
                   <Mail className="w-4 h-4" />
                 </div>
                 <input
                   type="email"
                   placeholder="staff@xonit.space"
                   {...register("email")}
-                  className={`w-full h-11 pl-10 pr-4 bg-slate-900/60 border ${
-                    errors.email ? "border-red-500" : "border-slate-800"
-                  } rounded-xl text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all`}
+                  className={`w-full h-11 pl-10 pr-4 bg-[#0B100F] border ${
+                    errors.email ? "border-red-500" : "border-[#26322C]"
+                  } rounded-xl text-sm text-[#F4F5F1] placeholder-[#A5B1AA]/40 focus:outline-none focus:border-[#00C987] focus:ring-1 focus:ring-[#00C987] transition-all`}
                 />
               </div>
               {errors.email && (
@@ -368,32 +398,32 @@ export default function LoginPage() {
             {/* Password Field */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
-                  Password
+                <label className="block text-xs font-medium text-[#F4F5F1]">
+                  Password *
                 </label>
                 <Link
                   href="/forgot-password"
-                  className="text-xs text-cyan-400 hover:text-cyan-300 font-medium transition-colors"
+                  className="text-xs text-[#00C987] hover:underline font-medium transition-colors"
                 >
                   Forgot password?
                 </Link>
               </div>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#A5B1AA]">
                   <Lock className="w-4 h-4" />
                 </div>
                 <input
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••••••"
                   {...register("password")}
-                  className={`w-full h-11 pl-10 pr-10 bg-slate-900/60 border ${
-                    errors.password ? "border-red-500" : "border-slate-800"
-                  } rounded-xl text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all`}
+                  className={`w-full h-11 pl-10 pr-10 bg-[#0B100F] border ${
+                    errors.password ? "border-red-500" : "border-[#26322C]"
+                  } rounded-xl text-sm text-[#F4F5F1] placeholder-[#A5B1AA]/40 focus:outline-none focus:border-[#00C987] focus:ring-1 focus:ring-[#00C987] transition-all`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-slate-300 transition-colors"
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#A5B1AA] hover:text-[#F4F5F1] transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -407,11 +437,11 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-11 bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-semibold rounded-xl text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-cyan-500/20 disabled:opacity-50 mt-3 group"
+              className="w-full h-11 bg-[#F4F5F1] hover:bg-white text-[#050706] font-manrope font-bold rounded-xl text-sm flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-[#00C987]/20 disabled:opacity-50 mt-3 group"
             >
               {loading ? (
                 <span className="flex items-center gap-2">
-                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span className="w-4 h-4 border-2 border-[#050706]/30 border-t-[#050706] rounded-full animate-spin" />
                   <span>Verifying Terminal Signature...</span>
                 </span>
               ) : (
@@ -424,20 +454,20 @@ export default function LoginPage() {
           </form>
 
           {/* =========================================================================
-              MULTI-TENANCY SEEDED CREDENTIALS: Click to Instant Auto-Fill
+              MULTI-TENANCY SEEDED CREDENTIALS: 1-Click Instant Auto-Fill
               ========================================================================= */}
-          <div className="mt-8 pt-6 border-t border-slate-800/80">
+          <div className="mt-8 pt-6 border-t border-[#26322C]">
             <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-300">
-                <Zap className="w-3.5 h-3.5 text-cyan-400" />
-                <span>Multi-Tenancy Seeded Credentials</span>
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#F4F5F1]">
+                <Zap className="w-3.5 h-3.5 text-[#00C987]" />
+                <span>Multi-Tenancy Demo Accounts</span>
               </div>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-900 text-cyan-400 border border-slate-800 font-bold">
+              <span className="text-[10px] font-ibm px-2 py-0.5 rounded bg-[#11211B] text-[#00C987] border border-[#26322C] font-bold">
                 1-CLICK AUTOFILL
               </span>
             </div>
 
-            <p className="text-[11px] text-slate-400 mb-3 leading-relaxed">
+            <p className="text-[11px] text-[#A5B1AA] mb-3 leading-relaxed">
               Test universal workflows across different industry archetypes:
             </p>
 
@@ -453,8 +483,8 @@ export default function LoginPage() {
                     onClick={() => handleSelectAccount(acc)}
                     className={`w-full text-left p-2.5 rounded-xl border transition-all duration-200 group relative ${
                       isSelected
-                        ? "bg-cyan-500/10 border-cyan-500/50 shadow-md shadow-cyan-500/10"
-                        : "bg-slate-900/40 border-slate-800/80 hover:border-slate-700 hover:bg-slate-900/80"
+                        ? "bg-[#11211B] border-[#00C987] shadow-md shadow-[#00C987]/10"
+                        : "bg-[#0B100F] border-[#26322C] hover:border-[#26322C]/90 hover:bg-[#11211B]/40"
                     }`}
                   >
                     <div className="flex items-center justify-between">
@@ -464,26 +494,26 @@ export default function LoginPage() {
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-white group-hover:text-cyan-300 transition-colors">
+                            <span className="text-xs font-bold text-[#F4F5F1] group-hover:text-[#00C987] transition-colors">
                               {acc.role}
                             </span>
-                            <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 border border-slate-700">
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#050706] text-[#A5B1AA] border border-[#26322C]">
                               {acc.businessType}
                             </span>
                           </div>
-                          <span className="text-[11px] font-mono text-slate-400 block mt-0.5">
+                          <span className="text-[11px] font-ibm text-[#A5B1AA] block mt-0.5">
                             {acc.email}
                           </span>
                         </div>
                       </div>
 
                       {isSelected ? (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-cyan-400 bg-cyan-500/20 px-2 py-0.5 rounded-full border border-cyan-500/40">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#00C987] bg-[#00C987]/15 px-2 py-0.5 rounded-full border border-[#00C987]/30">
                           <CheckCircle2 className="w-3 h-3" />
                           Filled
                         </span>
                       ) : (
-                        <span className="text-[11px] font-medium text-slate-500 group-hover:text-slate-300 transition-colors">
+                        <span className="text-[11px] font-medium text-[#A5B1AA] group-hover:text-[#F4F5F1] transition-colors">
                           Insert →
                         </span>
                       )}
@@ -496,12 +526,12 @@ export default function LoginPage() {
         </div>
 
         {/* Footer info */}
-        <div className="pt-6 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-500">
+        <div className="pt-6 border-t border-[#26322C] flex items-center justify-between text-xs text-[#A5B1AA]">
           <div className="flex items-center gap-1.5">
-            <Printer className="w-3.5 h-3.5 text-cyan-500" />
-            <span>ESC/POS Bridge: Ready (127.0.0.1:18181)</span>
+            <Printer className="w-3.5 h-3.5 text-[#00C987]" />
+            <span>ESC/POS Bridge: 127.0.0.1:18181</span>
           </div>
-          <Link href="/register" className="text-cyan-400 hover:text-cyan-300 font-medium">
+          <Link href="/register" className="text-[#00C987] hover:underline font-medium">
             Start 14-Day Free Trial →
           </Link>
         </div>
