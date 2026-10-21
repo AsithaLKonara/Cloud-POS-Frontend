@@ -42,9 +42,9 @@ export default function SuperAdminDashboard() {
   if (authLoading) {
     return (
       <div className="flex flex-col gap-6 p-6 max-w-[1400px] mx-auto animate-pulse">
-        <div className="h-12 bg-stone-100 rounded-xl w-1/3"></div>
+        <div className="h-12 bg-surface-elevated rounded-xl w-1/3"></div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map(i => <div key={i} className="h-32 bg-stone-100 rounded-2xl"></div>)}
+          {[1, 2, 3, 4].map(i => <div key={i} className="h-32 bg-surface-elevated rounded-2xl"></div>)}
         </div>
       </div>
     );
@@ -53,12 +53,12 @@ export default function SuperAdminDashboard() {
   const canAccess = isSuperAdmin() || isAdmin() || hasPermission("reports:view_dashboard") || hasPermission("reports:view_financial");
   if (!canAccess) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-8 bg-white border border-stone-200 rounded-2xl shadow-sm my-8 max-w-xl mx-auto">
-        <div className="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center text-stone-600 mb-4">
+      <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-8 bg-surface border border-border rounded-2xl shadow-sm my-8 max-w-xl mx-auto">
+        <div className="w-16 h-16 bg-background rounded-full flex items-center justify-center text-muted mb-4">
           <Shield size={32} />
         </div>
-        <h2 className="font-inter font-bold text-xl text-stone-900 mb-2">Dashboard Restricted</h2>
-        <p className="font-inter text-sm text-stone-500 leading-relaxed max-w-md">
+        <h2 className="font-inter font-bold text-xl text-foreground mb-2">Dashboard Restricted</h2>
+        <p className="font-inter text-sm text-muted leading-relaxed max-w-md">
           You do not have permission to view the executive central command. Contact system administration.
         </p>
       </div>

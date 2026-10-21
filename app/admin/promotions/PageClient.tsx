@@ -164,35 +164,35 @@ export default function PromotionsPage() {
     <div className="relative" ref={menuRef}>
       <button 
         onClick={() => setShowCampaignMenu(!showCampaignMenu)}
-        className="bg-stone-900 text-white hover:bg-stone-800 active:scale-95 px-5 py-2 rounded-lg font-inter text-sm font-semibold transition-all whitespace-nowrap shadow-md shadow-stone-900/20 flex items-center gap-2"
+        className="bg-primary text-white hover:bg-primary-hover active:scale-95 px-5 py-2 rounded-lg font-inter text-sm font-semibold transition-all whitespace-nowrap shadow-md flex items-center gap-2"
       >
         <Plus size={16} /> Create Campaign <ChevronDown size={14} className={`transition-transform ${showCampaignMenu ? "rotate-180" : ""}`} />
       </button>
 
       {showCampaignMenu && (
-        <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-stone-200 overflow-hidden z-[100] flex flex-col p-1 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="absolute right-0 top-full mt-2 w-56 bg-surface rounded-xl shadow-xl border border-border overflow-hidden z-[100] flex flex-col p-1 animate-in fade-in slide-in-from-top-2 duration-200">
           <button 
             onClick={() => { setBulkModalOpen(true); setShowCampaignMenu(false); }}
-            className="flex items-center gap-3 px-3 py-2.5 text-sm font-inter text-stone-700 hover:bg-stone-50 rounded-lg transition-colors text-left"
+            className="flex items-center gap-3 px-3 py-2.5 text-sm font-inter text-foreground hover:bg-surface-elevated rounded-lg transition-colors text-left"
           >
             <Send size={16} className="text-blue-500" /> Bulk SMS Message
           </button>
           <button 
             onClick={() => { setPushModalOpen(true); setShowCampaignMenu(false); }}
-            className="flex items-center gap-3 px-3 py-2.5 text-sm font-inter text-stone-700 hover:bg-stone-50 rounded-lg transition-colors text-left"
+            className="flex items-center gap-3 px-3 py-2.5 text-sm font-inter text-foreground hover:bg-surface-elevated rounded-lg transition-colors text-left"
           >
             <Bell size={16} className="text-amber-500" /> Push Notification
           </button>
-          <div className="h-px bg-stone-100 my-1 mx-2"></div>
+          <div className="h-px bg-border my-1 mx-2"></div>
           <button 
             onClick={() => { setEditingFlashSale(null); setFlashSaleModalOpen(true); setShowCampaignMenu(false); }}
-            className="flex items-center gap-3 px-3 py-2.5 text-sm font-inter text-stone-700 hover:bg-stone-50 rounded-lg transition-colors text-left"
+            className="flex items-center gap-3 px-3 py-2.5 text-sm font-inter text-foreground hover:bg-surface-elevated rounded-lg transition-colors text-left"
           >
             <Zap size={16} className="text-orange-500" /> Flash Sale
           </button>
           <button 
             onClick={() => { setEditingCoupon(null); setCouponModalOpen(true); setShowCampaignMenu(false); }}
-            className="flex items-center gap-3 px-3 py-2.5 text-sm font-inter text-stone-700 hover:bg-stone-50 rounded-lg transition-colors text-left"
+            className="flex items-center gap-3 px-3 py-2.5 text-sm font-inter text-foreground hover:bg-surface-elevated rounded-lg transition-colors text-left"
           >
             <Tag size={16} className="text-emerald-500" /> Discount Coupon
           </button>
@@ -209,16 +209,16 @@ export default function PromotionsPage() {
         action={pageActions}
       />
 
-      <div className="flex gap-4 border-b border-stone-200 mb-6">
+      <div className="flex gap-4 border-b border-border mb-6">
         <button 
           onClick={() => setActiveTab("coupons")}
-          className={`py-2 px-1 border-b-2 font-inter text-sm font-medium transition-colors ${activeTab === "coupons" ? "border-stone-900 text-stone-900" : "border-transparent text-stone-500 hover:text-stone-700"}`}
+          className={`py-2 px-1 border-b-2 font-inter text-sm font-medium transition-colors ${activeTab === "coupons" ? "border-primary text-foreground" : "border-transparent text-muted hover:text-foreground"}`}
         >
           Discount Coupons
         </button>
         <button 
           onClick={() => setActiveTab("flash-sales")}
-          className={`py-2 px-1 border-b-2 font-inter text-sm font-medium transition-colors ${activeTab === "flash-sales" ? "border-stone-900 text-stone-900" : "border-transparent text-stone-500 hover:text-stone-700"}`}
+          className={`py-2 px-1 border-b-2 font-inter text-sm font-medium transition-colors ${activeTab === "flash-sales" ? "border-primary text-foreground" : "border-transparent text-muted hover:text-foreground"}`}
         >
           Flash Sales
         </button>

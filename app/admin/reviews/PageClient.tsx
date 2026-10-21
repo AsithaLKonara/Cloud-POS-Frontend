@@ -155,28 +155,28 @@ export default function AdminReviewsPage() {
       {/* KPI Strip */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: "Pending Review", value: stats?.pending || 0, color: "text-orange-600" },
-          { label: "Approved", value: stats?.approved || 0, color: "text-emerald-600" },
-          { label: "Rejected / Spam", value: stats?.rejected || 0, color: "text-red-600" },
-          { label: "Average Rating", value: `${Number(stats?.averageRating || 0).toFixed(1)} / 5.0`, color: "text-amber-500" },
+          { label: "Pending Review", value: stats?.pending || 0, color: "text-amber-500" },
+          { label: "Approved", value: stats?.approved || 0, color: "text-emerald-500" },
+          { label: "Rejected / Spam", value: stats?.rejected || 0, color: "text-red-500" },
+          { label: "Average Rating", value: `${Number(stats?.averageRating || 0).toFixed(1)} / 5.0`, color: "text-amber-400" },
         ].map(({ label, value, color }) => (
-          <div key={label} className="bg-white border border-stone-200 rounded-xl p-5 shadow-sm flex flex-col gap-1">
-            <span className="font-inter text-xs font-semibold text-stone-500 uppercase tracking-wider">{label}</span>
+          <div key={label} className="bg-surface border border-border rounded-xl p-5 shadow-sm flex flex-col gap-1">
+            <span className="font-inter text-xs font-semibold text-muted uppercase tracking-wider">{label}</span>
             <span className={`font-inter text-3xl font-black ${color}`}>{value}</span>
           </div>
         ))}
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 border border-stone-200 rounded-xl shadow-sm">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-surface p-4 border border-border rounded-xl shadow-sm">
         <div className="relative w-full sm:w-80">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" size={16} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" size={16} />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by customer, product, or title..."
-            className="w-full h-10 pl-10 pr-4 bg-stone-50 border border-stone-200 rounded-lg outline-none focus:border-stone-900 focus:bg-white transition-colors text-sm font-inter"
+            className="w-full h-10 pl-10 pr-4 bg-background border border-border rounded-lg outline-none focus:border-primary text-foreground transition-colors text-sm font-inter"
           />
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -185,18 +185,18 @@ export default function AdminReviewsPage() {
               key={f}
               onClick={() => setFilter(f)}
               className={`px-4 py-2 font-inter text-sm font-medium rounded-lg transition-colors whitespace-nowrap capitalize ${
-                filter === f ? "bg-stone-900 text-white" : "bg-stone-50 text-stone-600 hover:bg-stone-100"
+                filter === f ? "bg-primary text-white" : "bg-background text-muted border border-border hover:bg-surface-elevated"
               }`}
             >
               {f === "ALL" ? "All Reviews" : f.charAt(0) + f.slice(1).toLowerCase()}
               {f === "PENDING" && pendingCount > 0 && (
-                <span className="ml-2 bg-orange-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                <span className="ml-2 bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
                   {pendingCount}
                 </span>
               )}
               {f === "SPAM" && spamCount > 0 && (
-                <span className="ml-2 bg-orange-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                  {pendingCount}
+                <span className="ml-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                  {spamCount}
                 </span>
               )}
             </button>
@@ -205,11 +205,11 @@ export default function AdminReviewsPage() {
       </div>
 
       {/* Reviews Table */}
-      <div className="bg-white border border-stone-200 rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[900px]">
             <thead>
-              <tr className="bg-stone-50 border-b border-stone-200">
+              <tr className="bg-surface-elevated border-b border-border">
                 <th className="py-4 px-6 w-12">
                   <input
                     type="checkbox"
@@ -382,23 +382,23 @@ export default function AdminReviewsPage() {
         )}
 
         {/* Pagination */}
-        <div className="flex items-center justify-between p-4 border-t border-stone-200 bg-stone-50/50">
-          <span className="font-inter text-sm text-stone-500">
-            Showing <span className="font-medium text-stone-900">{displayed.length > 0 ? (page - 1) * limit + 1 : 0}</span> to <span className="font-medium text-stone-900">{Math.min(page * limit, totalReviews)}</span> of{" "}
-            <span className="font-medium text-stone-900">{totalReviews}</span> reviews
+        <div className="flex items-center justify-between p-4 border-t border-border bg-surface">
+          <span className="font-inter text-sm text-muted">
+            Showing <span className="font-medium text-foreground">{displayed.length > 0 ? (page - 1) * limit + 1 : 0}</span> to <span className="font-medium text-foreground">{Math.min(page * limit, totalReviews)}</span> of{" "}
+            <span className="font-medium text-foreground">{totalReviews}</span> reviews
           </span>
           <div className="flex gap-2">
             <button 
               disabled={page === 1} 
               onClick={() => setPage(p => Math.max(1, p - 1))}
-              className="px-3 py-1.5 bg-white border border-stone-200 text-stone-700 font-inter text-sm rounded-md shadow-sm hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-3 py-1.5 bg-surface border border-border text-foreground font-inter text-sm rounded-md shadow-sm hover:bg-surface-elevated disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Previous
             </button>
             <button 
               disabled={page >= totalPages} 
               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-              className="px-3 py-1.5 bg-white border border-stone-200 text-stone-700 font-inter text-sm rounded-md shadow-sm hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-3 py-1.5 bg-surface border border-border text-foreground font-inter text-sm rounded-md shadow-sm hover:bg-surface-elevated disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Next
             </button>
@@ -408,9 +408,9 @@ export default function AdminReviewsPage() {
 
       {/* Floating Bulk Action Bar */}
       {selectedIds.length > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-stone-900 text-white px-6 py-4 rounded-full shadow-2xl flex items-center gap-6 animate-in slide-in-from-bottom-10 z-40">
-          <span className="font-inter font-medium text-sm">{selectedIds.length} selected</span>
-          <div className="w-px h-6 bg-stone-700"></div>
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-surface-elevated border border-border text-foreground px-6 py-4 rounded-full shadow-2xl flex items-center gap-6 animate-in slide-in-from-bottom-10 z-40">
+          <span className="font-inter font-medium text-sm text-foreground">{selectedIds.length} selected</span>
+          <div className="w-px h-6 bg-border"></div>
           <button
             onClick={bulkApprove}
             className="font-inter font-semibold text-sm bg-emerald-500 text-white px-4 py-2 rounded-full hover:bg-emerald-400 transition-colors flex items-center gap-2"

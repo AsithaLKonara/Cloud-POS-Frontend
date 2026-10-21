@@ -134,22 +134,22 @@ export default function ShippingDashboard() {
           </div>
         </div>
 
-        <div className="bg-white border border-blue-100 rounded-xl p-5 shadow-sm flex flex-col justify-between">
+        <div className="bg-surface border border-blue-500/20 rounded-xl p-5 shadow-sm flex flex-col justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider mb-2 text-blue-600">Dispatched</p>
-            <p className="text-4xl font-bold text-blue-900">{orders.filter((o:any) => o.status === 'DISPATCHED' || o.trackingNumber).length}</p>
+            <p className="text-xs font-semibold uppercase tracking-wider mb-2 text-blue-500">Dispatched</p>
+            <p className="text-4xl font-bold text-foreground">{orders.filter((o:any) => o.status === 'DISPATCHED' || o.trackingNumber).length}</p>
           </div>
-          <div className="flex gap-2 mt-4 text-[10px] font-semibold text-blue-600">
-            <span className="bg-blue-50 px-2 py-1 rounded">Picked Up: {orders.filter((o:any) => o.status === 'PICKED_UP').length}</span>
-            <span className="bg-blue-50 px-2 py-1 rounded">In Transit: {orders.filter((o:any) => o.status === 'IN_TRANSIT').length}</span>
+          <div className="flex gap-2 mt-4 text-[10px] font-semibold text-blue-500">
+            <span className="bg-blue-500/10 px-2 py-1 rounded">Picked Up: {orders.filter((o:any) => o.status === 'PICKED_UP').length}</span>
+            <span className="bg-blue-500/10 px-2 py-1 rounded">In Transit: {orders.filter((o:any) => o.status === 'IN_TRANSIT').length}</span>
           </div>
         </div>
 
-        <div className="bg-white border border-stone-200 rounded-xl p-5 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wider mb-2 text-stone-500">Total Shipments</p>
-          <p className="text-4xl font-bold text-stone-900">{orders.length}</p>
+        <div className="bg-surface border border-border rounded-xl p-5 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-wider mb-2 text-muted">Total Shipments</p>
+          <p className="text-4xl font-bold text-foreground">{orders.length}</p>
           <div className="flex gap-2 mt-4 text-[10px] font-semibold">
-            <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-2 py-1 rounded-lg flex items-center gap-1">
+            <span className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2 py-1 rounded-lg flex items-center gap-1">
               <Check size={12} />
               <span>{orders.filter((o:any) => o.status === 'DELIVERED').length} Delivered</span>
             </span>
@@ -314,27 +314,27 @@ export default function ShippingDashboard() {
       {/* Dispatch Weight Modal */}
       {dispatchModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-stone-200">
-              <h3 className="font-bold text-lg text-stone-900">Enter Actual Package Weight</h3>
-              <button onClick={() => setDispatchModalOpen(false)} className="text-stone-400 hover:text-stone-600">
+          <div className="w-full max-w-md bg-surface border border-border rounded-xl shadow-xl overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+              <h3 className="font-bold text-lg text-foreground">Enter Actual Package Weight</h3>
+              <button onClick={() => setDispatchModalOpen(false)} className="text-muted hover:text-foreground">
                 <X size={20} />
               </button>
             </div>
             <div className="p-6">
-              <p className="text-sm text-stone-500 mb-4">
+              <p className="text-sm text-muted mb-4">
                 Please enter the exact packed weight of this order (including the box). Fardar will use this to calculate your courier fee.
               </p>
               
               <div className="mb-6">
-                <label className="block text-sm font-medium text-stone-700 mb-2">Weight (KG)</label>
+                <label className="block text-sm font-medium text-foreground mb-2">Weight (KG)</label>
                 <input
                   type="number"
                   step="0.1"
                   min="0.1"
                   value={dispatchWeight}
                   onChange={(e) => setDispatchWeight(parseFloat(e.target.value))}
-                  className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:border-primary"
                 />
               </div>
 

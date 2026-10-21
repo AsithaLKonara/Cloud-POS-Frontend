@@ -81,6 +81,23 @@
     color: var(--foreground);
   }
 
+  /* Global Form Controls Theme Integration */
+  input, select, textarea {
+    background-color: var(--surface);
+    color: var(--foreground);
+    border-color: var(--border);
+  }
+
+  input::placeholder, textarea::placeholder {
+    color: var(--muted);
+    opacity: 0.8;
+  }
+
+  select option {
+    background-color: var(--surface);
+    color: var(--foreground);
+  }
+
   /* Adaptive Custom Scrollbar System for Light and Dark Modes */
   * {
     border-color: var(--border);

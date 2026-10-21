@@ -49,23 +49,23 @@ export default function TrackingSidePanel({ order, isOpen, onClose }: TrackingSi
 
       {/* Side Panel */}
       <div 
-        className={`fixed inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl z-[101] transform transition-transform duration-300 ease-in-out flex flex-col ${
+        className={`fixed inset-y-0 right-0 w-full max-w-md bg-surface border-l border-border shadow-2xl z-[101] transform transition-transform duration-300 ease-in-out flex flex-col ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        <div className="flex items-center justify-between p-6 border-b border-stone-200">
-          <h2 className="text-xl font-bold font-poppins text-stone-900">Tracking Details</h2>
-          <button onClick={onClose} className="p-2 text-stone-400 hover:text-stone-600 rounded-full hover:bg-stone-100 transition-colors">
+        <div className="flex items-center justify-between p-6 border-b border-border">
+          <h2 className="text-xl font-bold font-poppins text-foreground">Tracking Details</h2>
+          <button onClick={onClose} className="p-2 text-muted hover:text-foreground rounded-full hover:bg-surface-elevated transition-colors">
             <X size={20} />
           </button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-8">
           {/* Order Identity */}
-          <div className="bg-stone-50 p-4 rounded-xl border border-stone-100">
+          <div className="bg-background p-4 rounded-xl border border-border">
             <div className="flex justify-between items-start mb-2">
               <div>
-                <p className="text-xs text-stone-500 font-medium uppercase tracking-wider mb-1">Order Number</p>
+                <p className="text-xs text-muted font-medium uppercase tracking-wider mb-1">Order Number</p>
                 <p className="font-poppins font-semibold text-lg text-primary">{order.orderNumber}</p>
               </div>
               <div className="text-right">
@@ -80,19 +80,19 @@ export default function TrackingSidePanel({ order, isOpen, onClose }: TrackingSi
               </div>
             </div>
             {order.trackingNumber && (
-              <div className="mt-3 pt-3 border-t border-stone-200 flex justify-between items-center">
-                <span className="text-sm text-stone-600">Tracking #</span>
-                <span className="font-mono font-medium text-stone-900">{order.trackingNumber}</span>
+              <div className="mt-3 pt-3 border-t border-border flex justify-between items-center">
+                <span className="text-sm text-muted">Tracking #</span>
+                <span className="font-mono font-medium text-foreground">{order.trackingNumber}</span>
               </div>
             )}
           </div>
 
           {/* Timeline */}
           <div>
-            <h3 className="font-semibold text-stone-900 mb-6 font-poppins">Shipping Timeline</h3>
+            <h3 className="font-semibold text-foreground mb-6 font-poppins">Shipping Timeline</h3>
             <div className="relative pl-3">
               {/* Vertical line */}
-              <div className="absolute left-7 top-4 bottom-4 w-[2px] bg-stone-100"></div>
+              <div className="absolute left-7 top-4 bottom-4 w-[2px] bg-border"></div>
 
               <div className="space-y-6 relative">
                 {steps.map((step, index) => {
@@ -101,20 +101,20 @@ export default function TrackingSidePanel({ order, isOpen, onClose }: TrackingSi
                     <div key={step.label} className={`flex gap-4 ${status === 'upcoming' ? 'opacity-50' : ''}`}>
                       <div className={`relative z-10 flex items-center justify-center w-8 h-8 rounded-full border-2 
                         ${status === 'completed' ? 'bg-blue-500 border-blue-500 text-white' : 
-                          status === 'current' ? 'bg-white border-blue-500 text-blue-500' : 
-                          'bg-white border-stone-200 text-stone-400'}`}
+                          status === 'current' ? 'bg-surface border-blue-500 text-blue-500' : 
+                          'bg-surface border-border text-muted'}`}
                       >
                         {step.icon}
                       </div>
                       <div className="flex-1 pt-1">
-                        <p className={`text-sm font-semibold ${status === 'completed' || status === 'current' ? 'text-stone-900' : 'text-stone-500'}`}>
+                        <p className={`text-sm font-semibold ${status === 'completed' || status === 'current' ? 'text-foreground' : 'text-muted'}`}>
                           {step.label}
                         </p>
                         {status === 'current' && (
-                          <p className="text-xs text-stone-500 mt-1">Currently in this stage.</p>
+                          <p className="text-xs text-muted mt-1">Currently in this stage.</p>
                         )}
                         {status === 'completed' && (
-                          <p className="text-xs text-stone-400 mt-1">Completed successfully.</p>
+                          <p className="text-xs text-muted mt-1">Completed successfully.</p>
                         )}
                       </div>
                     </div>

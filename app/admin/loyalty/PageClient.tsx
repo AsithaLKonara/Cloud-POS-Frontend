@@ -63,15 +63,15 @@ export default function LoyaltyPage() {
         <StatCard label="Outstanding Liability" value={kpis.outstandingLiability} trend="Estimated cost" trendType="neutral" />
       </div>
 
-      <div className="bg-white border border-stone-200 rounded-xl shadow-sm overflow-hidden mt-2">
-        <div className="px-6 py-4 border-b border-stone-200 bg-stone-50 flex items-center justify-between">
-          <h3 className="font-bold text-stone-900 font-inter">Loyalty Members</h3>
+      <div className="bg-surface border border-border rounded-xl shadow-sm overflow-hidden mt-2">
+        <div className="px-6 py-4 border-b border-border bg-surface-elevated flex items-center justify-between">
+          <h3 className="font-bold text-foreground font-inter">Loyalty Members</h3>
           <input 
             type="text" 
             placeholder="Search by name or phone..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="border border-stone-200 rounded-md px-3 py-1.5 text-xs font-inter w-64" 
+            className="border border-border rounded-md px-3 py-1.5 text-xs font-inter w-64 bg-surface text-foreground outline-none focus:border-primary" 
           />
         </div>
 

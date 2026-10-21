@@ -3,9 +3,9 @@
   "version": "2.0.0",
   "description": "Universal Multi-Tenant POS, ERP & Storefront UI for XONIT POS",
   "scripts": {
-    "dev": "node api.js && next dev",
+    "dev": "next dev",
     "build": "next build",
-    "start": "node api.js && next start -H 0.0.0.0",
+    "start": "next start -H 0.0.0.0",
     "lint": "next lint"
   },
   "dependencies": {

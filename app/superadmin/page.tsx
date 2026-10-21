@@ -12,6 +12,7 @@ import {
   PlatformRevenueBreakdownResponse,
   TopOutletPerformanceItem,
 } from "@/services/superadmin.service";
+import { tenantService } from "@/services/tenant.service";
 import SuperAdminSidebar from "@/components/superadmin/SuperAdminSidebar";
 import SuperAdminHeader from "@/components/superadmin/SuperAdminHeader";
 import {
@@ -106,6 +107,23 @@ export default function SuperAdminDashboard() {
     description: "Production API cluster containers & ALB",
   });
   const [expenseLoading, setExpenseLoading] = useState(false);
+
+  // Tenant Settings Modal State
+  const [selectedTenantForEdit, setSelectedTenantForEdit] = useState<TenantRegistryItem | null>(null);
+  const [isTenantSettingsOpen, setIsTenantSettingsOpen] = useState(false);
+  const [tenantEditForm, setTenantEditForm] = useState({
+    name: "",
+    slug: "",
+    businessType: "RETAIL",
+    subscriptionTier: "STARTER",
+    status: "ACTIVE",
+    maxBranches: 1,
+    maxUsers: 5,
+    taxRate: 0,
+    currency: "LKR",
+    currencySymbol: "Rs.",
+  });
+  const [tenantEditLoading, setTenantEditLoading] = useState(false);
 
   // Tenant Filters
   const [statusFilter, setStatusFilter] = useState("ALL");
@@ -226,6 +244,50 @@ export default function SuperAdminDashboard() {
       await loadData();
     } catch (err: any) {
       alert(err.message || "Failed to extend trial");
+    }
+  };
+
+  const handleOpenTenantSettings = (tenant: TenantRegistryItem) => {
+    setSelectedTenantForEdit(tenant);
+    setTenantEditForm({
+      name: tenant.name,
+      slug: tenant.slug,
+      businessType: tenant.businessType || "RETAIL",
+      subscriptionTier: tenant.subscriptionTier || "STARTER",
+      status: tenant.status || "ACTIVE",
+      maxBranches: tenant.maxBranches || 1,
+      maxUsers: tenant.maxUsers || 5,
+      taxRate: (tenant as any).taxRate ?? 0,
+      currency: (tenant as any).currency || "LKR",
+      currencySymbol: (tenant as any).currencySymbol || "Rs.",
+    });
+    setIsTenantSettingsOpen(true);
+  };
+
+  const handleSaveTenantSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedTenantForEdit) return;
+    setTenantEditLoading(true);
+    try {
+      await tenantService.updateTenant(selectedTenantForEdit.id, {
+        name: tenantEditForm.name,
+        slug: tenantEditForm.slug,
+        businessType: tenantEditForm.businessType as any,
+        subscriptionTier: tenantEditForm.subscriptionTier as any,
+        status: tenantEditForm.status as any,
+        maxBranches: Number(tenantEditForm.maxBranches),
+        maxUsers: Number(tenantEditForm.maxUsers),
+        taxRate: Number(tenantEditForm.taxRate),
+        currency: tenantEditForm.currency,
+        currencySymbol: tenantEditForm.currencySymbol,
+      });
+      alert("Tenant settings saved successfully!");
+      setIsTenantSettingsOpen(false);
+      await loadData();
+    } catch (err: any) {
+      alert(err?.response?.data?.message || err?.message || "Failed to update tenant settings");
+    } finally {
+      setTenantEditLoading(false);
     }
   };
 
@@ -769,6 +831,14 @@ export default function SuperAdminDashboard() {
                               </td>
                               <td className="py-3.5 px-4 text-right">
                                 <div className="inline-flex items-center gap-1.5">
+                                  <button
+                                    onClick={() => handleOpenTenantSettings(t)}
+                                    className="px-2 py-1 rounded bg-[#1C2025] hover:bg-blue-950/40 text-blue-400 text-[11px] font-medium border border-[#2B3037] hover:border-blue-500/40 transition-colors flex items-center gap-1"
+                                    title="Edit Tenant Settings"
+                                  >
+                                    <Settings size={12} />
+                                    <span>Settings</span>
+                                  </button>
                                   {t.status === "ACTIVE" ? (
                                     <button
                                       onClick={() => handleUpdateTenantStatus(t.id, "SUSPENDED")}
@@ -1440,6 +1510,241 @@ export default function SuperAdminDashboard() {
                 <span>{priceUpdating ? "Saving..." : "Save Price"}</span>
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          MODAL: TENANT SETTINGS (SUPERADMIN)
+          ========================================================================= */}
+      {isTenantSettingsOpen && selectedTenantForEdit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-lg rounded-2xl bg-[#121417] border border-[#2B3037] p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-[#1E2227]">
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <Settings size={16} className="text-blue-400" />
+                  Tenant Settings: {selectedTenantForEdit.name}
+                </h3>
+                <p className="text-xs text-zinc-400 font-mono mt-0.5">
+                  ID: {selectedTenantForEdit.id}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsTenantSettingsOpen(false)}
+                className="text-zinc-400 hover:text-white p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveTenantSettings} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
+                    Business / Tenant Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={tenantEditForm.name}
+                    onChange={(e) =>
+                      setTenantEditForm({ ...tenantEditForm, name: e.target.value })
+                    }
+                    className="w-full h-9 px-3 rounded-lg bg-[#181A1D] border border-[#2B3037] text-xs text-white focus:outline-none focus:border-zinc-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
+                    Slug / Subdomain
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={tenantEditForm.slug}
+                    onChange={(e) =>
+                      setTenantEditForm({
+                        ...tenantEditForm,
+                        slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""),
+                      })
+                    }
+                    className="w-full h-9 px-3 rounded-lg bg-[#181A1D] border border-[#2B3037] text-xs text-white font-mono focus:outline-none focus:border-zinc-400"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
+                    Business Type
+                  </label>
+                  <select
+                    value={tenantEditForm.businessType}
+                    onChange={(e) =>
+                      setTenantEditForm({ ...tenantEditForm, businessType: e.target.value })
+                    }
+                    className="w-full h-9 px-2.5 rounded-lg bg-[#181A1D] border border-[#2B3037] text-xs text-white focus:outline-none focus:border-zinc-400"
+                  >
+                    <option value="RETAIL">RETAIL</option>
+                    <option value="RESTAURANT">RESTAURANT</option>
+                    <option value="SERVICE">SERVICE</option>
+                    <option value="HEALTHCARE">HEALTHCARE</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
+                    Subscription Tier
+                  </label>
+                  <select
+                    value={tenantEditForm.subscriptionTier}
+                    onChange={(e) =>
+                      setTenantEditForm({ ...tenantEditForm, subscriptionTier: e.target.value })
+                    }
+                    className="w-full h-9 px-2.5 rounded-lg bg-[#181A1D] border border-[#2B3037] text-xs text-white font-mono focus:outline-none focus:border-zinc-400"
+                  >
+                    <option value="STARTER">STARTER</option>
+                    <option value="GROWTH">GROWTH</option>
+                    <option value="PRO">PRO</option>
+                    <option value="ENTERPRISE">ENTERPRISE</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
+                    Account Status
+                  </label>
+                  <select
+                    value={tenantEditForm.status}
+                    onChange={(e) =>
+                      setTenantEditForm({ ...tenantEditForm, status: e.target.value })
+                    }
+                    className="w-full h-9 px-2.5 rounded-lg bg-[#181A1D] border border-[#2B3037] text-xs text-white font-mono focus:outline-none focus:border-zinc-400"
+                  >
+                    <option value="ACTIVE">ACTIVE</option>
+                    <option value="TRIAL">TRIAL</option>
+                    <option value="SUSPENDED">SUSPENDED</option>
+                    <option value="CANCELLED">CANCELLED</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-[#1E2227]">
+                <div>
+                  <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
+                    Max Allowed Branches
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={100}
+                    value={tenantEditForm.maxBranches}
+                    onChange={(e) =>
+                      setTenantEditForm({
+                        ...tenantEditForm,
+                        maxBranches: parseInt(e.target.value, 10) || 1,
+                      })
+                    }
+                    className="w-full h-9 px-3 rounded-lg bg-[#181A1D] border border-[#2B3037] text-xs text-white font-mono focus:outline-none focus:border-zinc-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
+                    Max Allowed Users
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={500}
+                    value={tenantEditForm.maxUsers}
+                    onChange={(e) =>
+                      setTenantEditForm({
+                        ...tenantEditForm,
+                        maxUsers: parseInt(e.target.value, 10) || 1,
+                      })
+                    }
+                    className="w-full h-9 px-3 rounded-lg bg-[#181A1D] border border-[#2B3037] text-xs text-white font-mono focus:outline-none focus:border-zinc-400"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
+                    Tax Rate (%)
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    step="0.01"
+                    value={tenantEditForm.taxRate}
+                    onChange={(e) =>
+                      setTenantEditForm({
+                        ...tenantEditForm,
+                        taxRate: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                    className="w-full h-9 px-3 rounded-lg bg-[#181A1D] border border-[#2B3037] text-xs text-white font-mono focus:outline-none focus:border-zinc-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
+                    Currency Code
+                  </label>
+                  <input
+                    type="text"
+                    value={tenantEditForm.currency}
+                    onChange={(e) =>
+                      setTenantEditForm({
+                        ...tenantEditForm,
+                        currency: e.target.value.toUpperCase(),
+                      })
+                    }
+                    className="w-full h-9 px-3 rounded-lg bg-[#181A1D] border border-[#2B3037] text-xs text-white font-mono focus:outline-none focus:border-zinc-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
+                    Currency Symbol
+                  </label>
+                  <input
+                    type="text"
+                    value={tenantEditForm.currencySymbol}
+                    onChange={(e) =>
+                      setTenantEditForm({
+                        ...tenantEditForm,
+                        currencySymbol: e.target.value,
+                      })
+                    }
+                    className="w-full h-9 px-3 rounded-lg bg-[#181A1D] border border-[#2B3037] text-xs text-white font-mono focus:outline-none focus:border-zinc-400"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-[#1E2227] flex items-center justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setIsTenantSettingsOpen(false)}
+                  className="px-3.5 py-2 rounded-lg bg-[#181A1D] text-zinc-300 text-xs font-medium hover:bg-[#22262B] transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={tenantEditLoading}
+                  className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs transition-all flex items-center gap-1.5 disabled:opacity-50"
+                >
+                  {tenantEditLoading && <RefreshCw size={12} className="animate-spin" />}
+                  <span>{tenantEditLoading ? "Saving..." : "Save Settings"}</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

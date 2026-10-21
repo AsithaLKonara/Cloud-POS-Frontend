@@ -52,7 +52,7 @@ export default function PaymentReportPage() {
           <select 
             value={dateRange} 
             onChange={(e) => setDateRange(e.target.value)}
-            className="h-10 px-4 border border-stone-200 rounded-lg bg-white text-sm font-inter text-stone-700 outline-none focus:border-primary"
+            className="h-10 px-4 border border-border rounded-lg bg-surface text-sm font-inter text-foreground outline-none focus:border-primary"
           >
             <option value="7">Last 7 Days</option>
             <option value="30">Last 30 Days</option>
@@ -66,34 +66,34 @@ export default function PaymentReportPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white border border-stone-200 rounded-xl p-6">
-        <h3 className="text-lg font-semibold text-primary font-poppins mb-6">Revenue by Payment Method</h3>
+        <div className="bg-surface border border-border rounded-xl p-6">
+        <h3 className="text-lg font-semibold text-foreground font-poppins mb-6">Revenue by Payment Method</h3>
         {data && data.length > 0 ? (
           <PaymentsChart data={data} />
         ) : (
-          <div className="h-[300px] w-full flex items-center justify-center bg-stone-50 rounded-lg border border-dashed border-stone-200">
-            <p className="text-stone-500 font-inter font-medium">0 Data Available</p>
+          <div className="h-[300px] w-full flex items-center justify-center bg-background rounded-lg border border-dashed border-border">
+            <p className="text-muted font-inter font-medium">0 Data Available</p>
           </div>
         )}
       </div>
 
-        <div className="bg-white border border-stone-200 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-primary font-poppins mb-6">Gateway Statistics</h3>
+        <div className="bg-surface border border-border rounded-xl p-6">
+          <h3 className="text-lg font-semibold text-foreground font-poppins mb-6">Gateway Statistics</h3>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-stone-200">
-                  <th className="py-3 font-medium text-stone-500 font-inter text-sm">Gateway</th>
-                  <th className="py-3 font-medium text-stone-500 font-inter text-sm text-right">Transactions</th>
-                  <th className="py-3 font-medium text-stone-500 font-inter text-sm text-right">Revenue</th>
+                <tr className="border-b border-border">
+                  <th className="py-3 font-medium text-muted font-inter text-sm">Gateway</th>
+                  <th className="py-3 font-medium text-muted font-inter text-sm text-right">Transactions</th>
+                  <th className="py-3 font-medium text-muted font-inter text-sm text-right">Revenue</th>
                 </tr>
               </thead>
               <tbody>
                 {data.map((row, idx) => (
-                  <tr key={idx} className="border-b border-stone-100 last:border-0">
-                    <td className="py-4 font-medium text-stone-900 font-poppins text-sm">{row.method}</td>
-                    <td className="py-4 text-stone-600 font-inter text-sm text-right">{row.count}</td>
-                    <td className="py-4 text-stone-900 font-poppins font-semibold text-sm text-right">Rs. {row.revenue.toLocaleString()}</td>
+                  <tr key={idx} className="border-b border-border/50 last:border-0">
+                    <td className="py-4 font-medium text-foreground font-poppins text-sm">{row.method}</td>
+                    <td className="py-4 text-muted font-inter text-sm text-right">{row.count}</td>
+                    <td className="py-4 text-foreground font-poppins font-semibold text-sm text-right">Rs. {row.revenue.toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>

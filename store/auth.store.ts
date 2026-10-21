@@ -25,10 +25,22 @@ interface AuthState {
 
 const USER_KEY = "laural_user";
 
+const getInitialUser = (): UserProfile | null => {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(USER_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
+const initialCachedUser = getInitialUser();
+
 export const useAuthStore = create<AuthState>((set, get) => ({
-  user: null,
-  isAuthenticated: false,
-  isLoading: true,
+  user: initialCachedUser,
+  isAuthenticated: !!initialCachedUser,
+  isLoading: !initialCachedUser,
 
   setAuth: (user: UserProfile) => {
     if (typeof window !== "undefined") {

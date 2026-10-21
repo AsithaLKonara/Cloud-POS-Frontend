@@ -38,20 +38,20 @@ export default function CategoriesPage() {
   };
 
   const columns = [
-    { header: "ID", accessor: (row: any) => row.id.substring(0, 8), className: "font-mono text-stone-500 text-xs" },
+    { header: "ID", accessor: (row: any) => row.id.substring(0, 8), className: "font-mono text-muted text-xs" },
     { 
       header: "Category Name", 
       accessor: (row: any) => (
-        <button onClick={() => handleEdit(row)} className="font-semibold text-stone-900 hover:text-accent transition-colors text-left">
+        <button onClick={() => handleEdit(row)} className="font-semibold text-foreground hover:text-primary transition-colors text-left">
           {row.name}
         </button>
       )
     },
-    { header: "Slug", accessor: "slug" as const, className: "font-mono text-xs text-stone-500" },
+    { header: "Slug", accessor: "slug" as const, className: "font-mono text-xs text-muted" },
     { 
       header: "Products", 
       accessor: (row: any) => row._count?.products || 0,
-      className: "font-bold text-stone-800" 
+      className: "font-bold text-foreground font-mono" 
     },
     {
       header: "Status",
@@ -101,9 +101,9 @@ export default function CategoriesPage() {
           { label: "Draft", value: "0" },
           { label: "Total Products Categorized", value: categories.reduce((sum: number, c: any) => sum + (c._count?.products || 0), 0).toString() },
         ].map((s) => (
-          <div key={s.label} className="bg-white border border-stone-200 rounded-xl p-5 shadow-sm">
-            <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider font-inter">{s.label}</p>
-            <p className="text-3xl font-bold text-stone-900 mt-1 font-inter">{s.value}</p>
+          <div key={s.label} className="bg-surface border border-border rounded-xl p-5 shadow-sm">
+            <p className="text-xs font-semibold text-muted uppercase tracking-wider font-inter">{s.label}</p>
+            <p className="text-3xl font-bold text-foreground mt-1 font-inter font-mono">{s.value}</p>
           </div>
         ))}
       </div>
@@ -120,7 +120,7 @@ export default function CategoriesPage() {
         filters={filters} 
       />
 
-      <div className="bg-white border border-stone-200 rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
         <DataTable
           data={categories}
           columns={columns}

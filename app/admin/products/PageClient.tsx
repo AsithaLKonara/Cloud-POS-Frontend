@@ -387,13 +387,13 @@ function ProductVariantsBarcodeModal({
 
   return (
     <div className="fixed inset-0 z-[250] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl w-full max-w-3xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200 max-h-[90vh]">
+      <div className="bg-surface border border-border rounded-2xl w-full max-w-3xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200 max-h-[90vh]">
 
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-stone-200 bg-stone-50 shrink-0">
+        <div className="flex items-center justify-between p-5 border-b border-border bg-background shrink-0">
           <div>
-            <h2 className="font-inter font-bold text-lg text-stone-900">Variant Barcodes</h2>
-            <p className="text-sm text-stone-500 font-inter mt-0.5">
+            <h2 className="font-inter font-bold text-lg text-foreground">Variant Barcodes</h2>
+            <p className="text-sm text-muted font-inter mt-0.5">
               {productName} &mdash; {variantsWithBarcodes.length} variant{variantsWithBarcodes.length !== 1 ? 's' : ''} with barcodes
             </p>
           </div>
@@ -401,20 +401,20 @@ function ProductVariantsBarcodeModal({
             <button
               onClick={() => handleBulkPrint()}
               disabled={variantsWithBarcodes.length === 0}
-              className="flex items-center gap-2 px-4 py-2 bg-stone-900 text-white font-inter font-medium text-sm rounded-lg hover:bg-stone-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-white font-inter font-medium text-sm rounded-lg hover:bg-primary-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
             >
               <Printer size={15} />
               Print All ({variantsWithBarcodes.length})
             </button>
-            <button onClick={onClose} className="p-2 text-stone-400 hover:text-stone-900 hover:bg-stone-100 rounded-lg transition-colors">
+            <button onClick={onClose} className="p-2 text-muted hover:text-foreground hover:bg-surface-elevated rounded-lg transition-colors">
               <X size={20} />
             </button>
           </div>
         </div>
 
         {/* Label Size Selector */}
-        <div className="px-5 py-3 border-b border-stone-100 bg-stone-50 shrink-0">
-          <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider mb-2">Label / Roll Size</p>
+        <div className="px-5 py-3 border-b border-border bg-background shrink-0">
+          <p className="text-[10px] font-semibold text-muted uppercase tracking-wider mb-2">Label / Roll Size</p>
           <div className="flex flex-wrap gap-2">
             {LABEL_SIZES.map(s => (
               <button
@@ -422,12 +422,12 @@ function ProductVariantsBarcodeModal({
                 onClick={() => setLabelSizeId(s.id)}
                 className={`flex flex-col items-start px-3 py-1.5 rounded-lg border text-left transition-all text-xs font-inter ${
                   labelSizeId === s.id
-                    ? 'bg-stone-900 border-stone-900 text-white'
-                    : 'bg-white border-stone-200 text-stone-700 hover:border-stone-400'
+                    ? 'bg-primary border-primary text-white shadow-sm'
+                    : 'bg-surface border-border text-foreground hover:bg-surface-elevated'
                 }`}
               >
                 <span className="font-semibold leading-tight">{s.label}</span>
-                <span className={`text-[9px] leading-tight ${labelSizeId === s.id ? 'text-stone-300' : 'text-stone-400'}`}>{s.desc}</span>
+                <span className={`text-[9px] leading-tight ${labelSizeId === s.id ? 'text-white/80' : 'text-muted'}`}>{s.desc}</span>
               </button>
             ))}
           </div>
@@ -436,25 +436,25 @@ function ProductVariantsBarcodeModal({
         {/* Body */}
         <div className="flex flex-1 overflow-hidden">
           {/* Variant List */}
-          <div className="w-56 border-r border-stone-200 overflow-y-auto shrink-0 bg-stone-50">
-            <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider px-4 pt-4 pb-2">
+          <div className="w-56 border-r border-border overflow-y-auto shrink-0 bg-background">
+            <p className="text-[10px] font-semibold text-muted uppercase tracking-wider px-4 pt-4 pb-2">
               Select Variant
             </p>
             {variants.length === 0 ? (
-              <p className="text-sm text-stone-400 font-inter px-4 py-6 text-center">No variants found</p>
+              <p className="text-sm text-muted font-inter px-4 py-6 text-center">No variants found</p>
             ) : (
               variants.map((v: any, i: number) => (
                 <button
                   key={v.id || i}
                   onClick={() => setSelectedVariantIdx(i)}
-                  className={`w-full text-left px-4 py-3 border-b border-stone-100 transition-colors text-sm font-inter ${
+                  className={`w-full text-left px-4 py-3 border-b border-border transition-colors text-sm font-inter ${
                     selectedVariantIdx === i
-                      ? 'bg-stone-900 text-white'
-                      : 'hover:bg-stone-100 text-stone-700'
+                      ? 'bg-primary text-white'
+                      : 'hover:bg-surface-elevated text-foreground'
                   }`}
                 >
                   <p className="font-semibold text-xs mb-0.5">{v.size} / {v.color}</p>
-                  <p className={`text-[10px] font-mono truncate ${selectedVariantIdx === i ? 'text-stone-300' : 'text-stone-400'}`}>
+                  <p className={`text-[10px] font-mono truncate ${selectedVariantIdx === i ? 'text-white/80' : 'text-muted'}`}>
                     {v.barcode ? v.barcode : 'No barcode'}
                   </p>
                 </button>
@@ -463,29 +463,29 @@ function ProductVariantsBarcodeModal({
           </div>
 
           {/* Preview Panel */}
-          <div className="flex-1 flex flex-col items-center justify-center p-8 bg-stone-100 overflow-y-auto">
+          <div className="flex-1 flex flex-col items-center justify-center p-8 bg-surface/40 overflow-y-auto">
             {selectedVariant ? (
               <>
                 {selectedVariant.barcode ? (
                   <div className="flex flex-col items-center gap-5 w-full">
                     {/* Live preview label */}
-                    <div className="flex items-center gap-2 text-xs text-stone-500 font-inter">
+                    <div className="flex items-center gap-2 text-xs text-muted font-inter">
                       <span>Previewing as:</span>
-                      <span className="font-semibold text-stone-800">{activeSize.label}</span>
+                      <span className="font-semibold text-foreground">{activeSize.label}</span>
                     </div>
-                    <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6 flex flex-col items-center w-full max-w-xs">
+                    <div className="bg-white rounded-xl shadow-md border border-border p-6 flex flex-col items-center w-full max-w-xs">
                       <div ref={singleRef} className="react-to-print-content" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'white', padding: '8px', width: '100%', fontFamily: 'sans-serif' }}>
                         <p style={{ fontWeight: 700, fontSize: '11px', textAlign: 'center', margin: '0 0 3px 0', color: '#1c1917' }}>{productName}</p>
                         <p style={{ fontSize: '10px', textAlign: 'center', margin: '0 0 6px 0', color: '#78716c' }}>{selectedVariant.size} / {selectedVariant.color}</p>
                         <BarcodeLib value={getDisplayCode(selectedVariant.barcode)} format="CODE128" width={activeSize.bW} height={activeSize.bH} displayValue fontSize={10} margin={3} />
                       </div>
                     </div>
-                    <button onClick={() => handleSinglePrint()} className="flex items-center gap-2 px-5 py-2.5 bg-stone-900 text-white font-inter font-semibold text-sm rounded-lg hover:bg-stone-800 transition-colors">
+                    <button onClick={() => handleSinglePrint()} className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-inter font-semibold text-sm rounded-lg hover:bg-primary-hover transition-colors shadow-sm">
                       <Printer size={15} /> Print This Barcode
                     </button>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center gap-3 text-stone-400">
+                  <div className="flex flex-col items-center gap-3 text-muted">
                     <Barcode size={40} className="opacity-20" />
                     <p className="font-inter text-sm">No barcode on this variant</p>
                     <p className="font-inter text-xs">Edit the product to auto-generate barcodes</p>
@@ -493,7 +493,7 @@ function ProductVariantsBarcodeModal({
                 )}
               </>
             ) : (
-              <div className="flex flex-col items-center gap-3 text-stone-400">
+              <div className="flex flex-col items-center gap-3 text-muted">
                 <Barcode size={40} className="opacity-20" />
                 <p className="font-inter text-sm font-medium">Select a variant</p>
                 <p className="font-inter text-xs">Click a variant on the left to preview its barcode</p>

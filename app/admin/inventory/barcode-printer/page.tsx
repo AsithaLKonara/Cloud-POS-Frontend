@@ -107,7 +107,7 @@ export default function BarcodePrinterClient() {
         <div className="flex gap-6 h-[calc(100vh-200px)]">
           {/* Left: Search & Select */}
           <div className="flex-1 bg-surface border border-border rounded-2xl flex flex-col overflow-hidden shadow-sm">
-            <div className="p-4 border-b border-border bg-stone-50">
+            <div className="p-4 border-b border-border bg-surface-elevated">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" size={20} />
                 <input 
@@ -115,7 +115,7 @@ export default function BarcodePrinterClient() {
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
                   placeholder="Search products..." 
-                  className="w-full pl-10 pr-4 py-3 bg-white border border-border rounded-xl font-inter focus:ring-2 focus:ring-primary outline-none"
+                  className="w-full pl-10 pr-4 py-3 bg-background border border-border text-foreground rounded-xl font-inter focus:ring-2 focus:ring-primary outline-none"
                 />
               </div>
             </div>
@@ -123,17 +123,17 @@ export default function BarcodePrinterClient() {
               {isLoading && <div className="p-4 text-center text-muted font-inter">Searching...</div>}
               {products.map((product: any) => (
                 <div key={product.id} className="mb-4">
-                  <h3 className="font-bold text-sm text-foreground px-3 py-2 bg-stone-100 rounded-lg">{product.name}</h3>
+                  <h3 className="font-bold text-sm text-foreground px-3 py-2 bg-surface-elevated rounded-lg">{product.name}</h3>
                   <div className="pl-4 pr-2 mt-2 flex flex-col gap-2">
                     {product.variants.map((v: any) => (
-                      <div key={v.id} className="flex justify-between items-center p-3 border border-border rounded-xl bg-white hover:border-primary transition-colors">
+                      <div key={v.id} className="flex justify-between items-center p-3 border border-border rounded-xl bg-surface hover:border-primary transition-colors">
                         <div className="flex flex-col">
                           <span className="font-bold text-sm text-foreground">{v.sku}</span>
                           <span className="text-xs text-muted">{v.color} - {v.size} - Rs. {v.price}</span>
                         </div>
                         <button 
                           onClick={() => addToPrintList(v, product)}
-                          className="w-8 h-8 flex items-center justify-center bg-stone-100 text-stone-700 hover:bg-primary hover:text-white rounded-lg transition-colors"
+                          className="w-8 h-8 flex items-center justify-center bg-surface-elevated text-foreground hover:bg-primary hover:text-white rounded-lg transition-colors"
                         >
                           <Plus size={16} />
                         </button>

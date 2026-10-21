@@ -297,7 +297,7 @@ export default function AccessControlPage() {
               <select
                 value={roleFilter}
                 onChange={(e) => setRoleFilter(e.target.value)}
-                className="bg-stone-50 border border-stone-200 rounded-lg py-2 px-3 text-sm font-inter text-stone-700 outline-none focus:ring-1 focus:ring-stone-400"
+                className="bg-surface border border-border rounded-lg py-2 px-3 text-sm font-inter text-foreground outline-none focus:border-primary"
               >
                 <option value="All">All Roles</option>
                 {roles.map((r) => (
@@ -309,7 +309,7 @@ export default function AccessControlPage() {
               <select
                 value={branchFilter}
                 onChange={(e) => setBranchFilter(e.target.value)}
-                className="bg-stone-50 border border-stone-200 rounded-lg py-2 px-3 text-sm font-inter text-stone-700 outline-none focus:ring-1 focus:ring-stone-400"
+                className="bg-surface border border-border rounded-lg py-2 px-3 text-sm font-inter text-foreground outline-none focus:border-primary"
               >
                 <option value="All">All Branches</option>
                 {branches.map((b: any) => (
@@ -324,15 +324,15 @@ export default function AccessControlPage() {
       />
 
       {error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">
+        <div className="mb-4 p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl text-sm">
           {error}
         </div>
       )}
 
-      <div className="bg-white border border-stone-200 rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
         {loading ? (
-          <div className="py-20 flex flex-col items-center justify-center gap-3 text-stone-400">
-            <Loader2 className="w-8 h-8 animate-spin text-stone-900" />
+          <div className="py-20 flex flex-col items-center justify-center gap-3 text-muted">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
             <p className="font-inter text-sm font-medium">Loading access control matrix...</p>
           </div>
         ) : activeTab === "roles" ? (

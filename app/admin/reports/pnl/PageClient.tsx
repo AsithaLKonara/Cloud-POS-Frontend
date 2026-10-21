@@ -88,9 +88,9 @@ export default function PnLPageClient() {
   return (
     <div className="flex flex-col p-4 md:p-8 max-w-[1400px] mx-auto w-full gap-6">
       {/* Top Header & Navigation */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-border">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-border">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20 tracking-wider uppercase">
               Executive Analytics
             </span>
@@ -99,20 +99,20 @@ export default function PnLPageClient() {
           <h1 className="text-2xl md:text-3xl font-extrabold text-foreground tracking-tight font-poppins">
             Profit & Loss (P&L) Statement
           </h1>
-          <p className="text-sm text-muted font-inter">
+          <p className="text-xs md:text-sm text-muted font-inter mt-0.5">
             Authoritative Gross Margin, COGS, Operational Overhead, and Net Retail Profit.
           </p>
         </div>
 
-        {/* Global Filter Bar */}
-        <div className="flex flex-wrap items-center gap-2.5">
+        {/* Header Actions / Global Filter Bar — Justified */}
+        <div className="flex flex-wrap items-center justify-start lg:justify-end gap-2.5 shrink-0">
           {/* Branch Selector */}
-          <div className="flex items-center bg-surface border border-border rounded-xl px-3 py-1.5 shadow-sm">
-            <Building2 size={16} className="text-muted mr-2 shrink-0" />
+          <div className="h-10 flex items-center bg-surface border border-border rounded-xl px-3 shadow-sm hover:border-border/80 transition-colors">
+            <Building2 size={15} className="text-muted mr-2 shrink-0" />
             <select
               value={selectedBranch}
               onChange={(e) => setSelectedBranch(e.target.value)}
-              className="bg-transparent text-sm font-inter text-foreground outline-none cursor-pointer pr-2"
+              className="bg-transparent text-xs font-inter text-foreground outline-none cursor-pointer pr-1"
             >
               <option value="" className="bg-surface text-foreground">All Branches Network</option>
               {branches.map((b: any) => (
@@ -123,8 +123,8 @@ export default function PnLPageClient() {
             </select>
           </div>
 
-          {/* Date Preset Buttons */}
-          <div className="flex bg-surface-hover p-1 rounded-xl border border-border text-xs font-inter font-semibold">
+          {/* Timeline Selector Buttons */}
+          <div className="h-10 flex items-center bg-surface p-1 rounded-xl border border-border shadow-sm gap-1 text-xs font-inter">
             {(
               [
                 { id: "TODAY", label: "Today" },
@@ -141,10 +141,10 @@ export default function PnLPageClient() {
                   setCustomStartDate("");
                   setCustomEndDate("");
                 }}
-                className={`px-3 py-1.5 rounded-lg transition-all ${
+                className={`h-8 px-2.5 sm:px-3 rounded-lg font-medium transition-all ${
                   datePreset === p.id && !customStartDate
-                    ? "bg-primary text-white shadow-sm font-bold"
-                    : "text-muted hover:text-foreground"
+                    ? "bg-primary text-white shadow-xs font-bold"
+                    : "text-muted hover:text-foreground hover:bg-surface-hover"
                 }`}
               >
                 {p.label}
@@ -152,13 +152,15 @@ export default function PnLPageClient() {
             ))}
           </div>
 
+          {/* Refresh Calculation Button */}
           <button
             onClick={() => refetch()}
             disabled={isFetching}
-            className="p-2 bg-surface border border-border rounded-xl text-muted hover:text-foreground hover:bg-surface-hover transition-all shadow-sm disabled:opacity-50"
+            className="h-10 w-10 flex items-center justify-center bg-surface border border-border rounded-xl text-muted hover:text-foreground hover:bg-surface-hover transition-all shadow-sm active:scale-95 disabled:opacity-50 shrink-0"
             title="Refresh P&L calculation"
+            aria-label="Refresh P&L calculation"
           >
-            <RefreshCw size={16} className={isFetching ? "animate-spin text-amber-500" : ""} />
+            <RefreshCw size={15} className={isFetching ? "animate-spin text-amber-500" : ""} />
           </button>
         </div>
       </div>
@@ -242,7 +244,7 @@ export default function PnLPageClient() {
                 }`}>
                   {formatRs(summary.netProfit)}
                 </span>
-                <p className="text-xs text-stone-400 mt-1 font-inter">
+                <p className="text-xs text-muted mt-1 font-inter">
                   After Expenses ({formatRs(summary.operatingExpenses.total)}) & Wastage
                 </p>
               </div>
@@ -252,11 +254,11 @@ export default function PnLPageClient() {
           {/* Section: Category Revenue & COGS Split (Oils vs Non-Oil) */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Oil vs Non-Oil Breakdown */}
-            <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm flex flex-col justify-between">
+            <div className="bg-surface rounded-2xl border border-border p-6 shadow-sm flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-bold text-base font-poppins text-stone-900 flex items-center gap-2">
-                    <Droplets size={18} className="text-amber-600" />
+                  <h3 className="font-bold text-base font-poppins text-foreground flex items-center gap-2">
+                    <Droplets size={18} className="text-amber-600 dark:text-amber-400" />
                     Oils vs Non-Oil Revenue Split
                   </h3>
                 </div>
@@ -273,7 +275,7 @@ export default function PnLPageClient() {
                     </div>
                     <div className="w-full bg-border rounded-full h-2.5 overflow-hidden">
                       <div
-                        className="bg-amber-600 h-2.5 rounded-full"
+                        className="bg-amber-600 dark:bg-amber-500 h-2.5 rounded-full"
                         style={{
                           width: `${
                             summary.netRevenue > 0
@@ -297,9 +299,9 @@ export default function PnLPageClient() {
                       </span>
                       <span className="text-foreground font-mono">{formatRs(summary.cogs.nonOilRevenue)}</span>
                     </div>
-                    <div className="w-full bg-stone-100 rounded-full h-2.5 overflow-hidden">
+                    <div className="w-full bg-border rounded-full h-2.5 overflow-hidden">
                       <div
-                        className="bg-blue-600 h-2.5 rounded-full"
+                        className="bg-blue-600 dark:bg-blue-500 h-2.5 rounded-full"
                         style={{
                           width: `${
                             summary.netRevenue > 0
@@ -309,7 +311,7 @@ export default function PnLPageClient() {
                         }}
                       />
                     </div>
-                    <span className="text-[11px] text-stone-400 font-mono mt-1 block">
+                    <span className="text-[11px] text-muted font-mono mt-1 block">
                       COGS: {formatRs(summary.cogs.nonOilCogs)} (Gross: {formatRs(summary.cogs.nonOilRevenue - summary.cogs.nonOilCogs)})
                     </span>
                   </div>
@@ -317,34 +319,34 @@ export default function PnLPageClient() {
               </div>
 
               {/* Wastage / Leakage Alert */}
-              <div className="mt-6 pt-4 border-t border-stone-100 flex items-center justify-between text-xs">
-                <span className="text-stone-500 flex items-center gap-1.5">
+              <div className="mt-6 pt-4 border-t border-border flex items-center justify-between text-xs">
+                <span className="text-muted flex items-center gap-1.5">
                   <AlertTriangle size={14} className="text-amber-500" />
                   Spillage & Leakage Losses:
                 </span>
-                <span className="font-mono font-bold text-rose-600">
+                <span className="font-mono font-bold text-rose-500">
                   {formatRs(summary.wastageLoss)}
                 </span>
               </div>
             </div>
 
             {/* Operating Expenses Breakdown */}
-            <div className="lg:col-span-2 bg-white rounded-2xl border border-stone-200 p-6 shadow-sm flex flex-col justify-between">
+            <div className="lg:col-span-2 bg-surface rounded-2xl border border-border p-6 shadow-sm flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h3 className="font-bold text-base font-poppins text-stone-900 flex items-center gap-2">
-                      <Building2 size={18} className="text-stone-700" />
+                    <h3 className="font-bold text-base font-poppins text-foreground flex items-center gap-2">
+                      <Building2 size={18} className="text-foreground" />
                       Branch Operating Overhead
                     </h3>
-                    <p className="text-xs text-stone-500 font-inter">
+                    <p className="text-xs text-muted font-inter">
                       Total: {formatRs(summary.operatingExpenses.total)}
                     </p>
                   </div>
                 </div>
 
                 {summary.operatingExpenses.breakdown.length === 0 ? (
-                  <div className="py-8 text-center text-xs text-stone-400 font-inter">
+                  <div className="py-8 text-center text-xs text-muted font-inter">
                     No operating expenses logged for this period.
                   </div>
                 ) : (
@@ -352,17 +354,17 @@ export default function PnLPageClient() {
                     {summary.operatingExpenses.breakdown.map((exp, idx) => (
                       <div
                         key={idx}
-                        className="p-3 bg-stone-50 rounded-xl border border-stone-100 flex items-center justify-between"
+                        className="p-3 bg-background rounded-xl border border-border flex items-center justify-between"
                       >
                         <div>
-                          <span className="text-xs font-bold text-stone-800 uppercase tracking-wider block">
+                          <span className="text-xs font-bold text-foreground uppercase tracking-wider block">
                             {exp.category}
                           </span>
-                          <span className="text-[11px] text-stone-400 font-mono">
+                          <span className="text-[11px] text-muted font-mono">
                             {exp.percentageOfExpenses.toFixed(1)}% of expenses
                           </span>
                         </div>
-                        <span className="font-mono font-bold text-stone-900 text-sm">
+                        <span className="font-mono font-bold text-foreground text-sm">
                           {formatRs(exp.amount)}
                         </span>
                       </div>

@@ -156,14 +156,14 @@ export default function QuickDispatchPage() {
   };
 
   return (
-    <div className="flex flex-col p-4 md:p-8 max-w-[1280px] mx-auto w-full min-h-screen bg-stone-50/50">
+    <div className="flex flex-col p-4 md:p-8 max-w-[1280px] mx-auto w-full min-h-screen bg-background/50">
       <div className="flex items-center gap-4 mb-8">
-        <Link href="/admin/orders" className="p-2 bg-white border border-stone-200 rounded-full text-stone-500 hover:text-stone-900 transition-colors shadow-sm">
+        <Link href="/admin/orders" className="p-2 bg-surface border border-border rounded-full text-muted hover:text-foreground transition-colors shadow-sm">
           <ChevronLeft size={20} />
         </Link>
         <div>
-          <h1 className="font-playfair text-2xl font-bold text-stone-900">Quick Dispatch</h1>
-          <p className="font-inter text-sm text-stone-500">Manually enter a walk-in or phone order and dispatch immediately.</p>
+          <h1 className="font-playfair text-2xl font-bold text-foreground">Quick Dispatch</h1>
+          <p className="font-inter text-sm text-muted">Manually enter a walk-in or phone order and dispatch immediately.</p>
         </div>
       </div>
 
@@ -176,12 +176,12 @@ export default function QuickDispatchPage() {
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Column: Customer & Branch */}
         <div className="lg:col-span-7 flex flex-col gap-6">
-          <div className="bg-white border border-stone-200 rounded-2xl p-6 shadow-sm">
-            <h2 className="font-inter font-bold text-lg text-stone-900 mb-4">Customer Details</h2>
+          <div className="bg-surface border border-border rounded-2xl p-6 shadow-sm">
+            <h2 className="font-inter font-bold text-lg text-foreground mb-4">Customer Details</h2>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2 flex flex-col gap-1.5">
-                <label className="font-inter text-xs font-semibold text-stone-500 uppercase">Phone Number *</label>
+                <label className="font-inter text-xs font-semibold text-muted uppercase">Phone Number *</label>
                 <div className="flex gap-2">
                   <input 
                     type="tel" 
@@ -189,57 +189,57 @@ export default function QuickDispatchPage() {
                     onChange={e => setPhone(e.target.value)} 
                     onBlur={handlePhoneSearch}
                     placeholder="e.g. 0771234567" 
-                    className={`flex-1 border ${phone.length > 0 && !isPhoneValid ? 'border-red-500' : 'border-stone-200'} rounded-xl px-4 py-2.5 text-sm font-inter outline-none focus:border-stone-900 focus:ring-1 focus:ring-stone-900 transition-all`}
+                    className={`flex-1 bg-surface text-foreground placeholder:text-muted border ${phone.length > 0 && !isPhoneValid ? 'border-red-500' : 'border-border'} rounded-xl px-4 py-2.5 text-sm font-inter outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all`}
                   />
-                  {isSearchingCustomer && <div className="flex items-center px-2 text-stone-400"><Loader2 className="animate-spin" size={18}/></div>}
+                  {isSearchingCustomer && <div className="flex items-center px-2 text-muted"><Loader2 className="animate-spin" size={18}/></div>}
                 </div>
                 {phone.length > 0 && !isPhoneValid ? (
                   <span className="text-red-500 text-xs mt-1">
                     Phone number must start with 0 and be 10 digits (e.g., 0712345678)
                   </span>
                 ) : (
-                  <span className="text-stone-400 text-xs mt-1">Format: 0712345678 (10 digits starting with 0)</span>
+                  <span className="text-muted text-xs mt-1">Format: 0712345678 (10 digits starting with 0)</span>
                 )}
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="font-inter text-xs font-semibold text-stone-500 uppercase">First Name *</label>
-                <input value={customer.firstName} onChange={e => setCustomer({...customer, firstName: e.target.value})} className="border border-stone-200 rounded-xl px-4 py-2.5 text-sm font-inter outline-none focus:border-stone-900 focus:ring-1 focus:ring-stone-900 transition-all"/>
+                <label className="font-inter text-xs font-semibold text-muted uppercase">First Name *</label>
+                <input value={customer.firstName} onChange={e => setCustomer({...customer, firstName: e.target.value})} className="bg-surface text-foreground placeholder:text-muted border border-border rounded-xl px-4 py-2.5 text-sm font-inter outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"/>
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="font-inter text-xs font-semibold text-stone-500 uppercase">Last Name</label>
-                <input value={customer.lastName} onChange={e => setCustomer({...customer, lastName: e.target.value})} className="border border-stone-200 rounded-xl px-4 py-2.5 text-sm font-inter outline-none focus:border-stone-900 focus:ring-1 focus:ring-stone-900 transition-all"/>
+                <label className="font-inter text-xs font-semibold text-muted uppercase">Last Name</label>
+                <input value={customer.lastName} onChange={e => setCustomer({...customer, lastName: e.target.value})} className="bg-surface text-foreground placeholder:text-muted border border-border rounded-xl px-4 py-2.5 text-sm font-inter outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"/>
               </div>
               
               <div className="sm:col-span-2 flex flex-col gap-1.5">
-                <label className="font-inter text-xs font-semibold text-stone-500 uppercase">Email Address</label>
-                <input type="email" value={customer.email} onChange={e => setCustomer({...customer, email: e.target.value})} className="border border-stone-200 rounded-xl px-4 py-2.5 text-sm font-inter outline-none focus:border-stone-900 focus:ring-1 focus:ring-stone-900 transition-all"/>
+                <label className="font-inter text-xs font-semibold text-muted uppercase">Email Address</label>
+                <input type="email" value={customer.email} onChange={e => setCustomer({...customer, email: e.target.value})} className="bg-surface text-foreground placeholder:text-muted border border-border rounded-xl px-4 py-2.5 text-sm font-inter outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"/>
               </div>
 
               <div className="sm:col-span-2 flex flex-col gap-1.5">
-                <label className="font-inter text-xs font-semibold text-stone-500 uppercase">Address Line 1 *</label>
-                <input value={customer.addressLine1} onChange={e => setCustomer({...customer, addressLine1: e.target.value})} className="border border-stone-200 rounded-xl px-4 py-2.5 text-sm font-inter outline-none focus:border-stone-900 focus:ring-1 focus:ring-stone-900 transition-all"/>
+                <label className="font-inter text-xs font-semibold text-muted uppercase">Address Line 1 *</label>
+                <input value={customer.addressLine1} onChange={e => setCustomer({...customer, addressLine1: e.target.value})} className="bg-surface text-foreground placeholder:text-muted border border-border rounded-xl px-4 py-2.5 text-sm font-inter outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"/>
               </div>
 
               <div className="sm:col-span-2 flex flex-col gap-1.5">
-                <label className="font-inter text-xs font-semibold text-stone-500 uppercase">Address Line 2</label>
-                <input value={customer.addressLine2} onChange={e => setCustomer({...customer, addressLine2: e.target.value})} className="border border-stone-200 rounded-xl px-4 py-2.5 text-sm font-inter outline-none focus:border-stone-900 focus:ring-1 focus:ring-stone-900 transition-all"/>
+                <label className="font-inter text-xs font-semibold text-muted uppercase">Address Line 2</label>
+                <input value={customer.addressLine2} onChange={e => setCustomer({...customer, addressLine2: e.target.value})} className="bg-surface text-foreground placeholder:text-muted border border-border rounded-xl px-4 py-2.5 text-sm font-inter outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"/>
               </div>
 
               <div className="sm:col-span-2 flex flex-col gap-1.5">
-                <label className="font-inter text-xs font-semibold text-stone-500 uppercase">Address Line 3</label>
-                <input value={customer.addressLine3} onChange={e => setCustomer({...customer, addressLine3: e.target.value})} className="border border-stone-200 rounded-xl px-4 py-2.5 text-sm font-inter outline-none focus:border-stone-900 focus:ring-1 focus:ring-stone-900 transition-all"/>
+                <label className="font-inter text-xs font-semibold text-muted uppercase">Address Line 3</label>
+                <input value={customer.addressLine3} onChange={e => setCustomer({...customer, addressLine3: e.target.value})} className="bg-surface text-foreground placeholder:text-muted border border-border rounded-xl px-4 py-2.5 text-sm font-inter outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"/>
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="font-inter text-xs font-semibold text-stone-500 uppercase">District *</label>
+                <label className="font-inter text-xs font-semibold text-muted uppercase">District *</label>
                 <select 
                   value={customer.district} 
                   onChange={e => {
                     const dist = e.target.value;
                     setCustomer({...customer, district: dist, city: ""});
                   }} 
-                  className="border border-stone-200 rounded-xl px-4 py-2.5 text-sm font-inter outline-none focus:border-stone-900 focus:ring-1 focus:ring-stone-900 transition-all bg-white"
+                  className="bg-surface text-foreground border border-border rounded-xl px-4 py-2.5 text-sm font-inter outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"
                 >
                   <option value="">Select District</option>
                   {slAddress.getDistricts().map(d => (
@@ -249,11 +249,11 @@ export default function QuickDispatchPage() {
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="font-inter text-xs font-semibold text-stone-500 uppercase">City *</label>
+                <label className="font-inter text-xs font-semibold text-muted uppercase">City *</label>
                 <select 
                   value={customer.city} 
                   onChange={e => setCustomer({...customer, city: e.target.value})} 
-                  className="border border-stone-200 rounded-xl px-4 py-2.5 text-sm font-inter outline-none focus:border-stone-900 focus:ring-1 focus:ring-stone-900 transition-all bg-white"
+                  className="bg-surface text-foreground border border-border rounded-xl px-4 py-2.5 text-sm font-inter outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"
                 >
                   <option value="">Select City</option>
                   {(customer.district ? slAddress.getCitiesByDistrict(customer.district) : []).map(c => (
@@ -263,11 +263,11 @@ export default function QuickDispatchPage() {
               </div>
 
               <div className="sm:col-span-2 flex flex-col gap-1.5">
-                <label className="font-inter text-xs font-semibold text-stone-500 uppercase">Nearest City (For Courier) *</label>
+                <label className="font-inter text-xs font-semibold text-muted uppercase">Nearest City (For Courier) *</label>
                 <select 
                   value={customer.nearestCity} 
                   onChange={e => setCustomer({...customer, nearestCity: e.target.value})} 
-                  className="border border-stone-200 rounded-xl px-4 py-2.5 text-sm font-inter outline-none focus:border-stone-900 focus:ring-1 focus:ring-stone-900 transition-all bg-white"
+                  className="bg-surface text-foreground border border-border rounded-xl px-4 py-2.5 text-sm font-inter outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"
                 >
                   <option value="">Select nearest city</option>
                   {allFardarCities.map(c => (
@@ -277,20 +277,20 @@ export default function QuickDispatchPage() {
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="font-inter text-xs font-semibold text-stone-500 uppercase">Postal Code</label>
-                <input value={customer.postalCode} onChange={e => setCustomer({...customer, postalCode: e.target.value})} className="border border-stone-200 rounded-xl px-4 py-2.5 text-sm font-inter outline-none focus:border-stone-900 focus:ring-1 focus:ring-stone-900 transition-all"/>
+                <label className="font-inter text-xs font-semibold text-muted uppercase">Postal Code</label>
+                <input value={customer.postalCode} onChange={e => setCustomer({...customer, postalCode: e.target.value})} className="bg-surface text-foreground placeholder:text-muted border border-border rounded-xl px-4 py-2.5 text-sm font-inter outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"/>
               </div>
             </div>
           </div>
 
-          <div className="bg-white border border-stone-200 rounded-2xl p-6 shadow-sm">
-            <h2 className="font-inter font-bold text-lg text-stone-900 mb-4 flex items-center gap-2"><Building size={18}/> Fulfilling Branch</h2>
+          <div className="bg-surface border border-border rounded-2xl p-6 shadow-sm">
+            <h2 className="font-inter font-bold text-lg text-foreground mb-4 flex items-center gap-2"><Building size={18}/> Fulfilling Branch</h2>
             <div className="flex flex-col gap-1.5">
-              <label className="font-inter text-xs font-semibold text-stone-500 uppercase">Select Branch *</label>
+              <label className="font-inter text-xs font-semibold text-muted uppercase">Select Branch *</label>
               <select 
                 value={branchId} 
                 onChange={e => setBranchId(e.target.value)} 
-                className="border border-stone-200 rounded-xl px-4 py-3 text-sm font-inter outline-none focus:border-stone-900 focus:ring-1 focus:ring-stone-900 transition-all bg-white"
+                className="bg-surface text-foreground border border-border rounded-xl px-4 py-3 text-sm font-inter outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"
                 disabled={branchesLoading}
               >
                 <option value="">-- Choose Branch --</option>
@@ -304,39 +304,39 @@ export default function QuickDispatchPage() {
 
         {/* Right Column: Items & Summary */}
         <div className="lg:col-span-5 flex flex-col gap-6">
-          <div className="bg-white border border-stone-200 rounded-2xl p-6 shadow-sm flex flex-col h-full">
-            <h2 className="font-inter font-bold text-lg text-stone-900 mb-4">Order Items</h2>
+          <div className="bg-surface border border-border rounded-2xl p-6 shadow-sm flex flex-col h-full">
+            <h2 className="font-inter font-bold text-lg text-foreground mb-4">Order Items</h2>
             
             {/* Product Search */}
             <div className="relative mb-6">
               <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                <Search size={16} className="text-stone-400" />
+                <Search size={16} className="text-muted" />
               </div>
               <input 
                 type="text" 
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
                 placeholder="Search products by name or SKU..." 
-                className="w-full pl-10 pr-4 py-2.5 border border-stone-200 rounded-xl text-sm font-inter outline-none focus:border-stone-900 focus:ring-1 focus:ring-stone-900 bg-stone-50 focus:bg-white transition-all"
+                className="w-full pl-10 pr-4 py-2.5 border border-border rounded-xl text-sm font-inter outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 bg-surface text-foreground placeholder:text-muted transition-all"
               />
               
               {searchTerm.length > 2 && productsData && productsData.data.length > 0 && (
-                <div className="absolute z-10 mt-2 w-full bg-white border border-stone-200 rounded-xl shadow-xl max-h-[300px] overflow-y-auto">
+                <div className="absolute z-10 mt-2 w-full bg-surface border border-border rounded-xl shadow-xl max-h-[300px] overflow-y-auto">
                   {productsData.data.map((prod: any) => (
-                    <div key={prod.id} className="p-2 border-b border-stone-100 last:border-0">
-                      <p className="font-inter font-semibold text-xs text-stone-900 px-2 py-1">{prod.name}</p>
+                    <div key={prod.id} className="p-2 border-b border-border/50 last:border-0">
+                      <p className="font-inter font-semibold text-xs text-foreground px-2 py-1">{prod.name}</p>
                       {prod.variants.map((v: any) => (
-                        <div key={v.id} className="flex items-center justify-between p-2 hover:bg-stone-50 rounded-lg group cursor-pointer" onClick={() => addToCart(v, prod.name)}>
+                        <div key={v.id} className="flex items-center justify-between p-2 hover:bg-background rounded-lg group cursor-pointer" onClick={() => addToCart(v, prod.name)}>
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 relative rounded bg-stone-100 overflow-hidden shrink-0">
+                            <div className="w-8 h-8 relative rounded bg-surface-elevated overflow-hidden shrink-0">
                               {v.featuredImage && <Image src={v.featuredImage} alt="" fill sizes="100px" className="object-cover"/>}
                             </div>
                             <div className="flex flex-col">
-                              <span className="font-inter text-sm text-stone-700">{v.name || 'Default'}</span>
-                              <span className="font-mono text-xs text-stone-400">{v.sku}</span>
+                              <span className="font-inter text-sm text-foreground">{v.name || 'Default'}</span>
+                              <span className="font-mono text-xs text-muted">{v.sku}</span>
                             </div>
                           </div>
-                          <button type="button" className="text-stone-400 group-hover:text-stone-900 transition-colors p-1">
+                          <button type="button" className="text-muted group-hover:text-foreground transition-colors p-1">
                             <Plus size={16}/>
                           </button>
                         </div>
@@ -350,27 +350,27 @@ export default function QuickDispatchPage() {
             {/* Cart Items */}
             <div className="flex flex-col gap-3 flex-1 overflow-y-auto mb-6 min-h-[150px]">
               {cart.length === 0 ? (
-                <div className="flex-1 flex flex-col items-center justify-center text-stone-400">
+                <div className="flex-1 flex flex-col items-center justify-center text-muted">
                   <Search size={32} className="mb-2 opacity-20"/>
-                  <p className="font-inter text-sm text-stone-500">No items added.</p>
+                  <p className="font-inter text-sm text-muted">No items added.</p>
                 </div>
               ) : (
                 cart.map(item => (
-                  <div key={item.variantId} className="flex items-center gap-3 py-2 border-b border-stone-100 last:border-0">
-                    <div className="w-12 h-16 bg-stone-100 rounded overflow-hidden relative shrink-0">
+                  <div key={item.variantId} className="flex items-center gap-3 py-2 border-b border-border/50 last:border-0">
+                    <div className="w-12 h-16 bg-surface-elevated rounded overflow-hidden relative shrink-0">
                       {item.image && <Image src={item.image} alt="" fill sizes="100px" className="object-cover"/>}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-inter font-semibold text-sm text-stone-900 truncate" title={item.name}>{item.name}</p>
-                      <p className="font-inter text-xs text-stone-500">Rs. {item.price.toLocaleString()}</p>
+                      <p className="font-inter font-semibold text-sm text-foreground truncate" title={item.name}>{item.name}</p>
+                      <p className="font-inter text-xs text-muted">Rs. {item.price.toLocaleString()}</p>
                     </div>
                     <div className="flex flex-col items-end gap-2">
-                      <div className="flex items-center gap-2 bg-stone-50 border border-stone-200 rounded-lg p-1">
-                        <button type="button" onClick={() => updateQuantity(item.variantId, -1)} className="w-6 h-6 flex items-center justify-center text-stone-500 hover:text-stone-900 hover:bg-stone-200 rounded transition-colors font-bold">-</button>
-                        <span className="font-mono text-sm w-4 text-center">{item.quantity}</span>
-                        <button type="button" onClick={() => updateQuantity(item.variantId, 1)} className="w-6 h-6 flex items-center justify-center text-stone-500 hover:text-stone-900 hover:bg-stone-200 rounded transition-colors font-bold">+</button>
+                      <div className="flex items-center gap-2 bg-background border border-border rounded-lg p-1">
+                        <button type="button" onClick={() => updateQuantity(item.variantId, -1)} className="w-6 h-6 flex items-center justify-center text-muted hover:text-foreground hover:bg-surface-elevated rounded transition-colors font-bold">-</button>
+                        <span className="font-mono text-sm w-4 text-center text-foreground">{item.quantity}</span>
+                        <button type="button" onClick={() => updateQuantity(item.variantId, 1)} className="w-6 h-6 flex items-center justify-center text-muted hover:text-foreground hover:bg-surface-elevated rounded transition-colors font-bold">+</button>
                       </div>
-                      <button type="button" onClick={() => removeFromCart(item.variantId)} className="text-stone-400 hover:text-red-500 p-1">
+                      <button type="button" onClick={() => removeFromCart(item.variantId)} className="text-muted hover:text-red-500 p-1">
                         <Trash2 size={14}/>
                       </button>
                     </div>
@@ -381,17 +381,17 @@ export default function QuickDispatchPage() {
 
             {/* Payment Method */}
             <div className="mb-6">
-              <label className="font-inter text-xs font-semibold text-stone-500 uppercase mb-2 block">Payment Method</label>
+              <label className="font-inter text-xs font-semibold text-muted uppercase mb-2 block">Payment Method</label>
               <div className="grid grid-cols-3 gap-2">
-                <button type="button" onClick={() => setPaymentMethod('COD')} className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl border transition-all ${paymentMethod === 'COD' ? 'bg-stone-900 border-stone-900 text-white' : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-50'}`}>
+                <button type="button" onClick={() => setPaymentMethod('COD')} className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl border transition-all ${paymentMethod === 'COD' ? 'bg-amber-500/20 border-amber-500/60 text-amber-500 font-bold' : 'bg-surface border-border text-muted hover:bg-background'}`}>
                   <Truck size={18}/>
                   <span className="font-inter text-[10px] font-bold">COD</span>
                 </button>
-                <button type="button" onClick={() => setPaymentMethod('BANK_TRANSFER')} className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl border transition-all ${paymentMethod === 'BANK_TRANSFER' ? 'bg-stone-900 border-stone-900 text-white' : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-50'}`}>
+                <button type="button" onClick={() => setPaymentMethod('BANK_TRANSFER')} className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl border transition-all ${paymentMethod === 'BANK_TRANSFER' ? 'bg-amber-500/20 border-amber-500/60 text-amber-500 font-bold' : 'bg-surface border-border text-muted hover:bg-background'}`}>
                   <Banknote size={18}/>
                   <span className="font-inter text-[10px] font-bold">TRANSFER</span>
                 </button>
-                <button type="button" onClick={() => setPaymentMethod('CARD_MANUAL')} className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl border transition-all ${paymentMethod === 'CARD_MANUAL' ? 'bg-stone-900 border-stone-900 text-white' : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-50'}`}>
+                <button type="button" onClick={() => setPaymentMethod('CARD_MANUAL')} className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl border transition-all ${paymentMethod === 'CARD_MANUAL' ? 'bg-amber-500/20 border-amber-500/60 text-amber-500 font-bold' : 'bg-surface border-border text-muted hover:bg-background'}`}>
                   <CreditCard size={18}/>
                   <span className="font-inter text-[10px] font-bold">CARD (POS)</span>
                 </button>
@@ -399,31 +399,31 @@ export default function QuickDispatchPage() {
             </div>
 
             {/* Summary */}
-            <div className="bg-stone-50 rounded-xl p-4 flex flex-col gap-2 mb-6 border border-stone-200">
-              <div className="flex justify-between items-center font-inter text-sm text-stone-600">
+            <div className="bg-background rounded-xl p-4 flex flex-col gap-2 mb-6 border border-border">
+              <div className="flex justify-between items-center font-inter text-sm text-muted">
                 <span>Subtotal</span>
-                <span className="font-mono">Rs. {subtotal.toLocaleString()}</span>
+                <span className="font-mono text-foreground">Rs. {subtotal.toLocaleString()}</span>
               </div>
-              <div className="flex justify-between items-center font-inter text-sm text-stone-600">
+              <div className="flex justify-between items-center font-inter text-sm text-muted">
                 <span>Shipping Fee</span>
                 <input 
                   type="number" 
                   value={shippingFee}
                   onChange={e => setShippingFee(Number(e.target.value) || 0)}
-                  className="w-24 text-right bg-white border border-stone-200 rounded px-2 py-1 font-mono text-sm outline-none focus:border-stone-500"
+                  className="w-24 text-right bg-surface text-foreground border border-border rounded px-2 py-1 font-mono text-sm outline-none focus:border-amber-500"
                 />
               </div>
-              <div className="flex justify-between items-center font-inter text-sm text-stone-600">
+              <div className="flex justify-between items-center font-inter text-sm text-muted">
                 <span>Manual Discount</span>
                 <input 
                   type="number" 
                   value={discount}
                   onChange={e => setDiscount(Number(e.target.value) || 0)}
-                  className="w-24 text-right bg-white border border-stone-200 rounded px-2 py-1 font-mono text-sm outline-none focus:border-stone-500 text-emerald-600"
+                  className="w-24 text-right bg-surface text-emerald-400 border border-border rounded px-2 py-1 font-mono text-sm outline-none focus:border-amber-500 font-bold"
                 />
               </div>
-              <div className="h-px w-full bg-stone-200 my-1"></div>
-              <div className="flex justify-between items-center font-inter font-bold text-lg text-stone-900">
+              <div className="h-px w-full bg-border my-1"></div>
+              <div className="flex justify-between items-center font-inter font-bold text-lg text-foreground">
                 <span>Total</span>
                 <span className="font-mono">Rs. {total.toLocaleString()}</span>
               </div>

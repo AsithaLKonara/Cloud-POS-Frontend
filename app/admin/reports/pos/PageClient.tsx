@@ -52,7 +52,7 @@ export default function PosReportPage() {
           <select 
             value={dateRange} 
             onChange={(e) => setDateRange(e.target.value)}
-            className="h-10 px-4 border border-stone-200 rounded-lg bg-white text-sm font-inter text-stone-700 outline-none focus:border-primary"
+            className="h-10 px-4 border border-border rounded-lg bg-surface text-sm font-inter text-foreground outline-none focus:border-primary"
           >
             <option value="7">Last 7 Days</option>
             <option value="30">Last 30 Days</option>
@@ -67,33 +67,33 @@ export default function PosReportPage() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white border border-stone-200 rounded-xl p-6">
-          <h3 className="text-sm font-medium text-stone-500 font-inter">Total Sessions</h3>
-          <p className="text-3xl font-semibold text-primary font-poppins mt-2">{data.summary.totalSessions}</p>
+        <div className="bg-surface border border-border rounded-xl p-6">
+          <h3 className="text-sm font-medium text-muted font-inter">Total Sessions</h3>
+          <p className="text-3xl font-semibold text-foreground font-poppins mt-2">{data.summary.totalSessions}</p>
         </div>
-        <div className="bg-white border border-stone-200 rounded-xl p-6">
-          <h3 className="text-sm font-medium text-stone-500 font-inter">Expected Cash</h3>
-          <p className="text-3xl font-semibold text-primary font-poppins mt-2">Rs. {data.summary.expectedTotal.toLocaleString()}</p>
+        <div className="bg-surface border border-border rounded-xl p-6">
+          <h3 className="text-sm font-medium text-muted font-inter">Expected Cash</h3>
+          <p className="text-3xl font-semibold text-foreground font-poppins mt-2">Rs. {data.summary.expectedTotal.toLocaleString()}</p>
         </div>
-        <div className="bg-white border border-stone-200 rounded-xl p-6">
-          <h3 className="text-sm font-medium text-stone-500 font-inter">Actual Cash Counted</h3>
-          <p className="text-3xl font-semibold text-primary font-poppins mt-2">Rs. {data.summary.actualTotal.toLocaleString()}</p>
+        <div className="bg-surface border border-border rounded-xl p-6">
+          <h3 className="text-sm font-medium text-muted font-inter">Actual Cash Counted</h3>
+          <p className="text-3xl font-semibold text-foreground font-poppins mt-2">Rs. {data.summary.actualTotal.toLocaleString()}</p>
         </div>
-        <div className="bg-white border border-stone-200 rounded-xl p-6 relative overflow-hidden">
-          <h3 className="text-sm font-medium text-stone-500 font-inter">Total Cash Variance</h3>
+        <div className="bg-surface border border-border rounded-xl p-6 relative overflow-hidden">
+          <h3 className="text-sm font-medium text-muted font-inter">Total Cash Variance</h3>
           <p className={`text-3xl font-semibold font-poppins mt-2 ${data.summary.totalVariance < 0 ? 'text-red-500' : 'text-emerald-500'}`}>
             Rs. {data.summary.totalVariance.toLocaleString()}
           </p>
         </div>
       </div>
 
-      <div className="bg-white border border-stone-200 rounded-xl p-6">
-        <h3 className="text-lg font-semibold text-primary font-poppins mb-6">Revenue by Terminal</h3>
+      <div className="bg-surface border border-border rounded-xl p-6">
+        <h3 className="text-lg font-semibold text-foreground font-poppins mb-6">Revenue by Terminal</h3>
         {data.terminals && data.terminals.length > 0 ? (
           <PosChart data={data.terminals} />
         ) : (
-          <div className="h-[300px] w-full flex items-center justify-center bg-stone-50 rounded-lg border border-dashed border-stone-200">
-            <p className="text-stone-500 font-inter font-medium">0 Data Available</p>
+          <div className="h-[300px] w-full flex items-center justify-center bg-background rounded-lg border border-dashed border-border">
+            <p className="text-muted font-inter font-medium">0 Data Available</p>
           </div>
         )}
       </div>

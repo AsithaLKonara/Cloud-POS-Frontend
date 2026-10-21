@@ -429,31 +429,31 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
       {/* Backdrop */}
       <div className="absolute inset-0 bg-stone-950/60 backdrop-blur-sm" onClick={onClose} />
 
-      {/* Full-height Panel */}
-      <div className="relative ml-auto w-full max-w-[960px] h-full bg-white flex flex-col shadow-2xl overflow-hidden">
+      {/* Full-height Sidepanel */}
+      <div className="relative ml-auto w-full max-w-[960px] h-full bg-surface border-l border-border flex flex-col shadow-2xl overflow-hidden">
         
         {/* Header */}
-        <div className="flex items-center justify-between px-8 py-5 border-b border-stone-200 bg-stone-50 shrink-0">
+        <div className="flex items-center justify-between px-8 py-5 border-b border-border bg-background shrink-0">
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="font-inter font-bold text-xl text-stone-900">
+              <h2 className="font-inter font-bold text-xl text-foreground">
                 {productToEdit ? "Edit Item" : "Add Oil or Non-Oil Item"}
               </h2>
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-100 text-amber-800">
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
                 {currentProductType}
               </span>
             </div>
-            <p className="font-inter text-sm text-stone-500 mt-0.5">
+            <p className="font-inter text-sm text-muted mt-0.5">
               Configure lubricants, filters, batteries, car care fluids, or spare parts with live COGS tracking.
             </p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-stone-200 rounded-lg text-stone-600 transition-colors">
+          <button onClick={onClose} className="p-2 hover:bg-surface-hover rounded-lg text-muted hover:text-foreground transition-colors" aria-label="Close panel">
             <X size={20} />
           </button>
         </div>
 
         {/* Tab Bar */}
-        <div className="flex gap-0 border-b border-stone-200 bg-white shrink-0 overflow-x-auto scrollbar-hide">
+        <div className="flex gap-0 border-b border-border bg-surface shrink-0 overflow-x-auto scrollbar-hide">
           {SECTION_TABS.map(tab => {
             const Icon = tab.icon;
             return (
@@ -463,8 +463,8 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-5 py-3.5 text-sm font-medium font-inter whitespace-nowrap border-b-2 transition-all ${
                   activeTab === tab.id
-                    ? "border-stone-900 text-stone-900 bg-stone-50/50"
-                    : "border-transparent text-stone-400 hover:text-stone-700 hover:border-stone-300"
+                    ? "border-primary text-primary bg-primary/5 font-semibold"
+                    : "border-transparent text-muted hover:text-foreground hover:border-border"
                 }`}
               >
                 <Icon size={15} />
@@ -556,12 +556,12 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
                 {/* Product Slug */}
                 <div className="flex flex-col gap-2">
                   <label className="label">Item Slug / SKU Code</label>
-                  <div className={`flex items-center bg-stone-50 border ${errors.slug ? 'border-red-500' : 'border-stone-200'} rounded-lg overflow-hidden`}>
-                    <span className="px-3 text-stone-400 text-xs font-mono border-r border-stone-200 h-full py-2.5">/item/</span>
+                  <div className={`flex items-center bg-background border ${errors.slug ? 'border-red-500' : 'border-border'} rounded-lg overflow-hidden focus-within:border-primary`}>
+                    <span className="px-3 text-muted text-xs font-mono border-r border-border h-full py-2.5 bg-surface">/item/</span>
                     <input
                       type="text"
                       {...register("slug", { onChange: () => setSlugEdited(true) })}
-                      className="flex-1 bg-transparent px-3 py-2.5 text-xs font-mono outline-none text-stone-900"
+                      className="flex-1 bg-transparent px-3 py-2.5 text-xs font-mono outline-none text-foreground placeholder:text-muted"
                     />
                   </div>
                 </div>
@@ -582,15 +582,15 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
             {/* ────────── SPECIFICATIONS & FITMENT ────────── */}
             {activeTab === "specs" && (
               <div className="flex flex-col gap-6 max-w-[760px]">
-                <div className="bg-stone-50 border border-stone-200 rounded-xl p-5 flex flex-col gap-5">
-                  <div className="flex items-center justify-between border-b border-stone-200 pb-3">
-                    <h3 className="font-inter font-bold text-stone-900 text-sm">
+                <div className="bg-background border border-border rounded-xl p-5 flex flex-col gap-5">
+                  <div className="flex items-center justify-between border-b border-border pb-3">
+                    <h3 className="font-inter font-bold text-foreground text-sm">
                       {currentProductType === "LUBRICANT" ? "Oil & Lubricant Technical Data" :
                        currentProductType === "FILTER" ? "Filter Specifications & OEM Cross-Reference" :
                        currentProductType === "BATTERY" ? "Battery Electrical & Fitment Specs" :
                        "Part Number & Vehicle Compatibility"}
                     </h3>
-                    <span className="text-xs text-stone-500 font-mono">Type: {currentProductType}</span>
+                    <span className="text-xs text-muted font-mono">Type: {currentProductType}</span>
                   </div>
 
                   {/* LUBRICANT SPECIFICATIONS */}
@@ -615,7 +615,7 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
                                 key={v}
                                 type="button"
                                 onClick={() => setValue("viscosity", v)}
-                                className="px-2 py-0.5 rounded text-[11px] bg-white border border-stone-200 hover:bg-stone-100 font-mono text-stone-600"
+                                className="px-2 py-0.5 rounded text-[11px] bg-surface border border-border hover:bg-surface-hover font-mono text-muted hover:text-foreground transition-colors"
                               >
                                 {v}
                               </button>
@@ -714,11 +714,11 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
             {activeTab === "variants" && (
               <div className="flex flex-col gap-6">
                 {/* Pack Unit Presets */}
-                <div className="bg-stone-50 border border-stone-200 rounded-xl p-5 flex flex-col gap-4">
+                <div className="bg-background border border-border rounded-xl p-5 flex flex-col gap-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="font-inter font-bold text-stone-900 text-sm">Quick Add Pack Units</h3>
-                      <p className="text-xs text-stone-500 mt-0.5">Click a preset below or type a custom pack unit to add to this item.</p>
+                      <h3 className="font-inter font-bold text-foreground text-sm">Quick Add Pack Units</h3>
+                      <p className="text-xs text-muted mt-0.5">Click a preset below or type a custom pack unit to add to this item.</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <input
@@ -726,26 +726,26 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
                         value={newPackUnit}
                         onChange={e => setNewPackUnit(e.target.value)}
                         placeholder="Custom pack e.g. 10L Pail"
-                        className="px-3 py-1.5 text-xs border border-stone-200 rounded-lg outline-none w-44"
+                        className="px-3 py-1.5 text-xs bg-surface border border-border text-foreground rounded-lg outline-none w-44 focus:border-primary"
                         onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddPackUnit(newPackUnit); } }}
                       />
                       <button
                         type="button"
                         onClick={() => handleAddPackUnit(newPackUnit)}
-                        className="px-3 py-1.5 bg-stone-900 text-white rounded-lg text-xs font-semibold hover:bg-stone-800 transition-colors"
+                        className="px-3 py-1.5 bg-primary text-white rounded-lg text-xs font-semibold hover:bg-primary/90 transition-colors"
                       >
                         Add Pack
                       </button>
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap gap-2 pt-2 border-t border-stone-200">
+                  <div className="flex flex-wrap gap-2 pt-2 border-t border-border">
                     {(PACK_PRESETS_BY_TYPE[currentProductType] || PACK_PRESETS_BY_TYPE.LUBRICANT).map(preset => (
                       <button
                         key={preset}
                         type="button"
                         onClick={() => handleAddPackUnit(preset)}
-                        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-stone-200 hover:border-stone-900 hover:bg-stone-100 transition-all flex items-center gap-1.5 text-stone-800"
+                        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-surface border border-border hover:border-primary/50 hover:bg-surface-hover transition-all flex items-center gap-1.5 text-foreground"
                       >
                         <Plus size={12} /> {preset}
                       </button>
@@ -755,40 +755,40 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
 
                 {/* Variants Table */}
                 {variants.length > 0 ? (
-                  <div className="border border-stone-200 rounded-xl overflow-hidden shadow-sm">
+                  <div className="border border-border rounded-xl overflow-hidden shadow-sm bg-surface">
                     <table className="w-full text-left text-sm">
-                      <thead className="bg-stone-100 border-b border-stone-200">
+                      <thead className="bg-background border-b border-border">
                         <tr>
-                          <th className="px-3.5 py-3 font-semibold text-xs text-stone-600 uppercase tracking-wide">Pack Unit / Size</th>
-                          <th className="px-3.5 py-3 font-semibold text-xs text-stone-600 uppercase tracking-wide">SKU</th>
-                          <th className="px-3.5 py-3 font-semibold text-xs text-stone-600 uppercase tracking-wide">Barcode</th>
-                          <th className="px-3.5 py-3 font-semibold text-xs text-amber-700 uppercase tracking-wide">Cost (COGS)</th>
-                          <th className="px-3.5 py-3 font-semibold text-xs text-emerald-700 uppercase tracking-wide">Retail (Rs.)</th>
-                          <th className="px-3.5 py-3 font-semibold text-xs text-blue-700 uppercase tracking-wide">Wholesale</th>
+                          <th className="px-3.5 py-3 font-semibold text-xs text-muted uppercase tracking-wide">Pack Unit / Size</th>
+                          <th className="px-3.5 py-3 font-semibold text-xs text-muted uppercase tracking-wide">SKU</th>
+                          <th className="px-3.5 py-3 font-semibold text-xs text-muted uppercase tracking-wide">Barcode</th>
+                          <th className="px-3.5 py-3 font-semibold text-xs text-amber-600 dark:text-amber-400 uppercase tracking-wide">Cost (COGS)</th>
+                          <th className="px-3.5 py-3 font-semibold text-xs text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">Retail (Rs.)</th>
+                          <th className="px-3.5 py-3 font-semibold text-xs text-blue-600 dark:text-blue-400 uppercase tracking-wide">Wholesale</th>
                           {branchCodes.map((b: string) => (
-                            <th key={b} className="px-3.5 py-3 font-semibold text-xs text-stone-600 uppercase tracking-wide text-center">{b}</th>
+                            <th key={b} className="px-3.5 py-3 font-semibold text-xs text-muted uppercase tracking-wide text-center">{b}</th>
                           ))}
                           <th className="px-3.5 py-3"></th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-stone-100">
+                      <tbody className="divide-y divide-border">
                         {variants.map(v => (
-                          <tr key={v.id} className="hover:bg-stone-50 transition-colors">
-                            <td className="px-3.5 py-3 font-bold text-stone-900">
-                              <span className="px-2 py-1 rounded bg-stone-100 border border-stone-200 text-xs font-mono">
+                          <tr key={v.id} className="hover:bg-surface-hover transition-colors">
+                            <td className="px-3.5 py-3 font-bold text-foreground">
+                              <span className="px-2 py-1 rounded bg-surface border border-border text-xs font-mono text-foreground">
                                 {v.size}
                               </span>
                             </td>
                             <td className="px-3.5 py-3">
                               <input
-                                className="font-mono text-xs border border-stone-200 rounded px-2 py-1 w-32 outline-none focus:border-stone-400 bg-white"
+                                className="font-mono text-xs border border-border rounded px-2 py-1 w-32 outline-none focus:border-primary bg-background text-foreground"
                                 value={v.sku}
                                 onChange={e => updateVariantField(v.id, "sku", e.target.value)}
                               />
                             </td>
                             <td className="px-3.5 py-3">
                               <div className="flex items-center gap-1.5">
-                                <span className="font-mono text-[11px] bg-stone-50 border border-stone-200 rounded px-1.5 py-1 text-stone-600 select-all cursor-text">
+                                <span className="font-mono text-[11px] bg-background border border-border rounded px-1.5 py-1 text-muted select-all cursor-text">
                                   {v.barcode || '—'}
                                 </span>
                                 {v.barcode && (
@@ -796,7 +796,7 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
                                     type="button"
                                     title="Print barcode"
                                     onClick={() => setPrintingVariant({ barcode: v.barcode, label: `${productName} (${v.size})` })}
-                                    className="p-1 text-stone-400 hover:text-stone-800 hover:bg-stone-200 rounded transition-colors"
+                                    className="p-1 text-muted hover:text-foreground hover:bg-surface-hover rounded transition-colors"
                                   >
                                     <Printer size={13} />
                                   </button>
@@ -807,7 +807,7 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
                             <td className="px-3.5 py-3">
                               <input
                                 type="number"
-                                className="text-xs font-mono font-semibold border border-amber-300 rounded px-2 py-1 w-24 outline-none focus:border-amber-500 bg-amber-50/50 text-amber-900"
+                                className="text-xs font-mono font-semibold border border-amber-500/30 rounded px-2 py-1 w-24 outline-none focus:border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-400"
                                 value={v.costPrice || ""}
                                 placeholder="0.00"
                                 onChange={e => updateVariantField(v.id, "costPrice", e.target.value)}
@@ -817,7 +817,7 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
                             <td className="px-3.5 py-3">
                               <input
                                 type="number"
-                                className="text-xs font-mono font-bold border border-emerald-300 rounded px-2 py-1 w-24 outline-none focus:border-emerald-500 bg-emerald-50/50 text-emerald-900"
+                                className="text-xs font-mono font-bold border border-emerald-500/30 rounded px-2 py-1 w-24 outline-none focus:border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                                 value={v.price}
                                 onChange={e => updateVariantField(v.id, "price", e.target.value)}
                               />
@@ -826,7 +826,7 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
                             <td className="px-3.5 py-3">
                               <input
                                 type="number"
-                                className="text-xs font-mono border border-blue-200 rounded px-2 py-1 w-24 outline-none focus:border-blue-400 bg-blue-50/30 text-blue-900"
+                                className="text-xs font-mono border border-blue-500/30 rounded px-2 py-1 w-24 outline-none focus:border-blue-500 bg-blue-500/10 text-blue-600 dark:text-blue-400"
                                 value={v.wholesalePrice || ""}
                                 placeholder="Optional"
                                 onChange={e => updateVariantField(v.id, "wholesalePrice", e.target.value)}
@@ -837,7 +837,7 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
                               <td key={b} className="px-3.5 py-3 text-center">
                                 <input
                                   type="number"
-                                  className="text-xs font-mono font-bold border border-stone-200 rounded px-1.5 py-1 w-16 outline-none focus:border-stone-400 text-center bg-white"
+                                  className="text-xs font-mono font-bold border border-border rounded px-1.5 py-1 w-16 outline-none focus:border-primary text-center bg-background text-foreground"
                                   value={v.stock[b] || 0}
                                   min={0}
                                   onChange={e => updateVariantStock(v.id, b, parseInt(e.target.value) || 0)}
@@ -845,7 +845,7 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
                               </td>
                             ))}
                             <td className="px-3.5 py-3 text-right">
-                              <button type="button" onClick={() => removeVariant(v.id)} className="text-stone-400 hover:text-red-600 transition-colors p-1">
+                              <button type="button" onClick={() => removeVariant(v.id)} className="text-muted hover:text-red-500 transition-colors p-1" aria-label="Delete variant">
                                 <Trash2 size={15} />
                               </button>
                             </td>
@@ -855,11 +855,11 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
                     </table>
                   </div>
                 ) : (
-                  <div className="border-2 border-dashed border-stone-200 rounded-xl p-10 flex flex-col items-center gap-3 text-center bg-stone-50/50">
-                    <Layers size={36} className="text-stone-300" />
+                  <div className="border-2 border-dashed border-border rounded-xl p-10 flex flex-col items-center gap-3 text-center bg-background">
+                    <Layers size={36} className="text-muted opacity-60" />
                     <div>
-                      <p className="font-inter text-stone-700 font-semibold text-sm">No Pack Units or Variants Added</p>
-                      <p className="font-inter text-xs text-stone-400 mt-0.5">Click a preset above (e.g. &quot;4L Can&quot; or &quot;Single Piece&quot;) to configure pricing and stock.</p>
+                      <p className="font-inter text-foreground font-semibold text-sm">No Pack Units or Variants Added</p>
+                      <p className="font-inter text-xs text-muted mt-0.5">Click a preset above (e.g. &quot;4L Can&quot; or &quot;Single Piece&quot;) to configure pricing and stock.</p>
                     </div>
                   </div>
                 )}
@@ -869,10 +869,10 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
             {/* ────────── PRICING & COGS ────────── */}
             {activeTab === "pricing" && (
               <div className="flex flex-col gap-6 max-w-[560px]">
-                <div className="bg-stone-50 border border-stone-200 rounded-xl p-6 flex flex-col gap-5">
+                <div className="bg-background border border-border rounded-xl p-6 flex flex-col gap-5">
                   <div>
-                    <h3 className="font-inter font-bold text-stone-900">Default Base Pricing & Gross Margin</h3>
-                    <p className="text-xs text-stone-500 font-inter mt-0.5">
+                    <h3 className="font-inter font-bold text-foreground">Default Base Pricing & Gross Margin</h3>
+                    <p className="text-xs text-muted font-inter mt-0.5">
                       Sets the default pricing for newly added variants. Drives the Superadmin Executive P&L Engine.
                     </p>
                   </div>
@@ -880,17 +880,17 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
                   <div className="grid grid-cols-2 gap-4">
                     <div className="flex flex-col gap-2">
                       <label className="label">Default Selling Price (Rs.) <span className="text-red-500">*</span></label>
-                      <div className="flex items-center border border-stone-300 rounded-lg overflow-hidden bg-white">
-                        <span className="px-3 py-2 text-stone-500 text-xs font-mono border-r border-stone-200">Rs.</span>
-                        <input type="number" {...register("basePrice")} placeholder="0.00" className="flex-1 px-3 py-2 text-sm outline-none font-mono font-bold" />
+                      <div className="flex items-center border border-border rounded-lg overflow-hidden bg-background focus-within:border-primary">
+                        <span className="px-3 py-2 text-muted text-xs font-mono border-r border-border bg-surface">Rs.</span>
+                        <input type="number" {...register("basePrice")} placeholder="0.00" className="flex-1 px-3 py-2 text-sm outline-none font-mono font-bold bg-transparent text-foreground placeholder:text-muted" />
                       </div>
                     </div>
 
                     <div className="flex flex-col gap-2">
                       <label className="label">Purchase Cost / COGS (Rs.)</label>
-                      <div className="flex items-center border border-stone-300 rounded-lg overflow-hidden bg-white">
-                        <span className="px-3 py-2 text-stone-500 text-xs font-mono border-r border-stone-200">Rs.</span>
-                        <input type="number" {...register("costPrice")} placeholder="0.00" className="flex-1 px-3 py-2 text-sm outline-none font-mono" />
+                      <div className="flex items-center border border-border rounded-lg overflow-hidden bg-background focus-within:border-primary">
+                        <span className="px-3 py-2 text-muted text-xs font-mono border-r border-border bg-surface">Rs.</span>
+                        <input type="number" {...register("costPrice")} placeholder="0.00" className="flex-1 px-3 py-2 text-sm outline-none font-mono bg-transparent text-foreground placeholder:text-muted" />
                       </div>
                     </div>
                   </div>
@@ -898,31 +898,31 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
                   <div className="grid grid-cols-2 gap-4">
                     <div className="flex flex-col gap-2">
                       <label className="label">Wholesale Price (Rs.)</label>
-                      <div className="flex items-center border border-stone-300 rounded-lg overflow-hidden bg-white">
-                        <span className="px-3 py-2 text-stone-500 text-xs font-mono border-r border-stone-200">Rs.</span>
-                        <input type="number" {...register("wholesalePrice")} placeholder="Optional" className="flex-1 px-3 py-2 text-sm outline-none font-mono" />
+                      <div className="flex items-center border border-border rounded-lg overflow-hidden bg-background focus-within:border-primary">
+                        <span className="px-3 py-2 text-muted text-xs font-mono border-r border-border bg-surface">Rs.</span>
+                        <input type="number" {...register("wholesalePrice")} placeholder="Optional" className="flex-1 px-3 py-2 text-sm outline-none font-mono bg-transparent text-foreground placeholder:text-muted" />
                       </div>
                     </div>
 
                     <div className="flex flex-col gap-2">
                       <label className="label">Compare-At / MRP Price (Rs.)</label>
-                      <div className="flex items-center border border-stone-300 rounded-lg overflow-hidden bg-white">
-                        <span className="px-3 py-2 text-stone-500 text-xs font-mono border-r border-stone-200">Rs.</span>
-                        <input type="number" {...register("compareAtPrice")} placeholder="Optional" className="flex-1 px-3 py-2 text-sm outline-none font-mono" />
+                      <div className="flex items-center border border-border rounded-lg overflow-hidden bg-background focus-within:border-primary">
+                        <span className="px-3 py-2 text-muted text-xs font-mono border-r border-border bg-surface">Rs.</span>
+                        <input type="number" {...register("compareAtPrice")} placeholder="Optional" className="flex-1 px-3 py-2 text-sm outline-none font-mono bg-transparent text-foreground placeholder:text-muted" />
                       </div>
                     </div>
                   </div>
 
                   {/* Gross Margin Card */}
                   {basePrice && costPrice && !isNaN(Number(basePrice)) && !isNaN(Number(costPrice)) && Number(basePrice) > 0 && (
-                    <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center justify-between">
+                    <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 flex items-center justify-between">
                       <div>
-                        <p className="font-inter text-xs font-bold text-emerald-800 uppercase tracking-wide">Estimated Gross Profit Margin</p>
-                        <p className="font-inter text-xs text-emerald-600 mt-0.5">
+                        <p className="font-inter text-xs font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wide">Estimated Gross Profit Margin</p>
+                        <p className="font-inter text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">
                           Profit: Rs. {(parseFloat(basePrice) - parseFloat(costPrice)).toLocaleString()} per unit
                         </p>
                       </div>
-                      <p className="font-inter text-2xl font-black text-emerald-700">
+                      <p className="font-inter text-2xl font-black text-emerald-700 dark:text-emerald-300">
                         {Math.round(((parseFloat(basePrice) - parseFloat(costPrice)) / parseFloat(basePrice)) * 100)}%
                       </p>
                     </div>
@@ -934,15 +934,15 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
             {/* ────────── INVENTORY MATRIX ────────── */}
             {activeTab === "inventory" && (
               <div className="flex flex-col gap-6 max-w-[700px]">
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3">
-                  <AlertCircle size={16} className="text-amber-700 shrink-0 mt-0.5" />
-                  <p className="text-xs font-inter text-amber-800 leading-relaxed">
+                <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex gap-3">
+                  <AlertCircle size={16} className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                  <p className="text-xs font-inter text-amber-700 dark:text-amber-300 leading-relaxed">
                     Stock is tracked independently per branch. Spillage and oil wastage transactions will adjust these quantities directly.
                   </p>
                 </div>
 
-                <div className="bg-white border border-stone-200 rounded-xl p-5 flex flex-col gap-4">
-                  <h3 className="font-inter font-bold text-stone-900 text-sm">Quick Stock Initialization</h3>
+                <div className="bg-background border border-border rounded-xl p-5 flex flex-col gap-4">
+                  <h3 className="font-inter font-bold text-foreground text-sm">Quick Stock Initialization</h3>
                   <div className="flex items-center gap-3">
                     <input 
                       type="number" 
@@ -955,7 +955,7 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
                     <button 
                       type="button" 
                       onClick={applyStockToAll}
-                      className="px-4 py-2.5 bg-stone-900 text-white rounded-lg text-xs font-semibold hover:bg-stone-800 transition-colors whitespace-nowrap"
+                      className="px-4 py-2.5 bg-primary text-white rounded-lg text-xs font-semibold hover:bg-primary/90 transition-colors whitespace-nowrap"
                     >
                       Apply to All Existing Variants
                     </button>
@@ -972,12 +972,12 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
                     <div 
                       key={i} 
                       onClick={() => { setActiveImageSlot(i); setIsMediaModalOpen(true); }}
-                      className={`relative aspect-square border-2 border-dashed border-stone-300 rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-stone-50 hover:border-amber-500 transition-all group overflow-hidden ${i === 0 ? "col-span-2 row-span-2" : ""}`}
+                      className={`relative aspect-square border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-surface-hover hover:border-primary transition-all group overflow-hidden bg-background ${i === 0 ? "col-span-2 row-span-2" : ""}`}
                     >
                       {images[i] ? (
                         <>
                           <Image src={images[i]} alt={`Product Image ${i + 1}`} fill className="object-cover" />
-                          <div className="absolute inset-0 bg-stone-900/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                          <div className="absolute inset-0 bg-stone-950/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
                             <p className="font-inter text-white text-xs font-medium">Change Image</p>
                           </div>
                           <button 
@@ -986,15 +986,16 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
                               e.stopPropagation(); 
                               setImages(prev => { const n = [...prev]; n[i] = ""; return n; });
                             }}
-                            className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm rounded-full p-1 text-stone-700 hover:bg-white transition-colors z-20"
+                            className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm rounded-full p-1 text-white hover:bg-black/90 transition-colors z-20"
+                            aria-label="Remove image"
                           >
                             <X size={14} />
                           </button>
                         </>
                       ) : (
                         <>
-                          <ImagePlus size={i === 0 ? 32 : 20} className="text-stone-300 group-hover:text-amber-600 transition-colors" />
-                          <span className="font-inter text-xs text-stone-400 group-hover:text-stone-700 transition-colors">
+                          <ImagePlus size={i === 0 ? 32 : 20} className="text-muted group-hover:text-primary transition-colors" />
+                          <span className="font-inter text-xs text-muted group-hover:text-foreground transition-colors">
                             {i === 0 ? "Primary Photo" : "Photo " + (i + 1)}
                           </span>
                         </>
@@ -1002,14 +1003,14 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
                     </div>
                   ))}
                 </div>
-                <p className="text-xs text-stone-400 font-inter">Recommended: High quality can/bottle product images with legible brand and viscosity grade.</p>
+                <p className="text-xs text-muted font-inter">Recommended: High quality can/bottle product images with legible brand and viscosity grade.</p>
               </div>
             )}
           </div>
 
           {/* Footer */}
-          <div className="border-t border-stone-200 px-8 py-4 bg-stone-50 shrink-0 flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs text-stone-500">
+          <div className="border-t border-border px-8 py-4 bg-background shrink-0 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-xs text-muted">
               <Sparkles size={14} className="text-amber-500" />
               <span>Multi-Branch Inventory & COGS Sync Enabled</span>
             </div>
@@ -1017,14 +1018,14 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
               <button
                 type="button"
                 onClick={onClose}
-                className="px-5 py-2.5 bg-white border border-stone-300 rounded-lg font-inter font-medium text-sm text-stone-700 hover:bg-stone-50 transition-colors shadow-sm"
+                className="px-5 py-2.5 bg-surface border border-border rounded-lg font-inter font-medium text-sm text-foreground hover:bg-surface-hover transition-colors shadow-sm"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={createProductMutation.isPending || updateProductMutation.isPending}
-                className="px-8 py-2.5 bg-stone-900 text-white rounded-lg font-inter font-semibold text-sm hover:bg-stone-800 transition-colors shadow-md shadow-stone-900/20 disabled:opacity-50 flex items-center gap-2"
+                className="px-8 py-2.5 bg-primary text-white rounded-lg font-inter font-semibold text-sm hover:bg-primary/90 transition-colors shadow-md shadow-primary/20 disabled:opacity-50 flex items-center gap-2"
               >
                 {(createProductMutation.isPending || updateProductMutation.isPending) ? "Saving..." : (productToEdit ? "Update Item" : "Create Item")}
               </button>
@@ -1038,22 +1039,22 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
           font-family: var(--font-inter);
           font-size: 0.75rem;
           font-weight: 600;
-          color: #44403c;
+          color: var(--foreground);
         }
         .input {
-          border: 1px solid #e7e5e4;
+          border: 1px solid var(--border);
           border-radius: 0.5rem;
           padding: 0.625rem 0.75rem;
           font-size: 0.875rem;
           outline: none;
-          background: white;
+          background: var(--background);
           width: 100%;
-          color: #1c1917;
+          color: var(--foreground);
           transition: border-color 0.15s;
         }
         .input:focus {
-          border-color: #1c1917;
-          box-shadow: 0 0 0 2px rgba(28, 25, 23, 0.1);
+          border-color: var(--primary);
+          box-shadow: 0 0 0 2px var(--primary-soft);
         }
       `}</style>
       
@@ -1093,23 +1094,23 @@ function VariantBarcodePrintModal({ barcode, label, onClose }: { barcode: string
   const displayCode = barcode.length > 12 ? barcode.substring(0, 12) : barcode;
   return (
     <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-        <div className="flex items-center justify-between p-4 border-b border-stone-200 bg-stone-50">
-          <h3 className="font-inter font-bold text-base text-stone-900">Print Barcode</h3>
-          <button onClick={onClose} className="p-1.5 text-stone-400 hover:text-stone-900 hover:bg-stone-200 rounded-lg transition-colors"><X size={18} /></button>
+      <div className="bg-surface border border-border rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="flex items-center justify-between p-4 border-b border-border bg-background">
+          <h3 className="font-inter font-bold text-base text-foreground">Print Barcode</h3>
+          <button onClick={onClose} className="p-1.5 text-muted hover:text-foreground hover:bg-surface-hover rounded-lg transition-colors" aria-label="Close modal"><X size={18} /></button>
         </div>
-        <div className="p-6 flex flex-col items-center gap-4 bg-stone-100">
+        <div className="p-6 flex flex-col items-center gap-4 bg-background">
           <div className="bg-white p-5 rounded-xl shadow-sm border border-stone-200 flex flex-col items-center w-full">
             <div ref={ref} className="react-to-print-content" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'white', padding: '16px', width: '100%', fontFamily: 'sans-serif' }}>
               <p style={{ fontWeight: 700, fontSize: '14px', textAlign: 'center', margin: '0 0 4px 0', color: '#1c1917' }}>{label}</p>
               <BarcodeLib value={displayCode} format="CODE128" width={1.5} height={55} displayValue fontSize={13} margin={4} />
             </div>
           </div>
-          <p className="text-xs text-stone-500 font-inter text-center">Label: {label}</p>
+          <p className="text-xs text-muted font-inter text-center">Label: {label}</p>
         </div>
-        <div className="p-4 border-t border-stone-200 bg-stone-50 flex justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 bg-white border border-stone-200 text-stone-700 font-inter font-medium text-sm rounded-lg hover:bg-stone-50 transition-colors">Cancel</button>
-          <button onClick={() => handlePrint()} className="px-5 py-2 bg-stone-900 text-white font-inter font-medium text-sm rounded-lg hover:bg-stone-800 transition-colors flex items-center gap-2">
+        <div className="p-4 border-t border-border bg-background flex justify-end gap-3">
+          <button onClick={onClose} className="px-4 py-2 bg-surface border border-border text-foreground font-inter font-medium text-sm rounded-lg hover:bg-surface-hover transition-colors">Cancel</button>
+          <button onClick={() => handlePrint()} className="px-5 py-2 bg-primary text-white font-inter font-medium text-sm rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2">
             <Printer size={15} /> Print Label
           </button>
         </div>

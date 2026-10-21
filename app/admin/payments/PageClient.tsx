@@ -172,7 +172,7 @@ export default function PaymentsPage() {
   };
 
   const getQuickSelectVariant = (rangeStart: string, rangeEnd: string) => {
-    return startDate === rangeStart && endDate === rangeEnd ? "bg-stone-900 text-white" : "bg-stone-100 text-stone-600 hover:bg-stone-200";
+    return startDate === rangeStart && endDate === rangeEnd ? "bg-primary text-white" : "bg-surface text-muted hover:text-foreground border border-border";
   };
 
   const bottomRow = (
@@ -185,23 +185,23 @@ export default function PaymentsPage() {
         <button onClick={() => handleDateQuickSelect("90days")} className={`px-3 py-1.5 rounded-md text-xs font-inter font-medium transition-colors ${getQuickSelectVariant(last90Str, todayStr)}`}>Last 90 Days</button>
       </div>
 
-      <div className="flex items-center gap-3 bg-stone-50 p-1.5 rounded-lg border border-stone-200 w-full md:w-auto">
+      <div className="flex items-center gap-3 bg-background p-1.5 rounded-lg border border-border w-full md:w-auto">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-inter text-stone-500 font-medium whitespace-nowrap pl-2">Custom Range:</span>
+          <span className="text-xs font-inter text-muted font-medium whitespace-nowrap pl-2">Custom Range:</span>
           <input 
             type="date" 
             value={startDate} 
             onChange={e => { setStartDate(e.target.value); setPage(1); }}
-            className="bg-white border border-stone-200 rounded-md py-1.5 px-2 text-xs font-inter text-stone-700 outline-none focus:ring-1 focus:ring-stone-400"
+            className="bg-surface border border-border rounded-md py-1.5 px-2 text-xs font-inter text-foreground outline-none focus:ring-1 focus:ring-primary"
           />
         </div>
-        <span className="text-stone-300">-</span>
+        <span className="text-muted">-</span>
         <div className="flex items-center gap-2">
           <input 
             type="date" 
             value={endDate} 
             onChange={e => { setEndDate(e.target.value); setPage(1); }}
-            className="bg-white border border-stone-200 rounded-md py-1.5 px-2 text-xs font-inter text-stone-700 outline-none focus:ring-1 focus:ring-stone-400"
+            className="bg-surface border border-border rounded-md py-1.5 px-2 text-xs font-inter text-foreground outline-none focus:ring-1 focus:ring-primary"
           />
         </div>
       </div>
@@ -213,26 +213,26 @@ export default function PaymentsPage() {
       <select 
         value={gateway}
         onChange={e => { setGateway(e.target.value); setPage(1); }}
-        className="bg-stone-50 border border-stone-200 rounded-lg py-2 px-3 text-sm font-inter text-stone-700 outline-none focus:ring-1 focus:ring-stone-400 max-w-[140px]"
+        className="bg-background border border-border rounded-lg py-2 px-3 text-sm font-inter text-foreground outline-none focus:ring-1 focus:ring-primary max-w-[140px]"
       >
-        <option value="">All Gateways</option>
-        <option value="COD">COD</option>
-        <option value="Koko">Koko</option>
-        <option value="Mintpay">Mintpay</option>
-        <option value="Payzy">Payzy</option>
-        <option value="OnePay">OnePay</option>
-        <option value="MANUAL">Manual POS</option>
+        <option value="" className="bg-surface text-foreground">All Gateways</option>
+        <option value="COD" className="bg-surface text-foreground">COD</option>
+        <option value="Koko" className="bg-surface text-foreground">Koko</option>
+        <option value="Mintpay" className="bg-surface text-foreground">Mintpay</option>
+        <option value="Payzy" className="bg-surface text-foreground">Payzy</option>
+        <option value="OnePay" className="bg-surface text-foreground">OnePay</option>
+        <option value="MANUAL" className="bg-surface text-foreground">Manual POS</option>
       </select>
 
       <select 
         value={status} 
         onChange={e => { setStatus(e.target.value); setPage(1); }}
-        className="bg-stone-50 border border-stone-200 rounded-lg py-2 px-3 text-sm font-inter text-stone-700 outline-none focus:ring-1 focus:ring-stone-400"
+        className="bg-background border border-border rounded-lg py-2 px-3 text-sm font-inter text-foreground outline-none focus:ring-1 focus:ring-primary"
       >
-        <option value="">All Statuses</option>
-        <option value="Paid">Paid</option>
-        <option value="Pending">Pending</option>
-        <option value="Failed">Failed</option>
+        <option value="" className="bg-surface text-foreground">All Statuses</option>
+        <option value="Paid" className="bg-surface text-foreground">Paid</option>
+        <option value="Pending" className="bg-surface text-foreground">Pending</option>
+        <option value="Failed" className="bg-surface text-foreground">Failed</option>
       </select>
     </>
   );
@@ -246,7 +246,7 @@ export default function PaymentsPage() {
       />
 
       {/* Main Tabs */}
-      <div className="flex border-b border-stone-200 mb-2">
+      <div className="flex border-b border-border mb-2">
         {mainTabs.map(tab => (
           <button 
             key={tab}
@@ -254,7 +254,7 @@ export default function PaymentsPage() {
             className={`px-6 py-3 font-inter text-sm font-medium transition-colors ${
               activeTab === tab 
                 ? "border-b-2 border-primary text-primary" 
-                : "text-stone-500 hover:text-stone-700"
+                : "text-muted hover:text-foreground"
             }`}
           >
             {tab}
@@ -271,8 +271,8 @@ export default function PaymentsPage() {
             <StatCard label="Success Rate" value={`${kpis.successRate}%`} trendType={kpis.successRate >= 90 ? "positive" : "neutral"} />
           </div>
 
-          <div className="bg-white border border-stone-200 rounded-xl p-6 shadow-sm">
-            <h3 className="font-inter font-semibold text-stone-800 mb-6 text-lg">Revenue Over Time</h3>
+          <div className="bg-surface border border-border rounded-xl p-6 shadow-sm">
+            <h3 className="font-inter font-semibold text-foreground mb-6 text-lg">Revenue Over Time</h3>
             <div className="h-[350px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={kpis.chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
@@ -286,12 +286,13 @@ export default function PaymentsPage() {
                       <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <XAxis dataKey="date" tick={{fontSize: 12, fill: '#78716c'}} axisLine={false} tickLine={false} />
-                  <YAxis tickFormatter={(val) => `Rs.${val/1000}k`} tick={{fontSize: 12, fill: '#78716c'}} axisLine={false} tickLine={false} />
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e7e5e4" />
+                  <XAxis dataKey="date" tick={{fontSize: 12, fill: '#94a3b8'}} axisLine={false} tickLine={false} />
+                  <YAxis tickFormatter={(val) => `Rs.${val/1000}k`} tick={{fontSize: 12, fill: '#94a3b8'}} axisLine={false} tickLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.15)" />
                   <Tooltip 
                     formatter={(value: any) => `Rs. ${Number(value).toLocaleString()}`}
-                    contentStyle={{ borderRadius: '8px', border: '1px solid #e7e5e4', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                    contentStyle={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--foreground)', borderRadius: '12px', boxShadow: '0 8px 16px -4px rgba(0,0,0,0.3)' }}
+                    itemStyle={{ color: 'var(--foreground)' }}
                   />
                   <Legend iconType="circle" wrapperStyle={{ fontSize: '13px', paddingTop: '10px' }} />
                   <Area type="monotone" name="Collected Revenue" dataKey="collected" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorCollected)" />

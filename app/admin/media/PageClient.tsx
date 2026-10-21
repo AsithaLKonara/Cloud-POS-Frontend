@@ -63,7 +63,7 @@ function AssignToSection({ file }: { file: MediaFile }) {
       <select
         value={destination}
         onChange={e => setDestination(e.target.value)}
-        className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm font-inter outline-none focus:border-stone-900 bg-white"
+        className="w-full border border-border rounded-lg px-3 py-2 text-sm font-inter outline-none focus:border-stone-900 bg-surface"
       >
         <option value="">Select a destination...</option>
         {ASSIGN_DESTINATIONS.map(d => (
@@ -74,7 +74,7 @@ function AssignToSection({ file }: { file: MediaFile }) {
         onClick={handleAssign}
         disabled={!destination}
         className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg font-inter font-semibold text-xs transition-all disabled:opacity-40 ${
-          assigned ? "bg-emerald-600 text-white" : "bg-stone-900 text-white hover:bg-stone-700"
+          assigned ? "bg-emerald-600 text-white" : "bg-primary text-white hover:bg-stone-700"
         }`}
       >
         {assigned ? (
@@ -84,8 +84,8 @@ function AssignToSection({ file }: { file: MediaFile }) {
         )}
       </button>
       {assigned && destination && (
-        <p className="font-inter text-xs text-stone-400 text-center">
-          Image URL copied to clipboard — open <span className="font-bold text-stone-700">{destination}</span> to paste it.
+        <p className="font-inter text-xs text-muted text-center">
+          Image URL copied to clipboard — open <span className="font-bold text-foreground">{destination}</span> to paste it.
         </p>
       )}
     </div>
@@ -98,17 +98,17 @@ function DetailPanel({ file, onClose, onDelete }: DetailPanelProps) {
   const copyUrl = () => { navigator.clipboard.writeText(file.url); setCopied(true); setTimeout(() => setCopied(false), 2000); };
 
   return (
-    <div className="fixed inset-y-0 right-0 w-full sm:w-[380px] bg-white border-l border-stone-200 shadow-2xl z-50 flex flex-col animate-in slide-in-from-right-4 duration-200">
-      <div className="flex items-center justify-between p-5 border-b border-stone-200 bg-stone-50 shrink-0">
-        <h3 className="font-inter font-bold text-stone-900 truncate pr-4">{file.name}</h3>
-        <button onClick={onClose} className="p-1.5 text-stone-400 hover:text-stone-900 hover:bg-stone-200 rounded-lg transition-colors shrink-0">
+    <div className="fixed inset-y-0 right-0 w-full sm:w-[380px] bg-surface border-l border-border shadow-2xl z-50 flex flex-col animate-in slide-in-from-right-4 duration-200">
+      <div className="flex items-center justify-between p-5 border-b border-border bg-background shrink-0">
+        <h3 className="font-inter font-bold text-foreground truncate pr-4">{file.name}</h3>
+        <button onClick={onClose} className="p-1.5 text-muted hover:text-foreground hover:bg-stone-200 rounded-lg transition-colors shrink-0">
           <X size={18} />
         </button>
       </div>
 
       <div className="flex-1 overflow-y-auto flex flex-col">
         {/* Preview */}
-        <div className="bg-stone-100 flex items-center justify-center h-56 shrink-0 relative">
+        <div className="bg-surface-elevated flex items-center justify-center h-56 shrink-0 relative">
           <Image src={file.url} alt={file.name} fill className="object-contain" />
         </div>
 
@@ -122,19 +122,19 @@ function DetailPanel({ file, onClose, onDelete }: DetailPanelProps) {
               ["Uploaded", new Date(file.uploadedAt).toLocaleDateString()],
             ].map(([label, value]) => (
               <div key={label} className="flex flex-col gap-0.5">
-                <span className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider">{label}</span>
-                <span className="text-stone-800 font-medium">{value}</span>
+                <span className="text-[10px] font-semibold text-muted uppercase tracking-wider">{label}</span>
+                <span className="text-foreground font-medium">{value}</span>
               </div>
             ))}
           </div>
 
           {file.usedIn?.length > 0 && (
-            <div className="bg-stone-50 border border-stone-200 rounded-lg p-3">
-              <p className="font-inter text-xs font-semibold text-stone-500 uppercase tracking-wider mb-2">Used In</p>
+            <div className="bg-background border border-border rounded-lg p-3">
+              <p className="font-inter text-xs font-semibold text-muted uppercase tracking-wider mb-2">Used In</p>
               <div className="flex flex-col gap-1">
                 {file.usedIn.map(u => (
-                  <span key={u} className="font-inter text-xs text-stone-700 flex items-center gap-1.5">
-                    <FolderOpen size={11} className="text-stone-400"/> {u}
+                  <span key={u} className="font-inter text-xs text-foreground flex items-center gap-1.5">
+                    <FolderOpen size={11} className="text-muted"/> {u}
                   </span>
                 ))}
               </div>
@@ -143,10 +143,10 @@ function DetailPanel({ file, onClose, onDelete }: DetailPanelProps) {
 
           {/* URL Copy */}
           <div className="flex flex-col gap-1.5">
-            <label className="font-inter text-xs font-semibold text-stone-500 uppercase tracking-wider">File URL</label>
+            <label className="font-inter text-xs font-semibold text-muted uppercase tracking-wider">File URL</label>
             <div className="flex gap-2">
-              <input readOnly value={file.url} className="flex-1 bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-xs font-mono text-stone-600 outline-none"/>
-              <button onClick={copyUrl} className={`px-3 py-2 rounded-lg font-inter font-medium text-xs transition-all flex items-center gap-1.5 shadow-sm ${copied ? 'bg-emerald-600 text-white' : 'bg-white border border-stone-200 text-stone-700 hover:bg-stone-50'}`}>
+              <input readOnly value={file.url} className="flex-1 bg-background border border-border rounded-lg px-3 py-2 text-xs font-mono text-muted outline-none"/>
+              <button onClick={copyUrl} className={`px-3 py-2 rounded-lg font-inter font-medium text-xs transition-all flex items-center gap-1.5 shadow-sm ${copied ? 'bg-emerald-600 text-white' : 'bg-surface border border-border text-foreground hover:bg-background'}`}>
                 {copied ? <CheckCircle2 size={13}/> : <Copy size={13}/>}
                 {copied ? "Copied!" : "Copy"}
               </button>
@@ -155,15 +155,15 @@ function DetailPanel({ file, onClose, onDelete }: DetailPanelProps) {
 
           {/* Assign To */}
           <div className="flex flex-col gap-1.5">
-            <label className="font-inter text-xs font-semibold text-stone-500 uppercase tracking-wider">Assign To</label>
+            <label className="font-inter text-xs font-semibold text-muted uppercase tracking-wider">Assign To</label>
             <AssignToSection file={file} />
           </div>
         </div>
       </div>
 
       {/* Actions */}
-      <div className="p-5 border-t border-stone-200 bg-white flex gap-3 shrink-0">
-        <a href={file.url} download className="flex-1 flex items-center justify-center gap-2 bg-stone-900 text-white py-2.5 rounded-lg font-inter font-medium text-sm hover:bg-stone-800 transition-colors shadow-sm">
+      <div className="p-5 border-t border-border bg-surface flex gap-3 shrink-0">
+        <a href={file.url} download className="flex-1 flex items-center justify-center gap-2 bg-primary text-white py-2.5 rounded-lg font-inter font-medium text-sm hover:bg-stone-800 transition-colors shadow-sm">
           <Download size={15}/> Download
         </a>
         <button
@@ -283,13 +283,13 @@ export default function AdminMediaPage() {
       {/* KPI Strip */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: "Total Files", value: mediaResponse?.total || files.length, color: "text-stone-900" },
+          { label: "Total Files", value: mediaResponse?.total || files.length, color: "text-foreground" },
           { label: "Images", value: files.filter((f: any) => f.type.startsWith("image")).length, color: "text-blue-600" },
           { label: "Unused Files", value: files.filter((f: any) => !f.usedIn || f.usedIn.length === 0).length, color: "text-orange-600" },
           { label: "Storage Used", value: `${(totalSize / (1024 * 1024)).toFixed(2)} MB`, color: "text-purple-600" },
         ].map(({ label, value, color }) => (
-          <div key={label} className="bg-white border border-stone-200 rounded-xl p-5 shadow-sm flex flex-col gap-1">
-            <span className="font-inter text-xs font-semibold text-stone-500 uppercase tracking-wider">{label}</span>
+          <div key={label} className="bg-surface border border-border rounded-xl p-5 shadow-sm flex flex-col gap-1">
+            <span className="font-inter text-xs font-semibold text-muted uppercase tracking-wider">{label}</span>
             <span className={`font-inter text-3xl font-black ${color}`}>{value}</span>
           </div>
         ))}
@@ -309,20 +309,20 @@ export default function AdminMediaPage() {
         onDrop={handleDrop}
         className={`border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center gap-3 transition-all ${
           isDragging
-            ? "border-stone-900 bg-stone-50 scale-[1.01]"
-            : "border-stone-200 hover:border-stone-400 hover:bg-stone-50/50"
+            ? "border-stone-900 bg-background scale-[1.01]"
+            : "border-border hover:border-stone-400 hover:bg-background/50"
         }`}
       >
         <div className="flex flex-col items-center gap-3 relative z-10 pointer-events-none">
-          <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm text-stone-400">
-            {isUploading ? <Loader2 size={24} className="animate-spin text-stone-900" /> : <Upload size={24} />}
+          <div className="w-12 h-12 bg-surface rounded-full flex items-center justify-center shadow-sm text-muted">
+            {isUploading ? <Loader2 size={24} className="animate-spin text-foreground" /> : <Upload size={24} />}
           </div>
           <div className="text-center">
-            <p className="font-inter font-bold text-stone-800">{isUploading ? "Uploading..." : "Drag & drop files here"}</p>
-            <p className="font-inter text-sm text-stone-500 mt-1">or click to browse from your computer</p>
+            <p className="font-inter font-bold text-foreground">{isUploading ? "Uploading..." : "Drag & drop files here"}</p>
+            <p className="font-inter text-sm text-muted mt-1">or click to browse from your computer</p>
           </div>
           <button 
-            className="mt-2 bg-white border border-stone-200 text-stone-700 px-5 py-2.5 rounded-lg font-inter text-sm font-medium hover:bg-stone-50 transition-colors pointer-events-auto shadow-sm disabled:opacity-50"
+            className="mt-2 bg-surface border border-border text-foreground px-5 py-2.5 rounded-lg font-inter text-sm font-medium hover:bg-background transition-colors pointer-events-auto shadow-sm disabled:opacity-50"
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
           >
@@ -335,13 +335,13 @@ export default function AdminMediaPage() {
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
         <div className="relative w-full sm:w-72">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400"/>
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted"/>
           <input
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search by filename..."
-            className="w-full h-10 pl-10 pr-4 bg-white border border-stone-200 rounded-lg outline-none focus:border-stone-900 text-sm font-inter"
+            className="w-full h-10 pl-10 pr-4 bg-surface border border-border rounded-lg outline-none focus:border-stone-900 text-sm font-inter"
           />
         </div>
 
@@ -352,7 +352,7 @@ export default function AdminMediaPage() {
               key={f}
               onClick={() => { setActiveFolder(f); setPage(1); }}
               className={`px-3 py-1.5 text-xs font-inter font-semibold rounded-lg transition-colors whitespace-nowrap ${
-                activeFolder === f ? "bg-stone-900 text-white" : "bg-white text-stone-600 border border-stone-200 hover:bg-stone-50"
+                activeFolder === f ? "bg-primary text-white" : "bg-surface text-muted border border-border hover:bg-background"
               }`}
             >
               {f}
@@ -364,15 +364,15 @@ export default function AdminMediaPage() {
           <button 
             onClick={handleSyncLocal} 
             disabled={isSyncing}
-            className="flex items-center gap-2 px-3 py-1.5 text-xs font-inter font-semibold rounded-lg transition-colors border border-stone-200 text-stone-700 hover:bg-stone-50 disabled:opacity-50"
+            className="flex items-center gap-2 px-3 py-1.5 text-xs font-inter font-semibold rounded-lg transition-colors border border-border text-foreground hover:bg-background disabled:opacity-50"
           >
             {isSyncing ? <Loader2 size={14} className="animate-spin" /> : <Cloud size={14} />}
             Sync Local
           </button>
-          <button onClick={() => setView("grid")} className={`p-2 rounded-lg border transition-colors ${view === "grid" ? "bg-stone-900 text-white border-stone-900" : "border-stone-200 text-stone-500 hover:bg-stone-50"}`}>
+          <button onClick={() => setView("grid")} className={`p-2 rounded-lg border transition-colors ${view === "grid" ? "bg-primary text-white border-stone-900" : "border-border text-muted hover:bg-background"}`}>
             <Grid size={16}/>
           </button>
-          <button onClick={() => setView("list")} className={`p-2 rounded-lg border transition-colors ${view === "list" ? "bg-stone-900 text-white border-stone-900" : "border-stone-200 text-stone-500 hover:bg-stone-50"}`}>
+          <button onClick={() => setView("list")} className={`p-2 rounded-lg border transition-colors ${view === "list" ? "bg-primary text-white border-stone-900" : "border-border text-muted hover:bg-background"}`}>
             <List size={16}/>
           </button>
         </div>
@@ -380,7 +380,7 @@ export default function AdminMediaPage() {
 
       {/* Count row */}
       <div className="flex items-center justify-between -mt-2">
-        <p className="font-inter text-sm text-stone-500">{filtered.length} file{filtered.length !== 1 ? "s" : ""}</p>
+        <p className="font-inter text-sm text-muted">{filtered.length} file{filtered.length !== 1 ? "s" : ""}</p>
         {filtered.filter(f => f.usedIn.length === 0).length > 0 && (
           <button className="font-inter text-xs text-orange-600 hover:underline flex items-center gap-1">
             <AlertCircle size={12}/> {filtered.filter(f => f.usedIn.length === 0).length} unused files
@@ -396,13 +396,13 @@ export default function AdminMediaPage() {
             return (
               <div
                 key={file.id}
-                className={`group relative bg-white border rounded-xl shadow-sm overflow-hidden cursor-pointer transition-all hover:shadow-md ${
-                  isSelected ? "border-stone-900 ring-2 ring-stone-900/20" : "border-stone-200 hover:border-stone-400"
+                className={`group relative bg-surface border rounded-xl shadow-sm overflow-hidden cursor-pointer transition-all hover:shadow-md ${
+                  isSelected ? "border-stone-900 ring-2 ring-stone-900/20" : "border-border hover:border-stone-400"
                 }`}
               >
                 {/* Thumbnail */}
                 <div
-                  className="relative aspect-square bg-stone-100 flex items-center justify-center overflow-hidden"
+                  className="relative aspect-square bg-surface-elevated flex items-center justify-center overflow-hidden"
                   onClick={() => setDetailFile(file)}
                 >
                   <Image src={file.url} alt={file.name} fill className="object-cover"/>
@@ -420,7 +420,7 @@ export default function AdminMediaPage() {
                   onClick={e => { e.stopPropagation(); toggleSelect(file.id); }}
                 >
                   <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all cursor-pointer ${
-                    isSelected ? "bg-stone-900 border-stone-900" : "bg-white/80 border-stone-300 opacity-0 group-hover:opacity-100"
+                    isSelected ? "bg-stone-900 border-stone-900" : "bg-surface/80 border-border opacity-0 group-hover:opacity-100"
                   }`}>
                     {isSelected && <CheckCircle2 size={12} className="text-white"/>}
                   </div>
@@ -428,8 +428,8 @@ export default function AdminMediaPage() {
 
                 {/* Info */}
                 <div className="p-2.5">
-                  <p className="font-inter text-xs font-semibold text-stone-800 truncate">{file.name}</p>
-                  <p className="font-inter text-[10px] text-stone-400 mt-0.5">{file.size} · {file.dimensions}</p>
+                  <p className="font-inter text-xs font-semibold text-foreground truncate">{file.name}</p>
+                  <p className="font-inter text-[10px] text-muted mt-0.5">{file.size} · {file.dimensions}</p>
                 </div>
               </div>
             );
@@ -439,24 +439,24 @@ export default function AdminMediaPage() {
 
       {/* List View */}
       {view === "list" && (
-        <div className="bg-white border border-stone-200 rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
           <table className="w-full text-left border-collapse min-w-[700px]">
             <thead>
-              <tr className="bg-stone-50 border-b border-stone-200">
+              <tr className="bg-background border-b border-border">
                 <th className="py-3 px-5 w-12">
                   <input
                     type="checkbox"
                     checked={selectedIds.length === filtered.length && filtered.length > 0}
                     onChange={e => setSelectedIds(e.target.checked ? filtered.map(f => f.id) : [])}
-                    className="rounded text-stone-900 border-stone-300"
+                    className="rounded text-foreground border-border"
                   />
                 </th>
-                <th className="font-inter text-xs font-semibold text-stone-500 uppercase tracking-wider py-3 px-3">File</th>
-                <th className="font-inter text-xs font-semibold text-stone-500 uppercase tracking-wider py-3 px-3">Folder</th>
-                <th className="font-inter text-xs font-semibold text-stone-500 uppercase tracking-wider py-3 px-3">Dimensions</th>
-                <th className="font-inter text-xs font-semibold text-stone-500 uppercase tracking-wider py-3 px-3">Size</th>
-                <th className="font-inter text-xs font-semibold text-stone-500 uppercase tracking-wider py-3 px-3">Used In</th>
-                <th className="font-inter text-xs font-semibold text-stone-500 uppercase tracking-wider py-3 px-3">Uploaded</th>
+                <th className="font-inter text-xs font-semibold text-muted uppercase tracking-wider py-3 px-3">File</th>
+                <th className="font-inter text-xs font-semibold text-muted uppercase tracking-wider py-3 px-3">Folder</th>
+                <th className="font-inter text-xs font-semibold text-muted uppercase tracking-wider py-3 px-3">Dimensions</th>
+                <th className="font-inter text-xs font-semibold text-muted uppercase tracking-wider py-3 px-3">Size</th>
+                <th className="font-inter text-xs font-semibold text-muted uppercase tracking-wider py-3 px-3">Used In</th>
+                <th className="font-inter text-xs font-semibold text-muted uppercase tracking-wider py-3 px-3">Uploaded</th>
                 <th className="py-3 px-3"></th>
               </tr>
             </thead>
@@ -464,36 +464,36 @@ export default function AdminMediaPage() {
               {filtered.map(file => {
                 const isSelected = selectedIds.includes(file.id);
                 return (
-                  <tr key={file.id} className={`hover:bg-stone-50 transition-colors ${isSelected ? "bg-stone-50" : ""}`}>
+                  <tr key={file.id} className={`hover:bg-background transition-colors ${isSelected ? "bg-background" : ""}`}>
                     <td className="py-3 px-5">
-                      <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(file.id)} className="rounded text-stone-900 border-stone-300"/>
+                      <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(file.id)} className="rounded text-foreground border-border"/>
                     </td>
                     <td className="py-3 px-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-stone-100 rounded-lg overflow-hidden shrink-0 relative">
+                        <div className="w-10 h-10 bg-surface-elevated rounded-lg overflow-hidden shrink-0 relative">
                           <Image src={file.url} alt={file.name} fill className="object-cover"/>
                         </div>
                         <div>
-                          <p className="font-inter font-semibold text-sm text-stone-900">{file.name}</p>
-                          <p className="font-inter text-xs text-stone-400 uppercase">{file.type}</p>
+                          <p className="font-inter font-semibold text-sm text-foreground">{file.name}</p>
+                          <p className="font-inter text-xs text-muted uppercase">{file.type}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="py-3 px-3 font-inter text-sm text-stone-600">{file.folder}</td>
-                    <td className="py-3 px-3 font-inter text-sm text-stone-500 font-mono text-xs">{file.dimensions}</td>
-                    <td className="py-3 px-3 font-inter text-sm text-stone-500">{file.size}</td>
+                    <td className="py-3 px-3 font-inter text-sm text-muted">{file.folder}</td>
+                    <td className="py-3 px-3 font-inter text-sm text-muted font-mono text-xs">{file.dimensions}</td>
+                    <td className="py-3 px-3 font-inter text-sm text-muted">{file.size}</td>
                     <td className="py-3 px-3">
                       {file.usedIn.length === 0 ? (
                         <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-orange-100 text-orange-700 rounded">Unused</span>
                       ) : (
-                        <span className="font-inter text-sm text-stone-600">{file.usedIn.length} place(s)</span>
+                        <span className="font-inter text-sm text-muted">{file.usedIn.length} place(s)</span>
                       )}
                     </td>
-                    <td className="py-3 px-3 font-inter text-sm text-stone-400">{file.uploadedAt}</td>
+                    <td className="py-3 px-3 font-inter text-sm text-muted">{file.uploadedAt}</td>
                     <td className="py-3 px-3">
                       <div className="flex gap-1">
-                        <button onClick={() => setDetailFile(file)} className="p-1.5 text-stone-400 hover:text-stone-900 hover:bg-stone-100 rounded-lg transition-colors"><ZoomIn size={14}/></button>
-                        <button onClick={() => deleteOne(file.id)} className="p-1.5 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={14}/></button>
+                        <button onClick={() => setDetailFile(file)} className="p-1.5 text-muted hover:text-foreground hover:bg-surface-elevated rounded-lg transition-colors"><ZoomIn size={14}/></button>
+                        <button onClick={() => deleteOne(file.id)} className="p-1.5 text-muted hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={14}/></button>
                       </div>
                     </td>
                   </tr>
@@ -502,7 +502,7 @@ export default function AdminMediaPage() {
             </tbody>
           </table>
           {filtered.length === 0 && (
-            <div className="py-16 text-center font-inter text-sm text-stone-400">No media found.</div>
+            <div className="py-16 text-center font-inter text-sm text-muted">No media found.</div>
           )}
         </div>
       )}
@@ -510,19 +510,19 @@ export default function AdminMediaPage() {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between py-4">
-          <p className="font-inter text-sm text-stone-500">Page {page} of {totalPages}</p>
+          <p className="font-inter text-sm text-muted">Page {page} of {totalPages}</p>
           <div className="flex gap-2">
             <button
               onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="px-4 py-2 border border-stone-200 bg-white rounded-lg font-inter text-sm font-medium hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 border border-border bg-surface rounded-lg font-inter text-sm font-medium hover:bg-background disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Previous
             </button>
             <button
               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
-              className="px-4 py-2 border border-stone-200 bg-white rounded-lg font-inter text-sm font-medium hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 border border-border bg-surface rounded-lg font-inter text-sm font-medium hover:bg-background disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next
             </button>
@@ -532,7 +532,7 @@ export default function AdminMediaPage() {
 
       {/* Floating Bulk Action Bar */}
       {selectedIds.length > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-stone-900 text-white px-6 py-4 rounded-full shadow-2xl flex items-center gap-6 animate-in slide-in-from-bottom-10 z-40">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-primary text-white px-6 py-4 rounded-full shadow-2xl flex items-center gap-6 animate-in slide-in-from-bottom-10 z-40">
           <span className="font-inter font-medium text-sm">{selectedIds.length} file{selectedIds.length !== 1 ? "s" : ""} selected</span>
           <div className="w-px h-6 bg-stone-700"/>
           <button
@@ -541,7 +541,7 @@ export default function AdminMediaPage() {
           >
             <Trash2 size={14}/> Delete Selected
           </button>
-          <button onClick={() => setSelectedIds([])} className="text-stone-400 hover:text-white transition-colors">
+          <button onClick={() => setSelectedIds([])} className="text-muted hover:text-white transition-colors">
             <X size={18}/>
           </button>
         </div>

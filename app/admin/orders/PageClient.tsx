@@ -288,10 +288,10 @@ export default function OrdersPage() {
 
       {/* Floating Bulk Action Bar */}
       {selectedOrders.length > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-stone-900 text-white px-6 py-4 rounded-full shadow-2xl flex items-center gap-6 animate-in slide-in-from-bottom-10 z-40">
-          <span className="font-inter font-medium text-sm">{selectedOrders.length} selected</span>
-          <div className="w-px h-6 bg-stone-700"></div>
-          <button onClick={() => setShowLabelModal(true)} className="font-inter font-semibold text-sm bg-white text-stone-900 px-4 py-2 rounded-full hover:bg-stone-100 transition-colors flex items-center gap-2">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-surface-elevated border border-border text-foreground px-6 py-4 rounded-full shadow-2xl flex items-center gap-6 animate-in slide-in-from-bottom-10 z-40">
+          <span className="font-inter font-medium text-sm text-foreground">{selectedOrders.length} selected</span>
+          <div className="w-px h-6 bg-border"></div>
+          <button onClick={() => setShowLabelModal(true)} className="font-inter font-semibold text-sm bg-primary text-white px-4 py-2 rounded-full hover:bg-primary-hover transition-colors flex items-center gap-2 shadow-sm">
             <Printer size={14} /> Print Courier Labels
           </button>
           <button onClick={() => setShowFardarModal(true)} className="font-inter font-semibold text-sm bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-500 transition-colors flex items-center gap-2">

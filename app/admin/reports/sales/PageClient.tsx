@@ -55,7 +55,7 @@ export default function SalesReportPage() {
           <select 
             value={dateRange} 
             onChange={(e) => setDateRange(e.target.value)}
-            className="h-10 px-4 border border-stone-200 rounded-lg bg-white text-sm font-inter text-stone-700 outline-none focus:border-primary"
+            className="h-10 px-4 border border-border rounded-lg bg-surface text-sm font-inter text-foreground outline-none focus:border-primary"
           >
             <option value="7">Last 7 Days</option>
             <option value="30">Last 30 Days</option>
@@ -70,28 +70,28 @@ export default function SalesReportPage() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white border border-stone-200 rounded-xl p-6">
-          <h3 className="text-sm font-medium text-stone-500 font-inter">Total Revenue</h3>
-          <p className="text-3xl font-semibold text-primary font-poppins mt-2">Rs. {data.summary.totalRevenue.toLocaleString()}</p>
+        <div className="bg-surface border border-border rounded-xl p-6">
+          <h3 className="text-sm font-medium text-muted font-inter">Total Revenue</h3>
+          <p className="text-3xl font-semibold text-foreground font-poppins mt-2">Rs. {data.summary.totalRevenue.toLocaleString()}</p>
         </div>
-        <div className="bg-white border border-stone-200 rounded-xl p-6">
-          <h3 className="text-sm font-medium text-stone-500 font-inter">Total Orders</h3>
-          <p className="text-3xl font-semibold text-primary font-poppins mt-2">{data.summary.totalOrders.toLocaleString()}</p>
+        <div className="bg-surface border border-border rounded-xl p-6">
+          <h3 className="text-sm font-medium text-muted font-inter">Total Orders</h3>
+          <p className="text-3xl font-semibold text-foreground font-poppins mt-2">{data.summary.totalOrders.toLocaleString()}</p>
         </div>
-        <div className="bg-white border border-stone-200 rounded-xl p-6">
-          <h3 className="text-sm font-medium text-stone-500 font-inter">Average Order Value (AOV)</h3>
-          <p className="text-3xl font-semibold text-primary font-poppins mt-2">Rs. {data.summary.aov.toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>
+        <div className="bg-surface border border-border rounded-xl p-6">
+          <h3 className="text-sm font-medium text-muted font-inter">Average Order Value (AOV)</h3>
+          <p className="text-3xl font-semibold text-foreground font-poppins mt-2">Rs. {data.summary.aov.toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>
         </div>
       </div>
 
       {/* Charts */}
-      <div className="bg-white border border-stone-200 rounded-xl p-6">
-        <h3 className="text-lg font-semibold text-primary font-poppins mb-6">Revenue Trend</h3>
+      <div className="bg-surface border border-border rounded-xl p-6">
+        <h3 className="text-lg font-semibold text-foreground font-poppins mb-6">Revenue Trend</h3>
         {data.dailyTrend && data.dailyTrend.length > 0 ? (
           <SalesChart data={data.dailyTrend} />
         ) : (
-          <div className="h-[400px] w-full flex items-center justify-center bg-stone-50 rounded-lg border border-dashed border-stone-200">
-            <p className="text-stone-500 font-inter font-medium">0 Data Available</p>
+          <div className="h-[400px] w-full flex items-center justify-center bg-background rounded-lg border border-dashed border-border">
+            <p className="text-muted font-inter font-medium">0 Data Available</p>
           </div>
         )}
       </div>

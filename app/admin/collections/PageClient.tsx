@@ -107,9 +107,9 @@ export default function CollectionsPage() {
           { label: "Draft", value: collections.filter(c => c.status === 'Draft').length.toString() },
           { label: "Automated", value: collections.filter(c => c.type === 'AUTOMATED').length.toString() },
         ].map((s) => (
-          <div key={s.label} className="bg-white border border-stone-200 rounded-xl p-5 shadow-sm">
-            <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider font-inter">{s.label}</p>
-            <p className="text-3xl font-bold text-stone-900 mt-1 font-inter">{s.value}</p>
+          <div key={s.label} className="bg-surface border border-border rounded-xl p-5 shadow-sm">
+            <p className="text-xs font-semibold text-muted uppercase tracking-wider font-inter">{s.label}</p>
+            <p className="text-3xl font-bold text-foreground mt-1 font-inter">{s.value}</p>
           </div>
         ))}
       </div>
@@ -126,7 +126,7 @@ export default function CollectionsPage() {
         filters={filters} 
       />
 
-      <div className="bg-white border border-stone-200 rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
         <DataTable
           data={collections}
           columns={columns}

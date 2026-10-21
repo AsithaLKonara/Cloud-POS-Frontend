@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   LayoutDashboard,
   BarChart3,
@@ -58,19 +59,19 @@ export default function SuperAdminSidebar({
     >
       {/* Brand Header */}
       <div className="h-[64px] px-5 flex items-center justify-between border-b border-[#1C2025] shrink-0">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-black font-black text-sm shadow-md">
-            X
-          </div>
-          <div className="flex flex-col">
-            <span className="text-xs font-bold tracking-tight text-white leading-tight">
-              XONIT SPACE
-            </span>
-            <span className="text-[10px] text-zinc-500 font-medium">
-              Admin Dashboard
-            </span>
-          </div>
-        </div>
+        <Link href="/superadmin" className="flex items-center gap-2 group">
+          <Image
+            src="/logo/xonit-white-trimmed.png"
+            alt="XONIT SPACE"
+            width={110}
+            height={26}
+            className="h-6 w-auto object-contain brightness-110 group-hover:opacity-90 transition-opacity"
+            priority
+          />
+          <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-violet-500/10 text-violet-400 border border-violet-500/30 uppercase tracking-wider">
+            SPACE
+          </span>
+        </Link>
         {setIsOpen && (
           <button
             onClick={() => setIsOpen(false)}

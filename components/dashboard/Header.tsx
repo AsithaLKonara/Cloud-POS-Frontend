@@ -21,6 +21,7 @@ import { useAuthStore } from "@/store/auth.store";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import Link from "next/link";
+import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
 
 export default function Header({ onMenuClick, session }: { onMenuClick?: () => void, session?: any }) {
@@ -74,6 +75,18 @@ export default function Header({ onMenuClick, session }: { onMenuClick?: () => v
             <Menu size={20} />
           </button>
         )}
+
+        {/* Mobile Brand Logo */}
+        <Link href="/admin" className="md:hidden flex items-center pr-1">
+          <Image
+            src="/logo/xonit-white-trimmed.png"
+            alt="XONIT POS"
+            width={85}
+            height={20}
+            className="h-5 w-auto object-contain dark:brightness-100 dark:invert-0 brightness-0"
+            priority
+          />
+        </Link>
 
         <div className="flex items-center gap-2">
           <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-semibold">

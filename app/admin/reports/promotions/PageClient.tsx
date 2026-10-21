@@ -61,7 +61,7 @@ export default function PromotionsReportPage() {
           <select 
             value={dateRange} 
             onChange={(e) => setDateRange(e.target.value)}
-            className="h-10 px-4 border border-stone-200 rounded-lg bg-white text-sm font-inter text-stone-700 outline-none focus:border-primary"
+            className="h-10 px-4 border border-border rounded-lg bg-surface text-sm font-inter text-foreground outline-none focus:border-primary"
           >
             <option value="7">Last 7 Days</option>
             <option value="30">Last 30 Days</option>
@@ -74,61 +74,61 @@ export default function PromotionsReportPage() {
         </div>
       </div>
 
-      <div className="bg-white border border-stone-200 rounded-xl p-6">
-        <h3 className="text-lg font-semibold text-primary font-poppins mb-6">Promotions Utilization</h3>
+      <div className="bg-surface border border-border rounded-xl p-6">
+        <h3 className="text-lg font-semibold text-foreground font-poppins mb-6">Promotions Utilization</h3>
         {chartData.some(d => d.Issued > 0 || d.Used > 0) ? (
           <PromotionsChart data={chartData} />
         ) : (
-          <div className="h-[300px] w-full flex items-center justify-center bg-stone-50 rounded-lg border border-dashed border-stone-200">
-            <p className="text-stone-500 font-inter font-medium">0 Data Available</p>
+          <div className="h-[300px] w-full flex items-center justify-center bg-background rounded-lg border border-dashed border-border">
+            <p className="text-muted font-inter font-medium">0 Data Available</p>
           </div>
         )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Vouchers Block */}
-        <div className="bg-white border border-stone-200 rounded-xl p-6 relative overflow-hidden flex flex-col gap-6">
+        <div className="bg-surface border border-border rounded-xl p-6 relative overflow-hidden flex flex-col gap-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-stone-100 flex items-center justify-center text-stone-600">
+            <div className="w-10 h-10 rounded-lg bg-surface-elevated flex items-center justify-center text-foreground">
               <Tag size={20} />
             </div>
-            <h3 className="text-lg font-semibold text-stone-900 font-poppins">Exchange Vouchers</h3>
+            <h3 className="text-lg font-semibold text-foreground font-poppins">Exchange Vouchers</h3>
           </div>
           
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-stone-50 p-4 rounded-lg">
-              <p className="text-sm font-medium text-stone-500 font-inter">Issued</p>
-              <p className="text-2xl font-semibold text-primary font-poppins mt-1">{data.vouchers.issued.toLocaleString()}</p>
+            <div className="bg-background border border-border p-4 rounded-lg">
+              <p className="text-sm font-medium text-muted font-inter">Issued</p>
+              <p className="text-2xl font-semibold text-foreground font-poppins mt-1">{data.vouchers.issued.toLocaleString()}</p>
             </div>
-            <div className="bg-stone-50 p-4 rounded-lg">
-              <p className="text-sm font-medium text-stone-500 font-inter">Redeemed</p>
-              <p className="text-2xl font-semibold text-emerald-600 font-poppins mt-1">{data.vouchers.used.toLocaleString()}</p>
+            <div className="bg-background border border-border p-4 rounded-lg">
+              <p className="text-sm font-medium text-muted font-inter">Redeemed</p>
+              <p className="text-2xl font-semibold text-emerald-500 font-poppins mt-1">{data.vouchers.used.toLocaleString()}</p>
             </div>
           </div>
           
-          <div className="bg-stone-900 text-white p-5 rounded-lg">
-             <p className="text-sm font-medium font-inter text-stone-300">Outstanding Financial Liability</p>
-             <p className="text-3xl font-semibold font-poppins mt-2">Rs. {data.vouchers.outstandingLiability.toLocaleString()}</p>
+          <div className="bg-surface-elevated border border-border p-5 rounded-lg">
+             <p className="text-sm font-medium font-inter text-muted">Outstanding Financial Liability</p>
+             <p className="text-3xl font-semibold font-poppins mt-2 text-foreground">Rs. {data.vouchers.outstandingLiability.toLocaleString()}</p>
           </div>
         </div>
 
         {/* Coupons Block */}
-        <div className="bg-white border border-stone-200 rounded-xl p-6 relative overflow-hidden flex flex-col gap-6">
+        <div className="bg-surface border border-border rounded-xl p-6 relative overflow-hidden flex flex-col gap-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-stone-100 flex items-center justify-center text-stone-600">
+            <div className="w-10 h-10 rounded-lg bg-surface-elevated flex items-center justify-center text-foreground">
               <Tag size={20} />
             </div>
-            <h3 className="text-lg font-semibold text-stone-900 font-poppins">Discount Coupons</h3>
+            <h3 className="text-lg font-semibold text-foreground font-poppins">Discount Coupons</h3>
           </div>
           
           <div className="grid grid-cols-1 gap-4">
-            <div className="bg-stone-50 p-4 rounded-lg">
-              <p className="text-sm font-medium text-stone-500 font-inter">Total Coupons Created</p>
-              <p className="text-2xl font-semibold text-primary font-poppins mt-1">{data.coupons.issued.toLocaleString()}</p>
+            <div className="bg-background border border-border p-4 rounded-lg">
+              <p className="text-sm font-medium text-muted font-inter">Total Coupons Created</p>
+              <p className="text-2xl font-semibold text-foreground font-poppins mt-1">{data.coupons.issued.toLocaleString()}</p>
             </div>
-            <div className="bg-stone-50 p-4 rounded-lg">
-              <p className="text-sm font-medium text-stone-500 font-inter">Total Redemptions</p>
-              <p className="text-2xl font-semibold text-primary font-poppins mt-1">{data.coupons.totalUsages.toLocaleString()}</p>
+            <div className="bg-background border border-border p-4 rounded-lg">
+              <p className="text-sm font-medium text-muted font-inter">Total Redemptions</p>
+              <p className="text-2xl font-semibold text-foreground font-poppins mt-1">{data.coupons.totalUsages.toLocaleString()}</p>
             </div>
           </div>
         </div>

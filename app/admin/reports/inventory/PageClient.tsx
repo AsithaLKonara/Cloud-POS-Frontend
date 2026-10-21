@@ -47,19 +47,19 @@ export default function InventoryReportPage() {
       </div>
 
       {/* Global Valuation Card */}
-      <div className="bg-white border border-stone-200 rounded-xl p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-surface border border-border rounded-xl p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h3 className="text-sm font-medium text-stone-500 font-inter uppercase tracking-wider">Total Global Retail Valuation</h3>
-          <p className="text-4xl font-semibold text-primary font-poppins mt-2">Rs. {data.totalGlobalValuation.toLocaleString()}</p>
+          <h3 className="text-sm font-medium text-muted font-inter uppercase tracking-wider">Total Global Retail Valuation</h3>
+          <p className="text-4xl font-semibold text-foreground font-poppins mt-2">Rs. {data.totalGlobalValuation.toLocaleString()}</p>
         </div>
-        <div className="w-full md:w-px md:h-16 bg-stone-200"></div>
+        <div className="w-full md:w-px md:h-16 bg-border"></div>
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-red-500">
+          <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center text-red-500">
             <AlertTriangle size={24} />
           </div>
           <div>
-            <p className="text-2xl font-semibold text-primary font-poppins">{data.lowStockItems.length}</p>
-            <p className="text-sm font-medium text-stone-500 font-inter">Low Stock SKUs Global</p>
+            <p className="text-2xl font-semibold text-foreground font-poppins">{data.lowStockItems.length}</p>
+            <p className="text-sm font-medium text-muted font-inter">Low Stock SKUs Global</p>
           </div>
         </div>
       </div>
@@ -67,34 +67,34 @@ export default function InventoryReportPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Valuations Table & Chart */}
         <div className="lg:col-span-2 flex flex-col gap-8">
-          <div className="bg-white border border-stone-200 rounded-xl p-6 lg:col-span-1">
-          <h3 className="text-lg font-semibold text-primary font-poppins mb-6">Valuation Distribution</h3>
+          <div className="bg-surface border border-border rounded-xl p-6 lg:col-span-1">
+          <h3 className="text-lg font-semibold text-foreground font-poppins mb-6">Valuation Distribution</h3>
           {data.branchValuations && data.branchValuations.length > 0 ? (
             <InventoryChart data={data.branchValuations} />
           ) : (
-            <div className="h-[300px] w-full flex items-center justify-center bg-stone-50 rounded-lg border border-dashed border-stone-200">
-              <p className="text-stone-500 font-inter font-medium">0 Data Available</p>
+            <div className="h-[300px] w-full flex items-center justify-center bg-background rounded-lg border border-dashed border-border">
+              <p className="text-muted font-inter font-medium">0 Data Available</p>
             </div>
           )}
         </div>
 
-          <div className="bg-white border border-stone-200 rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-primary font-poppins mb-6">Valuation by Branch</h3>
+          <div className="bg-surface border border-border rounded-xl p-6">
+            <h3 className="text-lg font-semibold text-foreground font-poppins mb-6">Valuation by Branch</h3>
             <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-stone-200">
-                  <th className="py-3 font-medium text-stone-500 font-inter text-sm">Branch</th>
-                  <th className="py-3 font-medium text-stone-500 font-inter text-sm text-right">Total Items</th>
-                  <th className="py-3 font-medium text-stone-500 font-inter text-sm text-right">Retail Valuation</th>
+                <tr className="border-b border-border">
+                  <th className="py-3 font-medium text-muted font-inter text-sm">Branch</th>
+                  <th className="py-3 font-medium text-muted font-inter text-sm text-right">Total Items</th>
+                  <th className="py-3 font-medium text-muted font-inter text-sm text-right">Retail Valuation</th>
                 </tr>
               </thead>
               <tbody>
                 {data.branchValuations.map((row, idx) => (
-                  <tr key={idx} className="border-b border-stone-100 last:border-0">
-                    <td className="py-4 font-medium text-stone-900 font-poppins text-sm">{row.branchName}</td>
-                    <td className="py-4 text-stone-600 font-inter text-sm text-right">{row.totalItems.toLocaleString()}</td>
-                    <td className="py-4 text-stone-900 font-poppins font-semibold text-sm text-right">Rs. {row.valuation.toLocaleString()}</td>
+                  <tr key={idx} className="border-b border-border/50 last:border-0">
+                    <td className="py-4 font-medium text-foreground font-poppins text-sm">{row.branchName}</td>
+                    <td className="py-4 text-muted font-inter text-sm text-right">{row.totalItems.toLocaleString()}</td>
+                    <td className="py-4 text-foreground font-poppins font-semibold text-sm text-right">Rs. {row.valuation.toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>
@@ -104,20 +104,20 @@ export default function InventoryReportPage() {
         </div>
 
         {/* Low Stock Alerts */}
-        <div className="bg-white border border-stone-200 rounded-xl p-6 flex flex-col h-[500px]">
-          <h3 className="text-lg font-semibold text-primary font-poppins mb-6 flex items-center gap-2">
-            Low Stock Alerts <span className="px-2 py-0.5 bg-red-100 text-red-600 text-xs rounded-full">{data.lowStockItems.length}</span>
+        <div className="bg-surface border border-border rounded-xl p-6 flex flex-col h-[500px]">
+          <h3 className="text-lg font-semibold text-foreground font-poppins mb-6 flex items-center gap-2">
+            Low Stock Alerts <span className="px-2 py-0.5 bg-red-500/10 text-red-500 text-xs rounded-full">{data.lowStockItems.length}</span>
           </h3>
           <div className="flex-1 overflow-y-auto pr-2 space-y-4">
             {data.lowStockItems.length === 0 ? (
-              <div className="text-center text-stone-500 text-sm py-10">No low stock items!</div>
+              <div className="text-center text-muted text-sm py-10">No low stock items!</div>
             ) : (
               data.lowStockItems.map((item, idx) => (
-                <div key={idx} className="p-4 border border-red-100 bg-red-50/50 rounded-lg">
-                  <p className="font-poppins font-medium text-stone-900 text-sm mb-1">{item.productName}</p>
+                <div key={idx} className="p-4 border border-red-500/20 bg-red-500/5 rounded-lg">
+                  <p className="font-poppins font-medium text-foreground text-sm mb-1">{item.productName}</p>
                   <div className="flex items-center justify-between mt-2">
-                    <span className="text-xs font-inter text-stone-500">{item.branchName}</span>
-                    <span className="text-xs font-inter font-medium text-red-600 bg-red-100 px-2 py-1 rounded">
+                    <span className="text-xs font-inter text-muted">{item.branchName}</span>
+                    <span className="text-xs font-inter font-medium text-red-400 bg-red-500/10 px-2 py-1 rounded">
                       {item.quantity} left (Threshold: {item.threshold})
                     </span>
                   </div>

@@ -53,20 +53,20 @@ export default function CustomersPage() {
       <select 
         value={typeFilter}
         onChange={e => { setTypeFilter(e.target.value); setPage(1); }}
-        className="bg-stone-50 border border-stone-200 rounded-lg py-2 px-3 text-sm font-inter text-stone-700 outline-none focus:ring-1 focus:ring-stone-400"
+        className="bg-background border border-border rounded-lg py-2 px-3 text-sm font-inter text-foreground outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors cursor-pointer"
       >
-        <option value="">All Types</option>
-        <option value="Registered">Registered</option>
-        <option value="Guest">Guest</option>
+        <option value="" className="bg-surface text-foreground">All Types</option>
+        <option value="Registered" className="bg-surface text-foreground">Registered</option>
+        <option value="Guest" className="bg-surface text-foreground">Guest</option>
       </select>
       <select 
         value={sortFilter}
         onChange={e => { setSortFilter(e.target.value); setPage(1); }}
-        className="bg-stone-50 border border-stone-200 rounded-lg py-2 px-3 text-sm font-inter text-stone-700 outline-none focus:ring-1 focus:ring-stone-400"
+        className="bg-background border border-border rounded-lg py-2 px-3 text-sm font-inter text-foreground outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors cursor-pointer"
       >
-        <option value="Sort By: Newest">Sort By: Newest</option>
-        <option value="Sort By: Highest Spend">Sort By: Highest Spend</option>
-        <option value="Sort By: Most Orders">Sort By: Most Orders</option>
+        <option value="Sort By: Newest" className="bg-surface text-foreground">Sort By: Newest</option>
+        <option value="Sort By: Highest Spend" className="bg-surface text-foreground">Sort By: Highest Spend</option>
+        <option value="Sort By: Most Orders" className="bg-surface text-foreground">Sort By: Most Orders</option>
       </select>
     </>
   );

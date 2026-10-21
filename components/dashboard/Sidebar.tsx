@@ -94,7 +94,7 @@ export default function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean, setIs
       items: [
         { name: "Access Control (RBAC)", icon: Shield, href: "/admin/system/roles", permission: ["system:manage_roles", "system:manage_users"] },
         { name: "Staff Management", icon: UserCog, href: "/admin/system/users", permission: "system:manage_users" },
-        { name: "System Settings", icon: Settings, href: "/admin/system/settings", permission: "system:platform_settings" },
+        { name: "Tenant Settings", icon: Settings, href: "/admin/settings", permission: "system:platform_settings" },
         { name: "Audit Trail", icon: FileText, href: "/admin/system/audit", permission: "system:view_audit_logs" },
       ]
     }
@@ -113,6 +113,25 @@ export default function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean, setIs
     items: group.items.filter(item => checkPermission(item.permission))
   })).filter(group => group.items.length > 0);
 
+  // Compute the single best-matching active navigation item
+  const allNavItems = React.useMemo(() => visibleGroups.flatMap(group => group.items), [visibleGroups]);
+  const activeHref = React.useMemo(() => {
+    if (!pathname) return null;
+    const cleanPath = pathname.endsWith("/") && pathname !== "/" ? pathname.slice(0, -1) : pathname;
+
+    const matchingItems = allNavItems.filter(item => {
+      const cleanHref = item.href.endsWith("/") && item.href !== "/" ? item.href.slice(0, -1) : item.href;
+      if (cleanHref === "/admin") {
+        return cleanPath === "/admin";
+      }
+      return cleanPath === cleanHref || cleanPath.startsWith(cleanHref + "/");
+    });
+
+    if (matchingItems.length === 0) return null;
+    matchingItems.sort((a, b) => b.href.length - a.href.length);
+    return matchingItems[0].href;
+  }, [pathname, allNavItems]);
+
   const primaryRole = user?.roles?.[0] || "Staff User";
   const userIsSuper = isSuperAdmin() || user?.email === "admin@xonit.space";
 
@@ -120,18 +139,18 @@ export default function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean, setIs
     <aside className={`fixed left-0 top-0 bottom-0 w-[240px] bg-surface border-r border-border flex flex-col z-50 transition-transform duration-300 md:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
       {/* Logo Area */}
       <div className="h-[64px] flex items-center justify-between px-5 border-b border-border shrink-0 bg-surface">
-        <Link href="/admin" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-500 shadow-sm font-black text-sm">
-            X
-          </div>
-          <div className="flex flex-col">
-            <span className="font-inter font-bold tracking-wider text-foreground text-xs uppercase leading-none">
-              XONIT POS
-            </span>
-            <span className="font-inter text-[10px] text-muted tracking-wide mt-0.5">
-              Cloud Multi-Tenant
-            </span>
-          </div>
+        <Link href="/admin" className="flex items-center gap-2.5 group">
+          <Image
+            src="/logo/xonit-white-trimmed.png"
+            alt="XONIT POS"
+            width={110}
+            height={26}
+            className="h-6 w-auto object-contain dark:brightness-100 dark:invert-0 brightness-0 transition-opacity group-hover:opacity-85"
+            priority
+          />
+          <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 uppercase tracking-wider">
+            POS
+          </span>
         </Link>
         {setIsOpen && (
           <button className="md:hidden text-muted hover:text-foreground p-1 rounded-lg" onClick={() => setIsOpen(false)}>
@@ -173,9 +192,7 @@ export default function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean, setIs
               <div className="flex flex-col gap-0.5">
                 {group.items.map((item) => {
                   const Icon = item.icon;
-                  const isActive = item.href === "/admin" 
-                    ? pathname === "/admin" 
-                    : pathname?.startsWith(item.href);
+                  const isActive = activeHref === item.href;
 
                   return (
                     <Link

@@ -143,6 +143,30 @@ export const tenantService = {
   },
 
   /**
+   * Retrieve current authenticated tenant details.
+   */
+  async getCurrentTenant() {
+    const { data } = await api.get<{ success: boolean; data: TenantSummary }>('/tenants/current');
+    return data.data;
+  },
+
+  /**
+   * Update full tenant settings, profile, and quotas.
+   */
+  async updateTenant(id: string, payload: Partial<TenantSummary>) {
+    const { data } = await api.put<{ success: boolean; data: TenantSummary }>('/tenants/' + id, payload);
+    return data.data;
+  },
+
+  /**
+   * Update current authenticated tenant settings.
+   */
+  async updateCurrentTenant(payload: Partial<TenantSummary>) {
+    const { data } = await api.put<{ success: boolean; data: TenantSummary }>('/tenants/current', payload);
+    return data.data;
+  },
+
+  /**
    * Retrieve platform-wide SaaS KPIs and health overview.
    */
   async getPlatformOverview() {

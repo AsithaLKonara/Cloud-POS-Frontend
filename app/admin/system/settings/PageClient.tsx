@@ -123,75 +123,75 @@ export default function SettingsPage() {
         <div className="w-full md:w-64 shrink-0 flex flex-col space-y-1">
           <button 
             onClick={() => setActiveTab("general")}
-            className={`text-left px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === "general" ? "bg-stone-100 text-stone-900" : "text-stone-600 hover:bg-stone-50"}`}
+            className={`text-left px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === "general" ? "bg-primary text-white" : "text-muted hover:bg-surface-elevated hover:text-foreground"}`}
           >
             General Information
           </button>
           <button 
             onClick={() => setActiveTab("currency")}
-            className={`text-left px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === "currency" ? "bg-stone-100 text-stone-900" : "text-stone-600 hover:bg-stone-50"}`}
+            className={`text-left px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === "currency" ? "bg-primary text-white" : "text-muted hover:bg-surface-elevated hover:text-foreground"}`}
           >
             Currency & Tax
           </button>
           <button 
             onClick={() => setActiveTab("shipping")}
-            className={`text-left px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === "shipping" ? "bg-stone-100 text-stone-900" : "text-stone-600 hover:bg-stone-50"}`}
+            className={`text-left px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === "shipping" ? "bg-primary text-white" : "text-muted hover:bg-surface-elevated hover:text-foreground"}`}
           >
             Shipping Settings
           </button>
           <button 
             onClick={() => setActiveTab("payment")}
-            className={`text-left px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === "payment" ? "bg-stone-100 text-stone-900" : "text-stone-600 hover:bg-stone-50"}`}
+            className={`text-left px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === "payment" ? "bg-primary text-white" : "text-muted hover:bg-surface-elevated hover:text-foreground"}`}
           >
             Payment Gateways
           </button>
           <button 
             onClick={() => setActiveTab("notifications")}
-            className={`text-left px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === "notifications" ? "bg-stone-100 text-stone-900" : "text-stone-600 hover:bg-stone-50"}`}
+            className={`text-left px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === "notifications" ? "bg-primary text-white" : "text-muted hover:bg-surface-elevated hover:text-foreground"}`}
           >
             Notifications
           </button>
           <button 
             onClick={() => setActiveTab("advanced")}
-            className={`text-left px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === "advanced" ? "bg-stone-100 text-stone-900" : "text-stone-600 hover:bg-stone-50"}`}
+            className={`text-left px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === "advanced" ? "bg-primary text-white" : "text-muted hover:bg-surface-elevated hover:text-foreground"}`}
           >
             Advanced Custom Settings
           </button>
         </div>
 
-        <div className="flex-1 bg-white border border-stone-200 rounded-xl p-8 shadow-sm">
+        <div className="flex-1 bg-surface border border-border rounded-xl p-8 shadow-sm">
           {activeTab !== "advanced" ? (
             <form onSubmit={handleSubmit(onSubmit)}>
               {activeTab === "general" && (
                 <>
-                  <h3 className="text-lg font-semibold font-poppins text-stone-900 mb-6">General Information</h3>
+                  <h3 className="text-lg font-semibold font-poppins text-foreground mb-6">General Information</h3>
                   <div className="space-y-6 max-w-2xl">
                     <div>
-                      <label className="block text-sm font-medium text-stone-700 mb-1">Store Name</label>
+                      <label className="block text-sm font-medium text-foreground mb-1">Store Name</label>
                       <input 
                         type="text" 
                         {...register("store_name")}
-                        className="w-full h-10 px-3 border border-stone-300 rounded-md outline-none focus:border-stone-900 focus:ring-1 focus:ring-stone-900 text-sm font-inter" 
+                        className="w-full h-10 px-3 border border-border rounded-md outline-none focus:border-primary text-sm font-inter bg-background text-foreground" 
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-stone-700 mb-1">Support Email</label>
+                      <label className="block text-sm font-medium text-foreground mb-1">Support Email</label>
                       <input 
                         type="email" 
                         {...register("support_email")}
-                        className="w-full h-10 px-3 border border-stone-300 rounded-md outline-none focus:border-stone-900 focus:ring-1 focus:ring-stone-900 text-sm font-inter" 
+                        className="w-full h-10 px-3 border border-border rounded-md outline-none focus:border-primary text-sm font-inter bg-background text-foreground" 
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-stone-700 mb-1">Support Phone</label>
+                      <label className="block text-sm font-medium text-foreground mb-1">Support Phone</label>
                       <input 
                         type="text" 
                         {...register("support_phone")}
-                        className="w-full h-10 px-3 border border-stone-300 rounded-md outline-none focus:border-stone-900 focus:ring-1 focus:ring-stone-900 text-sm font-inter" 
+                        className="w-full h-10 px-3 border border-border rounded-md outline-none focus:border-primary text-sm font-inter bg-background text-foreground" 
                       />
                     </div>
-                    <div className="pt-4 border-t border-stone-100 flex justify-end">
-                      <button type="submit" disabled={updateSettings.isPending} className="px-6 py-2 bg-stone-900 hover:bg-stone-800 transition-colors text-white text-sm font-medium rounded-md shadow-sm disabled:opacity-50">
+                    <div className="pt-4 border-t border-border flex justify-end">
+                      <button type="submit" disabled={updateSettings.isPending} className="px-6 py-2 bg-primary hover:bg-primary-hover transition-colors text-white text-sm font-medium rounded-md shadow-sm disabled:opacity-50">
                         {updateSettings.isPending ? "Saving..." : "Save Changes"}
                       </button>
                     </div>
@@ -201,13 +201,13 @@ export default function SettingsPage() {
 
               {activeTab === "currency" && (
                 <>
-                  <h3 className="text-lg font-semibold font-poppins text-stone-900 mb-6">Currency & Tax</h3>
+                  <h3 className="text-lg font-semibold font-poppins text-foreground mb-6">Currency & Tax</h3>
                   <div className="space-y-6 max-w-2xl">
                     <div>
-                      <label className="block text-sm font-medium text-stone-700 mb-1">Default Currency</label>
+                      <label className="block text-sm font-medium text-foreground mb-1">Default Currency</label>
                       <select 
                         {...register("default_currency")}
-                        className="w-full h-10 px-3 border border-stone-300 rounded-md outline-none focus:border-stone-900 focus:ring-1 focus:ring-stone-900 text-sm font-inter bg-white"
+                        className="w-full h-10 px-3 border border-border rounded-md outline-none focus:border-primary text-sm font-inter bg-background text-foreground"
                       >
                         <option value="LKR">Sri Lankan Rupee (LKR)</option>
                         <option value="USD">US Dollar (USD)</option>
@@ -354,11 +354,11 @@ export default function SettingsPage() {
                     />
                   </div>
                   <div className="w-32">
-                    <label className="block text-xs font-medium text-stone-500 mb-1">Type</label>
+                    <label className="block text-xs font-medium text-muted mb-1">Type</label>
                     <select 
                       value={newType}
                       onChange={(e) => setNewType(e.target.value)}
-                      className="w-full h-10 px-3 border border-stone-300 rounded-md outline-none focus:border-stone-900 focus:ring-1 focus:ring-stone-900 text-sm font-inter bg-white"
+                      className="w-full h-10 px-3 border border-border rounded-md outline-none focus:border-primary text-sm font-inter bg-background text-foreground"
                     >
                       <option value="string">String</option>
                       <option value="number">Number</option>

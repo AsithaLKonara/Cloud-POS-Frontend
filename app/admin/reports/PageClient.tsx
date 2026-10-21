@@ -35,13 +35,13 @@ export default function ReportsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
         {reportCards.map((report, idx) => {
           const content = (
-            <div className="bg-white border border-stone-200 rounded-xl p-6 hover:shadow-md transition-shadow cursor-pointer group h-full flex flex-col">
-              <div className="w-12 h-12 bg-stone-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition-colors text-stone-600">
+            <div className="bg-surface border border-border rounded-xl p-6 hover:shadow-md transition-shadow cursor-pointer group h-full flex flex-col">
+              <div className="w-12 h-12 bg-background rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition-colors text-muted">
                 <report.icon size={24} />
               </div>
-              <h3 className="text-lg font-semibold font-poppins text-stone-900 mb-2">{report.title}</h3>
-              <p className="text-sm font-inter text-stone-500 flex-1">{report.description}</p>
-              <div className="mt-4 pt-4 border-t border-stone-100 text-sm font-medium font-inter text-primary flex items-center gap-2">
+              <h3 className="text-lg font-semibold font-poppins text-foreground mb-2">{report.title}</h3>
+              <p className="text-sm font-inter text-muted flex-1">{report.description}</p>
+              <div className="mt-4 pt-4 border-t border-border text-sm font-medium font-inter text-primary flex items-center gap-2">
                 View Reports &rarr;
               </div>
             </div>

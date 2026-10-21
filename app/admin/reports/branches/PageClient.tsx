@@ -54,7 +54,7 @@ export default function BranchReportPage() {
           <select 
             value={dateRange} 
             onChange={(e) => setDateRange(e.target.value)}
-            className="h-10 px-4 border border-stone-200 rounded-lg bg-white text-sm font-inter text-stone-700 outline-none focus:border-primary"
+            className="h-10 px-4 border border-border rounded-lg bg-surface text-sm font-inter text-foreground outline-none focus:border-primary"
           >
             <option value="7">Last 7 Days</option>
             <option value="30">Last 30 Days</option>
@@ -69,19 +69,19 @@ export default function BranchReportPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {data.map((branch) => (
-          <div key={branch.branchId} className="bg-white border border-stone-200 rounded-xl p-5 relative overflow-hidden">
+          <div key={branch.branchId} className="bg-surface border border-border rounded-xl p-5 relative overflow-hidden">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-lg bg-stone-100 flex items-center justify-center text-stone-600">
+              <div className="w-10 h-10 rounded-lg bg-surface-elevated flex items-center justify-center text-foreground">
                 <Building2 size={20} />
               </div>
               <div>
-                <h4 className="font-semibold text-stone-900 font-poppins text-sm">{branch.branchName}</h4>
-                <span className="text-xs text-stone-500 font-inter px-2 py-0.5 bg-stone-100 rounded-full">{branch.type}</span>
+                <h4 className="font-semibold text-foreground font-poppins text-sm">{branch.branchName}</h4>
+                <span className="text-xs text-muted font-inter px-2 py-0.5 bg-surface-elevated rounded-full">{branch.type}</span>
               </div>
             </div>
             <div className="space-y-1">
-              <p className="text-2xl font-semibold text-primary font-poppins">Rs. {branch.revenue.toLocaleString()}</p>
-              <p className="text-xs text-stone-500 font-inter">{branch.orders} Total Orders</p>
+              <p className="text-2xl font-semibold text-foreground font-poppins">Rs. {branch.revenue.toLocaleString()}</p>
+              <p className="text-xs text-muted font-inter">{branch.orders} Total Orders</p>
             </div>
             <div 
               className="absolute bottom-0 left-0 h-1 bg-accent" 
@@ -91,13 +91,13 @@ export default function BranchReportPage() {
         ))}
       </div>
 
-      <div className="bg-white border border-stone-200 rounded-xl p-6">
-        <h3 className="text-lg font-semibold text-primary font-poppins mb-6">Revenue by Branch</h3>
+      <div className="bg-surface border border-border rounded-xl p-6">
+        <h3 className="text-lg font-semibold text-foreground font-poppins mb-6">Revenue by Branch</h3>
         {data && data.length > 0 ? (
           <BranchesChart data={data} />
         ) : (
-          <div className="h-[300px] w-full flex items-center justify-center bg-stone-50 rounded-lg border border-dashed border-stone-200">
-            <p className="text-stone-500 font-inter font-medium">0 Data Available</p>
+          <div className="h-[300px] w-full flex items-center justify-center bg-background rounded-lg border border-dashed border-border">
+            <p className="text-muted font-inter font-medium">0 Data Available</p>
           </div>
         )}
       </div>
