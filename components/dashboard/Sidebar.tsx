@@ -90,11 +90,11 @@ export default function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean, setIs
       ]
     },
     {
-      label: "System & Security",
+      label: "System & Settings",
       items: [
+        { name: "Tenant Settings", icon: Settings, href: "/admin/settings" },
         { name: "Access Control (RBAC)", icon: Shield, href: "/admin/system/roles", permission: ["system:manage_roles", "system:manage_users"] },
         { name: "Staff Management", icon: UserCog, href: "/admin/system/users", permission: "system:manage_users" },
-        { name: "Tenant Settings", icon: Settings, href: "/admin/settings", permission: "system:platform_settings" },
         { name: "Audit Trail", icon: FileText, href: "/admin/system/audit", permission: "system:view_audit_logs" },
       ]
     }
@@ -229,13 +229,22 @@ export default function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean, setIs
             <span className="font-inter text-xs text-muted truncate">{primaryRole}</span>
           </div>
         </div>
-        <button 
-          onClick={() => useAuthStore.getState().logout('/login')}
-          className="p-2 text-muted hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors ml-1 shrink-0"
-          title="Sign Out"
-        >
-          <LogOut size={18} />
-        </button>
+        <div className="flex items-center gap-1 shrink-0 ml-1">
+          <Link
+            href="/admin/settings"
+            className="p-2 text-muted hover:text-foreground hover:bg-background rounded-lg transition-colors"
+            title="Tenant Settings"
+          >
+            <Settings size={18} />
+          </Link>
+          <button 
+            onClick={() => useAuthStore.getState().logout('/login')}
+            className="p-2 text-muted hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+            title="Sign Out"
+          >
+            <LogOut size={18} />
+          </button>
+        </div>
       </div>
     </aside>
   );

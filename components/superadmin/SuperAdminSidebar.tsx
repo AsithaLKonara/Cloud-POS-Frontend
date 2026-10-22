@@ -191,6 +191,17 @@ export default function SuperAdminSidebar({
             </div>
             <ChevronRight size={13} className="text-zinc-600" />
           </Link>
+
+          <Link
+            href="/admin/settings"
+            className="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-zinc-400 hover:text-zinc-200 hover:bg-[#131518] transition-all"
+          >
+            <div className="flex items-center gap-2.5">
+              <Settings size={15} className="text-zinc-500" />
+              <span>Tenant Settings</span>
+            </div>
+            <ChevronRight size={13} className="text-zinc-600" />
+          </Link>
         </div>
 
         {/* Promo / Platform Status Card */}
