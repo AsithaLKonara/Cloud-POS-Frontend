@@ -33,6 +33,8 @@ import {
   LogOut,
   Globe,
   Sparkles,
+  Cpu,
+  KeyRound,
 } from "lucide-react";
 
 interface NavItem {
@@ -93,6 +95,8 @@ export default function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean, setIs
       label: "System & Settings",
       items: [
         { name: "Tenant Settings", icon: Settings, href: "/admin/settings" },
+        { name: "External Integrations", icon: Cpu, href: "/admin/settings/integrations" },
+        { name: "Headless Developer API", icon: KeyRound, href: "/admin/settings/developer-api" },
         { name: "Access Control (RBAC)", icon: Shield, href: "/admin/system/roles", permission: ["system:manage_roles", "system:manage_users"] },
         { name: "Staff Management", icon: UserCog, href: "/admin/system/users", permission: "system:manage_users" },
         { name: "Audit Trail", icon: FileText, href: "/admin/system/audit", permission: "system:view_audit_logs" },

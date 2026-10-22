@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { useCurrentTenant, useUpdateCurrentTenant, useTenantUsage } from "@/hooks/useTenantSettings";
 import { toast } from "@/store/toast.store";
+import { SettingsNavTabs } from "@/components/settings/SettingsNavTabs";
 
 export default function TenantSettingsPageClient() {
   const [activeTab, setActiveTab] = useState<"general" | "regional" | "receipts" | "plan" | "integrations">("general");
@@ -137,6 +138,9 @@ export default function TenantSettingsPageClient() {
 
   return (
     <div className="flex flex-col p-4 md:p-8 max-w-[1280px] mx-auto w-full gap-6">
+      {/* Settings Breadcrumbs & Navigation Tabs */}
+      <SettingsNavTabs />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-border">
         <div>
