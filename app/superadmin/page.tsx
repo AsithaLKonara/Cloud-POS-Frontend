@@ -376,7 +376,7 @@ export default function SuperAdminDashboard() {
                       className="h-9 px-3.5 rounded-lg bg-white hover:bg-zinc-200 text-black font-semibold text-xs flex items-center gap-1.5 transition-all shadow-sm"
                     >
                       <Plus size={14} className="stroke-[2.5]" />
-                      <span>New Sale</span>
+                      <span>Provision Tenant</span>
                     </button>
 
                     <button
@@ -384,7 +384,7 @@ export default function SuperAdminDashboard() {
                       className="h-9 px-3.5 rounded-lg bg-[#141619] hover:bg-[#1A1D21] border border-[#2B3037] text-zinc-200 text-xs font-medium flex items-center gap-1.5 transition-colors"
                     >
                       <SlidersHorizontal size={13} className="text-zinc-400" />
-                      <span>Actions</span>
+                      <span>Record Expense</span>
                     </button>
                   </div>
                 </div>
