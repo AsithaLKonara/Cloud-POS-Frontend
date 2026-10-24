@@ -70,11 +70,13 @@ export const registerSchema = z.object({
     .regex(/[a-z]/, "Password must contain at least one lowercase letter")
     .regex(/[0-9]/, "Password must contain at least one number")
     .regex(/[!@#$%^&*(),.?":{}|<>]/, "Password must contain at least one special character"),
+  businessName: z.string().optional().or(z.literal("")),
+  businessType: z.string().optional().or(z.literal("")),
   birthday: z.string().optional().or(z.literal("")),
-  phone: z.string().regex(/^0\d{9}$/, "Phone number must be 10 digits starting with 0").optional().or(z.literal("")),
+  phone: z.string().optional().or(z.literal("")),
   _honeypot: z.string().optional(),
   turnstileToken: z.string().optional(),
-}).strict();
+});
 
 export type RegisterFormData = z.infer<typeof registerSchema>;
 
@@ -83,12 +85,16 @@ export const forgotPasswordSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   _honeypot: z.string().optional(),
   turnstileToken: z.string().optional(),
-}).strict();
+});
 
 export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
-export const changePasswordSchema = z
+// Reset Password Schema with OTP Verification
+export const resetPasswordSchema = z
   .object({
+    email: z.string().email("Please enter a valid email address"),
+    otp: z.string().min(6, "Verification code must be 6 digits"),
+    resetToken: z.string().optional(),
     password: z.string()
       .min(12, "Password must be at least 12 characters")
       .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
@@ -98,7 +104,25 @@ export const changePasswordSchema = z
     confirmPassword: z.string(),
     _honeypot: z.string().optional(),
     turnstileToken: z.string().optional(),
-  }).strict()
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
+
+export const changePasswordSchema = z
+  .object({
+    password: z.string()
+      .min(8, "Password must be at least 8 characters")
+      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+      .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+      .regex(/[0-9]/, "Password must contain at least one number"),
+    confirmPassword: z.string(),
+    _honeypot: z.string().optional(),
+    turnstileToken: z.string().optional(),
+  })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
     path: ["confirmPassword"],

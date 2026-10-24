@@ -23,6 +23,8 @@ export interface RegisterPayload {
   password: string;
   fullName?: string;
   name?: string;
+  businessName?: string;
+  businessType?: string;
   birthday?: string | null;
   phone?: string | null;
   /** Cloudflare Turnstile CAPTCHA token — required in production */
@@ -49,6 +51,21 @@ export const authService = {
   async login(payload: LoginPayload): Promise<AuthResponse> {
     const res = await api.post("/auth/login", payload);
     return res.data.data;
+  },
+
+  async forgotPassword(email: string): Promise<{ success: boolean; message: string; data?: any }> {
+    const res = await api.post("/auth/forgot-password", { email });
+    return res.data;
+  },
+
+  async resetPassword(payload: {
+    email?: string;
+    resetToken?: string;
+    otp?: string;
+    newPassword: string;
+  }): Promise<{ success: boolean; message: string }> {
+    const res = await api.post("/auth/reset-password", payload);
+    return res.data;
   },
 
   async getMe(): Promise<UserProfile> {
