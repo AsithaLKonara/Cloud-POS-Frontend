@@ -47,6 +47,11 @@ interface NavItem {
 export default function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean, setIsOpen?: (v: boolean) => void }) {
   const pathname = usePathname();
   const { user, hasPermission, hasRole, isSuperAdmin } = useAuthStore();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const getInitials = (name?: string | null) => {
     if (!name) return "US";
@@ -165,7 +170,7 @@ export default function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean, setIs
 
       {/* Navigation (Permanently Expanded Categories) */}
       <div className="flex-1 overflow-y-auto py-4 px-3 flex flex-col gap-4 scrollbar-thin">
-        {userIsSuper && (
+        {mounted && userIsSuper && (
           <div className="mb-1">
             <Link
               href="/superadmin"
@@ -225,12 +230,12 @@ export default function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean, setIs
       {/* User Profile Footer */}
       <div className="p-4 border-t border-border shrink-0 bg-surface flex items-center justify-between">
         <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-background transition-colors border border-transparent hover:border-border min-w-0 flex-1">
-          <div className="w-8 h-8 rounded-full bg-foreground flex items-center justify-center text-white font-poppins font-semibold text-sm shadow-sm shrink-0">
+          <div className="w-8 h-8 rounded-full bg-foreground flex items-center justify-center text-white font-poppins font-semibold text-sm shadow-sm shrink-0" suppressHydrationWarning>
             {getInitials(user?.name)}
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="font-inter font-semibold text-sm text-foreground leading-tight truncate">{user?.name || "Staff Member"}</span>
-            <span className="font-inter text-xs text-muted truncate">{primaryRole}</span>
+            <span className="font-inter font-semibold text-sm text-foreground leading-tight truncate" suppressHydrationWarning>{user?.name || "Staff Member"}</span>
+            <span className="font-inter text-xs text-muted truncate" suppressHydrationWarning>{primaryRole}</span>
           </div>
         </div>
         <div className="flex items-center gap-1 shrink-0 ml-1">

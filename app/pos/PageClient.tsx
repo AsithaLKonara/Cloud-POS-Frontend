@@ -62,6 +62,11 @@ export default function POSPage() {
   const router = useRouter();
   const { user } = useAuthStore();
   const { theme, toggleTheme } = useTheme();
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   const [terminalId, setTerminalId] = useState("TERM-001");
   useEffect(() => {
@@ -384,23 +389,31 @@ export default function POSPage() {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <span className="text-stone-400">Branch:</span>
-            <span className="text-white">
-              {activeSession?.branch?.name || 
-               user?.branch?.name || 
-               (branches?.find((b: any) => b.id === branchId)?.name) || 
-               (branchesResponse === undefined ? "Loading..." : "Unknown Branch")}
+            <span className="text-white" suppressHydrationWarning>
+              {!mounted
+                ? "Loading..."
+                : (activeSession?.branch?.name || 
+                   user?.branch?.name || 
+                   (branches?.find((b: any) => b.id === branchId)?.name) || 
+                   (branchesResponse === undefined ? "Loading..." : "Unknown Branch"))}
             </span>
           </div>
           <div className="w-px h-3 bg-stone-700"></div>
           <div className="flex items-center gap-2">
             <span className="text-stone-400">Terminal:</span>
-            <span className="text-white">{activeSession?.terminal?.name || terminalId}</span>
+            <span className="text-white" suppressHydrationWarning>
+              {!mounted ? "TERM-001" : (activeSession?.terminal?.name || terminalId)}
+            </span>
           </div>
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <span className="text-stone-400">Cashier:</span>
-            <span className="text-white">{activeSession?.user?.firstName ? `${activeSession.user.firstName} ${activeSession.user.lastName}` : (user?.name || "User")}</span>
+            <span className="text-white" suppressHydrationWarning>
+              {!mounted
+                ? "User"
+                : (activeSession?.user?.firstName ? `${activeSession.user.firstName} ${activeSession.user.lastName}` : (user?.name || "User"))}
+            </span>
           </div>
           <div className="w-px h-3 bg-stone-700"></div>
           <button 
