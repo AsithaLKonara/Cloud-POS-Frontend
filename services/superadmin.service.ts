@@ -63,19 +63,50 @@ export interface TenantRegistryItem {
 
 export interface ClusterTelemetry {
   database: {
-    status: 'HEALTHY' | 'DEGRADED';
+    status: 'HEALTHY' | 'DEGRADED' | 'ONLINE' | 'OFFLINE';
     latencyMs: number;
   };
   redis: {
-    status: 'ONLINE' | 'OFFLINE';
+    status: 'ONLINE' | 'OFFLINE' | 'DEGRADED';
     latencyMs: number;
   };
+  cpu?: {
+    cores: number;
+    model: string;
+    loadAvg: {
+      '1m': number;
+      '5m': number;
+      '15m': number;
+    };
+    usagePercentage: number;
+  };
+  memory?: {
+    totalMb: number;
+    usedMb: number;
+    freeMb: number;
+    percentage: number;
+    processRssMb: number;
+    processHeapUsedMb: number;
+  };
+  disk?: {
+    totalGb: number;
+    usedGb: number;
+    freeGb: number;
+    percentage: number;
+  };
+  alerts?: Array<{
+    severity: 'WARNING' | 'CRITICAL' | 'INFO';
+    title: string;
+    message: string;
+    timestamp: string;
+  }>;
   schedulers: Array<{
     name: string;
     schedule: string;
     status: 'ACTIVE';
   }>;
   uptimeSeconds: number;
+  uptimeFormatted?: string;
 }
 
 export interface MonthlyAnalyticsSeriesItem {

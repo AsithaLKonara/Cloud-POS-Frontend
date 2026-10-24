@@ -1,4 +1,55 @@
-import { NodePrintClient } from '@asithakonara/node-print-client';
+/**
+ * Standard Native Thermal Printing & Hardware Client
+ * Zero external dependencies. Communicates with standard local thermal print daemons
+ * (127.0.0.1:18181 or local network print servers) and supports native browser print.
+ */
+
+export interface PrintJobPayload {
+  printer?: string;
+  type: 'raw' | 'text';
+  data: string; // Base64 ESC/POS payload
+}
+
+export class ThermalPrintBridgeClient {
+  private url: string;
+
+  constructor(options: { url?: string } = {}) {
+    this.url = options.url || 'http://127.0.0.1:18181';
+  }
+
+  async listPrinters(): Promise<Array<{ name: string; isDefault?: boolean }>> {
+    const res = await fetch(`${this.url}/printers`, {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' },
+      signal: AbortSignal.timeout(2000),
+    });
+    if (!res.ok) throw new Error(`Bridge returned HTTP ${res.status}`);
+    const body = await res.json();
+    return body.data || body.printers || [];
+  }
+
+  async print(payload: PrintJobPayload): Promise<{ success: boolean; message?: string }> {
+    const res = await fetch(`${this.url}/print`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!res.ok) throw new Error(`Print failed with HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  async openDrawer(pin: 2 | 5 = 2): Promise<{ success: boolean }> {
+    const res = await fetch(`${this.url}/cash-drawer/open`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pin }),
+      signal: AbortSignal.timeout(3000),
+    });
+    if (!res.ok) throw new Error(`Cash drawer kick failed`);
+    return await res.json();
+  }
+}
 
 export interface ReceiptItem {
   name: string;
@@ -66,12 +117,12 @@ export interface CustomerDisplayState {
 }
 
 class HardwareService {
-  private client: NodePrintClient;
+  private client: ThermalPrintBridgeClient;
   private bridgeUrl: string = 'http://127.0.0.1:18181';
   private displayChannel: BroadcastChannel | null = null;
 
   constructor() {
-    this.client = new NodePrintClient({ url: this.bridgeUrl });
+    this.client = new ThermalPrintBridgeClient({ url: this.bridgeUrl });
     if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
       this.displayChannel = new BroadcastChannel('xonit_pos_customer_display');
     }
@@ -79,7 +130,7 @@ class HardwareService {
 
   setBridgeUrl(url: string) {
     this.bridgeUrl = url;
-    this.client = new NodePrintClient({ url });
+    this.client = new ThermalPrintBridgeClient({ url });
   }
 
   /**
@@ -88,7 +139,7 @@ class HardwareService {
   async checkBridgeHealth(): Promise<{ online: boolean; printers: string[]; latencyMs: number }> {
     const start = Date.now();
     try {
-      const printers = await this.client.printers.list();
+      const printers = await this.client.listPrinters();
       return {
         online: true,
         printers: printers.map((p) => p.name || 'Thermal Printer'),
@@ -236,7 +287,7 @@ class HardwareService {
    */
   async kickCashDrawer(pin: 2 | 5 = 2): Promise<boolean> {
     try {
-      await this.client.cashDrawer.open({ pin });
+      await this.client.openDrawer(pin);
       return true;
     } catch {
       // Fallback pulse payload: ESC p m t1 t2
@@ -251,7 +302,7 @@ class HardwareService {
         await this.client.print({
           type: 'raw',
           data: base64Data,
-        } as any);
+        });
         return true;
       } catch {
         return false;

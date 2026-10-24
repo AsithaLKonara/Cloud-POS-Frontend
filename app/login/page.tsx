@@ -310,7 +310,7 @@ export default function LoginPage() {
               <span>Banking Grade SSL & Tenant Isolation</span>
             </span>
             <span>•</span>
-            <span>Node-Print Client Ready</span>
+            <span>Hardware POS Printing Ready</span>
           </div>
           <span className="font-ibm text-xs text-[#00C987]">v2.4.0-ENTERPRISE</span>
         </div>

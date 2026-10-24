@@ -125,7 +125,7 @@ export default function HardwareSettingsModal({ onClose }: HardwareSettingsModal
               />
               <div>
                 <div className="text-sm font-semibold flex items-center gap-2">
-                  <span>node-print Local Bridge</span>
+                  <span>Thermal Print Bridge</span>
                   <span className="text-xs px-2 py-0.5 rounded-full bg-stone-800 text-stone-300 font-mono">
                     127.0.0.1:18181
                   </span>
