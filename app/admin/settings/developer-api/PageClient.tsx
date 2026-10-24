@@ -25,6 +25,7 @@ import {
 import { useCurrentTenant } from "@/hooks/useTenantSettings";
 import { apiKeyService, ApiKeyItem, CreateApiKeyDto } from "@/services/apiKey.service";
 import { SettingsNavTabs } from "@/components/settings/SettingsNavTabs";
+import { HeadlessApiDocs } from "@/components/settings/HeadlessApiDocs";
 import { toast } from "@/store/toast.store";
 
 const AVAILABLE_SCOPES = [
@@ -63,8 +64,6 @@ export default function DeveloperApiPageClient() {
   // One-time secret display dialog
   const [createdSecretData, setCreatedSecretData] = useState<{ clientId: string; secretKey: string; name: string } | null>(null);
 
-  // Quickstart tab
-  const [activeCodeTab, setActiveCodeTab] = useState<"curl" | "nextjs" | "flutter">("curl");
 
   const loadKeys = async () => {
     if (!tenant?.id) return;
@@ -343,134 +342,8 @@ export default function DeveloperApiPageClient() {
         )}
       </div>
 
-      {/* Interactive Developer Quickstart & Endpoints */}
-      <div className="p-6 rounded-2xl bg-surface border border-border shadow-sm flex flex-col gap-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h2 className="text-base font-bold text-foreground font-poppins flex items-center gap-2">
-              <Terminal size={18} className="text-primary" />
-              Integration Quickstarts & Code Samples
-            </h2>
-            <p className="text-xs text-muted font-inter mt-0.5">
-              Ready-to-use snippets for your external storefront or mobile application.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-1.5 bg-background p-1 rounded-xl border border-border">
-            <button
-              type="button"
-              onClick={() => setActiveCodeTab("curl")}
-              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
-                activeCodeTab === "curl" ? "bg-primary text-white shadow-sm" : "text-muted hover:text-foreground"
-              }`}
-            >
-              cURL
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveCodeTab("nextjs")}
-              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
-                activeCodeTab === "nextjs" ? "bg-primary text-white shadow-sm" : "text-muted hover:text-foreground"
-              }`}
-            >
-              Next.js / TS
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveCodeTab("flutter")}
-              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
-                activeCodeTab === "flutter" ? "bg-primary text-white shadow-sm" : "text-muted hover:text-foreground"
-              }`}
-            >
-              Flutter Dart
-            </button>
-          </div>
-        </div>
-
-        {/* Code Block Container */}
-        <div className="relative rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800 text-zinc-100 font-mono text-xs p-4 shadow-inner">
-          <button
-            type="button"
-            onClick={() => {
-              const code = activeCodeTab === "curl" ? curlSnippet(activeClientId) : activeCodeTab === "nextjs" ? nextjsSnippet(activeClientId) : flutterSnippet(activeClientId);
-              copyToClipboard(code, "code-snippet");
-            }}
-            className="absolute top-3 right-3 px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white flex items-center gap-1.5 transition-all text-[11px]"
-          >
-            {copiedId === "code-snippet" ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
-            <span>{copiedId === "code-snippet" ? "Copied" : "Copy Code"}</span>
-          </button>
-
-          <pre className="overflow-x-auto pr-24 leading-relaxed font-mono">
-            {activeCodeTab === "curl" && curlSnippet(activeClientId)}
-            {activeCodeTab === "nextjs" && nextjsSnippet(activeClientId)}
-            {activeCodeTab === "flutter" && flutterSnippet(activeClientId)}
-          </pre>
-        </div>
-
-        {/* REST API Endpoints Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
-          <div className="p-3.5 rounded-xl bg-background border border-border">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
-                GET
-              </span>
-              <span className="text-xs font-bold text-foreground font-mono">/headless/catalog/products</span>
-            </div>
-            <p className="text-[11px] text-muted font-inter">Live catalog with real-time stock balances across all branches.</p>
-          </div>
-
-          <div className="p-3.5 rounded-xl bg-background border border-border">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-500/10 text-blue-500 border border-blue-500/20">
-                POST
-              </span>
-              <span className="text-xs font-bold text-foreground font-mono">/headless/checkout/calculate</span>
-            </div>
-            <p className="text-[11px] text-muted font-inter">Calculate subtotal, regional taxes, promos & shipping fees.</p>
-          </div>
-
-          <div className="p-3.5 rounded-xl bg-background border border-border">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20">
-                POST
-              </span>
-              <span className="text-xs font-bold text-foreground font-mono">/headless/orders</span>
-            </div>
-            <p className="text-[11px] text-muted font-inter">Submit orders atomically with inventory reservation & webhook triggers.</p>
-          </div>
-
-          <div className="p-3.5 rounded-xl bg-background border border-border">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-purple-500/10 text-purple-500 border border-purple-500/20">
-                POST
-              </span>
-              <span className="text-xs font-bold text-foreground font-mono">/headless/auth/login</span>
-            </div>
-            <p className="text-[11px] text-muted font-inter">Storefront customer session login returning customer JWT.</p>
-          </div>
-
-          <div className="p-3.5 rounded-xl bg-background border border-border">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-pink-500/10 text-pink-500 border border-pink-500/20">
-                POST
-              </span>
-              <span className="text-xs font-bold text-foreground font-mono">/headless/payments/payhere/initiate</span>
-            </div>
-            <p className="text-[11px] text-muted font-inter">Generates PayHere hash and payment payload using encrypted vault credentials.</p>
-          </div>
-
-          <div className="p-3.5 rounded-xl bg-background border border-border">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
-                GET
-              </span>
-              <span className="text-xs font-bold text-foreground font-mono">/headless/payments/gateways</span>
-            </div>
-            <p className="text-[11px] text-muted font-inter">Returns enabled gateways (PayHere, Koko, LankaQR) for checkout selection.</p>
-          </div>
-        </div>
-      </div>
+      {/* Comprehensive End-to-End Headless Developer Documentation & Interactive API Reference */}
+      <HeadlessApiDocs clientId={keys[0]?.clientId || "xcl_live_sample_client_id"} />
 
       {/* CREATE API KEY MODAL */}
       {isCreateModalOpen && (
@@ -660,109 +533,4 @@ export default function DeveloperApiPageClient() {
       )}
     </div>
   );
-}
-
-function curlSnippet(clientId: string) {
-  return `# 1. Fetch Storefront Catalog with Live Branch Inventory
-curl -X GET "https://api.xonit.space/api/v1/headless/catalog/products" \\
-  -H "x-client-id: ${clientId}" \\
-  -H "x-api-key: xak_live_YOUR_SECRET"
-
-# 2. Real-Time Cart Subtotal, Tax & Shipping Calculation
-curl -X POST "https://api.xonit.space/api/v1/headless/checkout/calculate" \\
-  -H "x-client-id: ${clientId}" \\
-  -H "x-api-key: xak_live_YOUR_SECRET" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "items": [{"productId": "PROD-101", "quantity": 2, "unitPrice": 4500}],
-    "deliveryZone": "COLOMBO_METRO"
-  }'
-
-# 3. Direct Headless Order Placement
-curl -X POST "https://api.xonit.space/api/v1/headless/orders" \\
-  -H "x-client-id: ${clientId}" \\
-  -H "x-api-key: xak_live_YOUR_SECRET" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "customer": {
-      "name": "Kamal Perera",
-      "email": "kamal@example.com",
-      "phone": "+94771234567"
-    },
-    "items": [{"productId": "PROD-101", "quantity": 2, "unitPrice": 4500}],
-    "paymentMethod": "PAYHERE"
-  }'`;
-}
-
-function nextjsSnippet(clientId: string) {
-  return `// lib/xonit.ts - Typescript Headless Client
-const XONIT_API_URL = process.env.XONIT_API_URL || "https://api.xonit.space/api/v1/headless";
-const CLIENT_ID = process.env.XONIT_CLIENT_ID || "${clientId}";
-const API_KEY = process.env.XONIT_API_KEY || "xak_live_...";
-
-export async function fetchHeadlessProducts() {
-  const res = await fetch(\`\${XONIT_API_URL}/catalog/products\`, {
-    headers: {
-      "x-client-id": CLIENT_ID,
-      "x-api-key": API_KEY,
-    },
-    next: { revalidate: 60 } // Next.js ISR cache
-  });
-  const data = await res.json();
-  return data.data;
-}
-
-export async function placeHeadlessOrder(cartData: any) {
-  const res = await fetch(\`\${XONIT_API_URL}/orders\`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-client-id": CLIENT_ID,
-      "x-api-key": API_KEY,
-    },
-    body: JSON.stringify(cartData)
-  });
-  return res.json();
-}`;
-}
-
-function flutterSnippet(clientId: string) {
-  return `// lib/services/xonit_service.dart - Flutter / Dart SDK
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-
-class XonitService {
-  static const String baseUrl = 'https://api.xonit.space/api/v1/headless';
-  static const String clientId = '${clientId}';
-  static const String apiKey = 'xak_live_YOUR_SECRET';
-
-  static Map<String, String> get headers => {
-    'Content-Type': 'application/json',
-    'x-client-id': clientId,
-    'x-api-key': apiKey,
-  };
-
-  // Fetch products
-  static Future<List<dynamic>> getProducts() async {
-    final response = await http.get(
-      Uri.parse('\$baseUrl/catalog/products'),
-      headers: headers,
-    );
-    if (response.statusCode == 200) {
-      final json = jsonDecode(response.body);
-      return json['data'];
-    }
-    throw Exception('Failed to load products');
-  }
-
-  // Calculate cart checkout
-  static Future<Map<String, dynamic>> calculateCheckout(Map<String, dynamic> cart) async {
-    final response = await http.post(
-      Uri.parse('\$baseUrl/checkout/calculate'),
-      headers: headers,
-      body: jsonEncode(cart),
-    );
-    return jsonDecode(response.body)['data'];
-  }
-}`;
 }

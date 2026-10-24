@@ -1,5 +1,13 @@
 import { api } from './api';
 
+export interface OnePayConfig {
+  enabled: boolean;
+  appId: string;
+  appToken?: string;
+  hashSalt?: string;
+  isSandbox: boolean;
+}
+
 export interface PayHereConfig {
   enabled: boolean;
   merchantId: string;
@@ -58,8 +66,18 @@ export interface DomexConfig {
   accountNumber?: string;
 }
 
+export interface FardarConfig {
+  enabled: boolean;
+  apiKey?: string;
+  merchantCode?: string;
+  pickupBranch?: string;
+  serviceType?: string;
+  isSandbox?: boolean;
+}
+
 export interface TenantIntegrations {
   paymentGateways: {
+    onepay?: OnePayConfig;
     payhere: PayHereConfig;
     koko: KokoConfig;
     webxpay: WebXPayConfig;
@@ -70,6 +88,7 @@ export interface TenantIntegrations {
     koombiyo: KoombiyoConfig;
     promptx: PromptXConfig;
     domex: DomexConfig;
+    fardar?: FardarConfig;
   };
 }
 
@@ -81,7 +100,7 @@ export const integrationService = {
 
   async updatePaymentGateway(
     tenantId: string,
-    gateway: 'payhere' | 'koko' | 'webxpay' | 'lankaQr' | 'bankTransfer',
+    gateway: 'onepay' | 'payhere' | 'koko' | 'webxpay' | 'lankaQr' | 'bankTransfer',
     config: any
   ): Promise<TenantIntegrations> {
     const res = await api.put(`/integrations/${tenantId}/payments/${gateway}`, config);
@@ -90,7 +109,7 @@ export const integrationService = {
 
   async updateCourier(
     tenantId: string,
-    courier: 'koombiyo' | 'promptx' | 'domex',
+    courier: 'koombiyo' | 'promptx' | 'domex' | 'fardar',
     config: any
   ): Promise<TenantIntegrations> {
     const res = await api.put(`/integrations/${tenantId}/couriers/${courier}`, config);

@@ -35,6 +35,14 @@ export default function IntegrationsPageClient() {
   const [showSecret, setShowSecret] = useState<Record<string, boolean>>({});
 
   // Local editable form states
+  const [onepayForm, setOnepayForm] = useState({
+    enabled: false,
+    appId: "",
+    appToken: "",
+    hashSalt: "",
+    isSandbox: true,
+  });
+
   const [payhereForm, setPayhereForm] = useState({
     enabled: false,
     merchantId: "",
@@ -84,6 +92,15 @@ export default function IntegrationsPageClient() {
     accountNumber: "",
   });
 
+  const [fardarForm, setFardarForm] = useState({
+    enabled: false,
+    apiKey: "",
+    merchantCode: "",
+    pickupBranch: "",
+    serviceType: "STANDARD",
+    isSandbox: true,
+  });
+
   const loadData = async () => {
     if (!tenant?.id) return;
     try {
@@ -93,6 +110,15 @@ export default function IntegrationsPageClient() {
 
       if (data?.paymentGateways) {
         const pg = data.paymentGateways;
+        if (pg.onepay) {
+          setOnepayForm({
+            enabled: !!pg.onepay.enabled,
+            appId: pg.onepay.appId || "",
+            appToken: pg.onepay.appToken || "",
+            hashSalt: pg.onepay.hashSalt || "",
+            isSandbox: pg.onepay.isSandbox ?? true,
+          });
+        }
         if (pg.payhere) {
           setPayhereForm({
             enabled: !!pg.payhere.enabled,
@@ -153,6 +179,16 @@ export default function IntegrationsPageClient() {
             accountNumber: c.domex.accountNumber || "",
           });
         }
+        if (c.fardar) {
+          setFardarForm({
+            enabled: !!c.fardar.enabled,
+            apiKey: c.fardar.apiKey || "",
+            merchantCode: c.fardar.merchantCode || "",
+            pickupBranch: c.fardar.pickupBranch || "",
+            serviceType: c.fardar.serviceType || "STANDARD",
+            isSandbox: c.fardar.isSandbox ?? true,
+          });
+        }
       }
     } catch (err: any) {
       console.error("Failed to load integrations", err);
@@ -170,7 +206,10 @@ export default function IntegrationsPageClient() {
     }
   }, [tenant?.id, tenantLoading]);
 
-  const handleSavePayment = async (gateway: "payhere" | "koko" | "webxpay" | "lankaQr", formState: any) => {
+  const handleSavePayment = async (
+    gateway: "onepay" | "payhere" | "koko" | "webxpay" | "lankaQr",
+    formState: any
+  ) => {
     if (!tenant?.id) return;
     try {
       setSavingProvider(gateway);
@@ -184,7 +223,10 @@ export default function IntegrationsPageClient() {
     }
   };
 
-  const handleSaveCourier = async (courier: "koombiyo" | "promptx" | "domex", formState: any) => {
+  const handleSaveCourier = async (
+    courier: "koombiyo" | "promptx" | "domex" | "fardar",
+    formState: any
+  ) => {
     if (!tenant?.id) return;
     try {
       setSavingProvider(courier);
@@ -286,7 +328,7 @@ export default function IntegrationsPageClient() {
           }`}
         >
           <CreditCard size={15} />
-          <span>Payment Gateways (5)</span>
+          <span>Payment Gateways (6)</span>
         </button>
 
         <button
@@ -299,13 +341,165 @@ export default function IntegrationsPageClient() {
           }`}
         >
           <Truck size={15} />
-          <span>Couriers & Logistics (3)</span>
+          <span>Couriers & Logistics (4)</span>
         </button>
       </div>
 
       {/* PAYMENT GATEWAYS SECTION */}
       {activeCategory === "payments" && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* OnePay Payment Gateway */}
+          <div className="p-6 rounded-2xl bg-surface border border-border flex flex-col justify-between shadow-sm relative overflow-hidden group">
+            <div className="space-y-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 font-black font-poppins text-lg">
+                    1P
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-base font-bold text-foreground font-poppins">OnePay Gateway</h3>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${onepayForm.isSandbox ? "bg-amber-500/10 text-amber-500 border border-amber-500/20" : "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"}`}>
+                        {onepayForm.isSandbox ? "Sandbox" : "Live"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted font-inter mt-0.5">
+                      Visa, Mastercard, LankaQR, FriMi, Genie, eZ Cash & Direct Bank
+                    </p>
+                  </div>
+                </div>
+
+                <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={onepayForm.enabled}
+                    onChange={(e) => setOnepayForm({ ...onepayForm, enabled: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-10 h-5 bg-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                </label>
+              </div>
+
+              <div className="space-y-3 pt-2">
+                <div>
+                  <label className="text-[11px] font-semibold text-foreground/80 mb-1 block">OnePay App ID</label>
+                  <input
+                    type="text"
+                    value={onepayForm.appId}
+                    onChange={(e) => setOnepayForm({ ...onepayForm, appId: e.target.value })}
+                    placeholder="e.g. 100029384"
+                    className="w-full h-9 bg-background border border-border rounded-xl px-3 text-xs text-foreground font-mono outline-none focus:border-primary transition-all"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[11px] font-semibold text-foreground/80">App Token / API Key</label>
+                    <span className="text-[10px] text-muted flex items-center gap-1 font-mono">
+                      <Lock size={10} className="text-emerald-500" /> AES-256 Encrypted
+                    </span>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type={showSecret["onepay_token"] ? "text" : "password"}
+                      value={onepayForm.appToken}
+                      onChange={(e) => setOnepayForm({ ...onepayForm, appToken: e.target.value })}
+                      placeholder="Enter OnePay App Token"
+                      className="w-full h-9 bg-background border border-border rounded-xl pl-3 pr-10 text-xs text-foreground font-mono outline-none focus:border-primary transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => toggleShowSecret("onepay_token")}
+                      className="absolute right-2.5 top-2 text-muted hover:text-foreground"
+                    >
+                      {showSecret["onepay_token"] ? <EyeOff size={14} /> : <Eye size={14} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[11px] font-semibold text-foreground/80">Hash Salt (Signature Verification)</label>
+                    <span className="text-[10px] text-muted flex items-center gap-1 font-mono">
+                      <Lock size={10} className="text-emerald-500" /> SHA-256 Verification
+                    </span>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type={showSecret["onepay_salt"] ? "text" : "password"}
+                      value={onepayForm.hashSalt}
+                      onChange={(e) => setOnepayForm({ ...onepayForm, hashSalt: e.target.value })}
+                      placeholder="Enter Hash Salt from OnePay portal"
+                      className="w-full h-9 bg-background border border-border rounded-xl pl-3 pr-10 text-xs text-foreground font-mono outline-none focus:border-primary transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => toggleShowSecret("onepay_salt")}
+                      className="absolute right-2.5 top-2 text-muted hover:text-foreground"
+                    >
+                      {showSecret["onepay_salt"] ? <EyeOff size={14} /> : <Eye size={14} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-xs text-muted font-inter">Environment Mode</span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setOnepayForm({ ...onepayForm, isSandbox: true })}
+                      className={`px-3 py-1 text-xs rounded-lg font-medium transition-all ${
+                        onepayForm.isSandbox ? "bg-amber-500/20 text-amber-500 font-bold border border-amber-500/30" : "text-muted hover:text-foreground"
+                      }`}
+                    >
+                      Sandbox
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setOnepayForm({ ...onepayForm, isSandbox: false })}
+                      className={`px-3 py-1 text-xs rounded-lg font-medium transition-all ${
+                        !onepayForm.isSandbox ? "bg-emerald-500/20 text-emerald-500 font-bold border border-emerald-500/30" : "text-muted hover:text-foreground"
+                      }`}
+                    >
+                      Production
+                    </button>
+                  </div>
+                </div>
+
+                {testResults["onepay"] && (
+                  <div className={`p-2.5 rounded-xl border text-xs flex items-center gap-2 ${
+                    testResults["onepay"].success ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400" : "bg-red-500/10 border-red-500/20 text-red-500"
+                  }`}>
+                    <Activity size={14} />
+                    <span>{testResults["onepay"].message} ({testResults["onepay"].latencyMs}ms)</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between gap-3 pt-6 border-t border-border mt-4">
+              <button
+                type="button"
+                onClick={() => handleTestConnection("payment", "onepay")}
+                disabled={testingProvider === "onepay"}
+                className="h-8 px-3 rounded-lg border border-border text-xs font-semibold text-muted hover:text-foreground hover:bg-surface-hover flex items-center gap-1.5 transition-all disabled:opacity-50"
+              >
+                <Zap size={13} className={testingProvider === "onepay" ? "animate-spin text-primary" : "text-blue-500"} />
+                <span>{testingProvider === "onepay" ? "Pinging..." : "Test Ping"}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleSavePayment("onepay", onepayForm)}
+                disabled={savingProvider === "onepay"}
+                className="h-8 px-4 rounded-lg bg-primary hover:bg-primary/90 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all disabled:opacity-50"
+              >
+                <Save size={13} />
+                <span>{savingProvider === "onepay" ? "Encrypting..." : "Save Vault"}</span>
+              </button>
+            </div>
+          </div>
+
           {/* PayHere Gateway */}
           <div className="p-6 rounded-2xl bg-surface border border-border flex flex-col justify-between shadow-sm relative overflow-hidden group">
             <div className="space-y-4">
@@ -983,6 +1177,199 @@ export default function IntegrationsPageClient() {
               >
                 <Save size={13} />
                 <span>{savingProvider === "promptx" ? "Encrypting..." : "Save Vault"}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Fardar Express Courier */}
+          <div className="p-6 rounded-2xl bg-surface border border-border flex flex-col justify-between shadow-sm relative overflow-hidden group">
+            <div className="space-y-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-500 font-black font-poppins text-lg">
+                    FD
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-foreground font-poppins">Fardar Express Logistics</h3>
+                    <p className="text-xs text-muted font-inter mt-0.5">
+                      Nationwide parcel delivery, automated COD dispatch & waybill API
+                    </p>
+                  </div>
+                </div>
+
+                <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={fardarForm.enabled}
+                    onChange={(e) => setFardarForm({ ...fardarForm, enabled: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-10 h-5 bg-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                </label>
+              </div>
+
+              <div className="space-y-3 pt-2">
+                <div>
+                  <label className="text-[11px] font-semibold text-foreground/80 mb-1 block">Merchant / Client ID</label>
+                  <input
+                    type="text"
+                    value={fardarForm.merchantCode}
+                    onChange={(e) => setFardarForm({ ...fardarForm, merchantCode: e.target.value })}
+                    placeholder="e.g. FDR-CLIENT-089"
+                    className="w-full h-9 bg-background border border-border rounded-xl px-3 text-xs text-foreground font-mono outline-none focus:border-primary transition-all"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[11px] font-semibold text-foreground/80">Fardar API Key</label>
+                    <span className="text-[10px] text-muted flex items-center gap-1 font-mono">
+                      <Lock size={10} className="text-emerald-500" /> AES-256 Encrypted
+                    </span>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type={showSecret["fardar"] ? "text" : "password"}
+                      value={fardarForm.apiKey}
+                      onChange={(e) => setFardarForm({ ...fardarForm, apiKey: e.target.value })}
+                      placeholder="Enter Fardar API key"
+                      className="w-full h-9 bg-background border border-border rounded-xl pl-3 pr-10 text-xs text-foreground font-mono outline-none focus:border-primary transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => toggleShowSecret("fardar")}
+                      className="absolute right-2.5 top-2 text-muted hover:text-foreground"
+                    >
+                      {showSecret["fardar"] ? <EyeOff size={14} /> : <Eye size={14} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-semibold text-foreground/80 mb-1 block">Pickup Hub / Branch Code</label>
+                  <input
+                    type="text"
+                    value={fardarForm.pickupBranch}
+                    onChange={(e) => setFardarForm({ ...fardarForm, pickupBranch: e.target.value })}
+                    placeholder="e.g. CMB-CENTRAL"
+                    className="w-full h-9 bg-background border border-border rounded-xl px-3 text-xs text-foreground font-mono outline-none focus:border-primary transition-all"
+                  />
+                </div>
+
+                {testResults["fardar"] && (
+                  <div className={`p-2.5 rounded-xl border text-xs flex items-center gap-2 ${
+                    testResults["fardar"].success ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400" : "bg-red-500/10 border-red-500/20 text-red-500"
+                  }`}>
+                    <Activity size={14} />
+                    <span>{testResults["fardar"].message} ({testResults["fardar"].latencyMs}ms)</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between gap-3 pt-6 border-t border-border mt-4">
+              <button
+                type="button"
+                onClick={() => handleTestConnection("courier", "fardar")}
+                disabled={testingProvider === "fardar"}
+                className="h-8 px-3 rounded-lg border border-border text-xs font-semibold text-muted hover:text-foreground hover:bg-surface-hover flex items-center gap-1.5 transition-all disabled:opacity-50"
+              >
+                <Zap size={13} className={testingProvider === "fardar" ? "animate-spin text-primary" : "text-cyan-500"} />
+                <span>{testingProvider === "fardar" ? "Pinging..." : "Test Ping"}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleSaveCourier("fardar", fardarForm)}
+                disabled={savingProvider === "fardar"}
+                className="h-8 px-4 rounded-lg bg-primary hover:bg-primary/90 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all disabled:opacity-50"
+              >
+                <Save size={13} />
+                <span>{savingProvider === "fardar" ? "Encrypting..." : "Save Vault"}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Domex Courier */}
+          <div className="p-6 rounded-2xl bg-surface border border-border flex flex-col justify-between shadow-sm relative overflow-hidden group">
+            <div className="space-y-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 font-black font-poppins text-lg">
+                    DX
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-foreground font-poppins">Domex Courier Service</h3>
+                    <p className="text-xs text-muted font-inter mt-0.5">
+                      Island-wide domestic delivery network with tracking integration
+                    </p>
+                  </div>
+                </div>
+
+                <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={domexForm.enabled}
+                    onChange={(e) => setDomexForm({ ...domexForm, enabled: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-10 h-5 bg-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                </label>
+              </div>
+
+              <div className="space-y-3 pt-2">
+                <div>
+                  <label className="text-[11px] font-semibold text-foreground/80 mb-1 block">Account Number</label>
+                  <input
+                    type="text"
+                    value={domexForm.accountNumber}
+                    onChange={(e) => setDomexForm({ ...domexForm, accountNumber: e.target.value })}
+                    placeholder="e.g. DX-99214"
+                    className="w-full h-9 bg-background border border-border rounded-xl px-3 text-xs text-foreground font-mono outline-none focus:border-primary transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-semibold text-foreground/80 mb-1 block">API Username</label>
+                  <input
+                    type="text"
+                    value={domexForm.username}
+                    onChange={(e) => setDomexForm({ ...domexForm, username: e.target.value })}
+                    placeholder="e.g. api_domex_merchant"
+                    className="w-full h-9 bg-background border border-border rounded-xl px-3 text-xs text-foreground font-mono outline-none focus:border-primary transition-all"
+                  />
+                </div>
+
+                {testResults["domex"] && (
+                  <div className={`p-2.5 rounded-xl border text-xs flex items-center gap-2 ${
+                    testResults["domex"].success ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400" : "bg-red-500/10 border-red-500/20 text-red-500"
+                  }`}>
+                    <Activity size={14} />
+                    <span>{testResults["domex"].message} ({testResults["domex"].latencyMs}ms)</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between gap-3 pt-6 border-t border-border mt-4">
+              <button
+                type="button"
+                onClick={() => handleTestConnection("courier", "domex")}
+                disabled={testingProvider === "domex"}
+                className="h-8 px-3 rounded-lg border border-border text-xs font-semibold text-muted hover:text-foreground hover:bg-surface-hover flex items-center gap-1.5 transition-all disabled:opacity-50"
+              >
+                <Zap size={13} className={testingProvider === "domex" ? "animate-spin text-primary" : "text-emerald-500"} />
+                <span>{testingProvider === "domex" ? "Pinging..." : "Test Ping"}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleSaveCourier("domex", domexForm)}
+                disabled={savingProvider === "domex"}
+                className="h-8 px-4 rounded-lg bg-primary hover:bg-primary/90 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all disabled:opacity-50"
+              >
+                <Save size={13} />
+                <span>{savingProvider === "domex" ? "Encrypting..." : "Save Vault"}</span>
               </button>
             </div>
           </div>
