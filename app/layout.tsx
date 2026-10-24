@@ -35,9 +35,11 @@ export const metadata: Metadata = {
   description: "Next-generation Universal Multi-Tenant POS, ERP, CRM & P&L Platform for Retail, Restaurants, Salons, Pharmacies, Groceries, Wholesale & Services in Sri Lanka.",
   icons: {
     icon: [
-      { url: "/favicon.svg", type: "image/svg+xml" },
-      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/logo/favicon.png", type: "image/png" },
+      { url: "/favicon.png", type: "image/png" },
     ],
+    shortcut: "/logo/favicon.png",
+    apple: "/logo/favicon.png",
   },
 };
 
