@@ -21,8 +21,12 @@ export const posService = {
     return res.data;
   },
 
-  async getCurrentSession(terminalId: string) {
-    const res = await api.get(`/pos/sessions/current?terminalId=${terminalId}`);
+  async getCurrentSession(terminalId?: string, branchId?: string) {
+    const params = new URLSearchParams();
+    if (terminalId) params.append('terminalId', terminalId);
+    if (branchId) params.append('branchId', branchId);
+    const query = params.toString() ? `?${params.toString()}` : '';
+    const res = await api.get(`/pos/sessions/current${query}`);
     return res.data;
   },
 

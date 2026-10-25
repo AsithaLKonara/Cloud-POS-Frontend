@@ -94,12 +94,15 @@ export default function POSPage() {
     }
   };
   
-  const { data: activeSession, isLoading: sessionLoading } = useCurrentSession(terminalId);
+  const userAssignedBranchId = user?.branchId || user?.branch?.id;
+  const { data: activeSession, isLoading: sessionLoading } = useCurrentSession(terminalId, userAssignedBranchId);
   const { data: branchesResponse } = useBranches();
   const branches = Array.isArray(branchesResponse) ? branchesResponse : (branchesResponse as any)?.data || [];
 
-  // Priority: active session branch (guaranteed real) > user branch > first available branch
-  const branchId = activeSession?.branchId || user?.branchId || user?.branch?.id || branches?.[0]?.id || "";
+  // Priority: If activeSession is for user's assigned branch, use that. Otherwise, strictly preserve userAssignedBranchId to prevent cross-branch stock mismatches
+  const branchId = (activeSession?.branchId && (!userAssignedBranchId || activeSession.branchId === userAssignedBranchId)) 
+    ? activeSession.branchId 
+    : (userAssignedBranchId || branches?.[0]?.id || "");
   
   const processOrderMutation = useProcessPosOrder();
   const scanBarcodeMutation = useScanBarcode();

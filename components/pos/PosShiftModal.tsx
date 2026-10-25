@@ -17,7 +17,7 @@ interface PosShiftModalProps {
 }
 
 export default function PosShiftModal({ mode, activeSession, branchId, terminalId, userId, onClose, onSuccess }: PosShiftModalProps) {
-  const [floatAmount, setFloatAmount] = useState("");
+  const [floatAmount, setFloatAmount] = useState(mode === "OPEN" ? "5000" : "");
   const [closingNotes, setClosingNotes] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -68,8 +68,14 @@ export default function PosShiftModal({ mode, activeSession, branchId, terminalI
         });
         onSuccess(actualCash);
       }
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      console.error("Shift processing error:", error);
+      const serverMsg = error?.response?.data?.error || error?.message || "";
+      if (serverMsg.includes('already has an open session') || serverMsg.includes('already open')) {
+        onSuccess(actualCash);
+      } else {
+        alert(serverMsg || "Failed to update shift.");
+      }
     } finally {
       setIsProcessing(false);
     }

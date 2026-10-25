@@ -22,14 +22,12 @@ export const useCloseSession = () => {
   });
 };
 
-export const useCurrentSession = (terminalId?: string) => {
+export const useCurrentSession = (terminalId?: string, branchId?: string) => {
   return useQuery({
-    queryKey: ['pos-session', terminalId],
+    queryKey: ['pos-session', terminalId, branchId],
     queryFn: async () => {
-      if (!terminalId) return null;
-      return await posService.getCurrentSession(terminalId);
+      return await posService.getCurrentSession(terminalId, branchId);
     },
-    enabled: !!terminalId,
     staleTime: 10000,
     refetchOnWindowFocus: true,
   });
