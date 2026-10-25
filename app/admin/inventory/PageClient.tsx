@@ -228,7 +228,7 @@ export default function InventoryDashboard() {
               <h2 className="font-bold text-foreground text-sm font-inter">Inter-Branch Stock Movement</h2>
               <p className="text-xs text-muted mt-0.5">Track and dispatch stock transfers between stores</p>
             </div>
-            <Button size="sm" className="rounded-xl text-xs bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold" onClick={() => setIsTransferModalOpen(true)}>
+            <Button id="new-transfer-button" size="sm" className="rounded-xl text-xs bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold" onClick={() => setIsTransferModalOpen(true)}>
               + New Transfer Request
             </Button>
           </div>
