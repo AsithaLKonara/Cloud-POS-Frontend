@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
   Search,
   Bell,
@@ -31,6 +32,11 @@ export default function Header({ onMenuClick, session }: { onMenuClick?: () => v
   const { theme, toggleTheme } = useTheme();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const getInitials = (name?: string | null) => {
     if (!name) return "US";
     return name
@@ -59,7 +65,9 @@ export default function Header({ onMenuClick, session }: { onMenuClick?: () => v
     return "Operations";
   };
 
-  const branchName = user?.branch?.name || (user?.branchId ? `Branch #${user.branchId.slice(0, 8)}` : "Multi-Branch HQ");
+  const branchName = mounted 
+    ? (user?.branch?.name || (user?.branchId ? `Branch #${user.branchId.slice(0, 8)}` : "Multi-Branch HQ"))
+    : "Multi-Branch HQ";
 
   return (
     <header className="h-[64px] bg-surface border-b border-border flex items-center justify-between px-4 md:px-6 shrink-0 shadow-sm z-40 transition-colors">
@@ -213,11 +221,11 @@ export default function Header({ onMenuClick, session }: { onMenuClick?: () => v
             className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl hover:bg-background transition-colors border border-border bg-surface shadow-sm"
           >
             <div className="w-6 h-6 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500 font-inter font-bold text-[10px]">
-              {getInitials(user?.name || session?.user?.name)}
+              {mounted ? getInitials(user?.name || session?.user?.name) : "US"}
             </div>
             <div className="hidden sm:flex flex-col items-start text-left">
-              <span className="font-inter font-semibold text-xs text-foreground leading-none">{user?.name || session?.user?.name || "Staff User"}</span>
-              <span className="font-inter text-[10px] text-muted leading-none mt-1">{user?.roles?.[0] || session?.user?.role || "Staff"}</span>
+              <span className="font-inter font-semibold text-xs text-foreground leading-none">{mounted ? (user?.name || session?.user?.name || "Staff User") : "Staff User"}</span>
+              <span className="font-inter text-[10px] text-muted leading-none mt-1">{mounted ? (user?.roles?.[0] || session?.user?.role || "Staff") : "Staff"}</span>
             </div>
             <ChevronDown size={13} className="text-muted ml-0.5" />
           </button>
@@ -225,10 +233,10 @@ export default function Header({ onMenuClick, session }: { onMenuClick?: () => v
           <div className="absolute right-0 top-full mt-2 w-52 bg-surface border border-border rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 py-1.5 z-50 flex flex-col">
             <div className="px-3.5 py-2 border-b border-border/60">
               <span className="text-xs font-semibold text-foreground block truncate">
-                {user?.name || "Staff Member"}
+                {mounted ? (user?.name || "Staff Member") : "Staff Member"}
               </span>
               <span className="text-[11px] text-muted block truncate font-mono mt-0.5">
-                {user?.email || "staff@oilpos.lk"}
+                {mounted ? (user?.email || "staff@oilpos.lk") : "staff@oilpos.lk"}
               </span>
             </div>
 

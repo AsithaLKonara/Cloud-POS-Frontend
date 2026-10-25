@@ -110,6 +110,7 @@ export default function Sidebar({ isOpen, setIsOpen }: { isOpen?: boolean, setIs
   ];
 
   const checkPermission = (perm?: string | string[]) => {
+    if (!mounted) return true;
     if (!perm || isSuperAdmin()) return true;
     if (Array.isArray(perm)) {
       return perm.some(p => hasPermission(p));

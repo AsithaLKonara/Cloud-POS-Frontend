@@ -238,6 +238,7 @@ export default function ProductsPage() {
         <option value="ARCHIVED">Archived</option>
       </select>
       <button
+        id="add-product-button"
         onClick={handleAdd}
         className="bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold active:scale-95 px-5 py-2 rounded-xl font-inter text-sm transition-all whitespace-nowrap ml-auto shadow-sm flex items-center gap-2"
       >

@@ -101,9 +101,11 @@ function generateSlug(name: string) {
 
 function generateSKU(name: string, type: string, pack: string) {
   const prefix = type ? type.slice(0, 3).toUpperCase() : "PRD";
-  const nameCode = name ? name.replace(/[^A-Za-z0-9]/g, "").slice(0, 4).toUpperCase() : "ITEM";
+  const cleanName = name ? name.replace(/[^A-Za-z0-9]/g, "").toUpperCase() : "ITEM";
+  const nameCode = cleanName.slice(0, 4) || "ITEM";
   const packCode = pack.replace(/[^A-Za-z0-9]/g, "").slice(0, 3).toUpperCase() || "STD";
-  return `${prefix}-${nameCode}-${packCode}`;
+  const rand = Math.floor(100 + Math.random() * 900);
+  return `${prefix}-${nameCode}-${packCode}-${rand}`;
 }
 
 export default function ProductFormModal({ isOpen, onClose, productToEdit }: ProductFormModalProps) {
@@ -334,15 +336,25 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
         if (inventoryCreate.length > 0) inventoryItems.create = inventoryCreate;
         if (inventoryUpdate.length > 0) inventoryItems.update = inventoryUpdate;
 
+        const parsedBasePrice = data.basePrice ? parseFloat(data.basePrice) : 0;
+        const variantPrice = parseFloat(v.price || "0");
+        const finalPrice = variantPrice > 0 ? variantPrice : parsedBasePrice;
+        const parsedCost = v.costPrice && !isNaN(parseFloat(v.costPrice)) 
+          ? parseFloat(v.costPrice) 
+          : (data.costPrice && !isNaN(parseFloat(data.costPrice)) ? parseFloat(data.costPrice) : 0);
+        const parsedWholesale = v.wholesalePrice && !isNaN(parseFloat(v.wholesalePrice)) 
+          ? parseFloat(v.wholesalePrice) 
+          : (data.wholesalePrice && !isNaN(parseFloat(data.wholesalePrice)) ? parseFloat(data.wholesalePrice) : null);
+
         return {
           size: v.size || v.packUnit || "Standard",
           color: v.color || "Standard",
           sku: v.sku || null,
           barcode: v.barcode || null,
-          price: parseFloat(v.price || "0"),
+          price: finalPrice,
           salePrice: v.compareAtPrice ? parseFloat(v.compareAtPrice) : null,
-          costPrice: v.costPrice ? parseFloat(v.costPrice) : (data.costPrice ? parseFloat(data.costPrice) : null),
-          wholesalePrice: v.wholesalePrice ? parseFloat(v.wholesalePrice) : (data.wholesalePrice ? parseFloat(data.wholesalePrice) : null),
+          costPrice: parsedCost,
+          wholesalePrice: parsedWholesale,
           packUnit: v.packUnit || v.size || null,
           unitVolumeLiters: v.unitVolumeLiters ? parseFloat(v.unitVolumeLiters) : null,
           quantity: Object.values(v.stock).reduce((sum, qty) => sum + qty, 0),
@@ -413,7 +425,7 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
   };
 
   const onError = (formErrors: any) => {
-    console.error("Form Validation Errors:", formErrors);
+    console.error("Form Validation Errors:", JSON.stringify(formErrors));
     const errorKeys = Object.keys(formErrors);
     if (errorKeys.length > 0) {
       toast.error(`Please check required fields: ${errorKeys.join(', ')}`);

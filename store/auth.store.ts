@@ -58,6 +58,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true });
     try {
       const data = await authService.login(payload);
+      if (typeof window !== "undefined" && data.accessToken) {
+        document.cookie = `laural_access_token=${data.accessToken}; path=/; max-age=3600; SameSite=Lax`;
+        if (data.refreshToken) {
+          document.cookie = `laural_refresh_token=${data.refreshToken}; path=/; max-age=604800; SameSite=Lax`;
+        }
+        if (data.user?.roles?.[0]) {
+          document.cookie = `laural_role=${data.user.roles[0]}; path=/; max-age=3600; SameSite=Lax`;
+        }
+      }
       get().setAuth(data.user);
       return data;
     } finally {
@@ -69,6 +78,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true });
     try {
       const data = await authService.register(payload);
+      if (typeof window !== "undefined" && data.accessToken) {
+        document.cookie = `laural_access_token=${data.accessToken}; path=/; max-age=3600; SameSite=Lax`;
+        if (data.refreshToken) {
+          document.cookie = `laural_refresh_token=${data.refreshToken}; path=/; max-age=604800; SameSite=Lax`;
+        }
+        if (data.user?.roles?.[0]) {
+          document.cookie = `laural_role=${data.user.roles[0]}; path=/; max-age=3600; SameSite=Lax`;
+        }
+      }
       get().setAuth(data.user);
       return data;
     } finally {

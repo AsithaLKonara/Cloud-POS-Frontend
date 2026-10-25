@@ -74,7 +74,7 @@ export function useCreateProduct() {
   return useMutation({
     mutationFn: (data: any) => productsService.createProduct(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: PRODUCT_QUERY_KEYS.lists() });
+      queryClient.invalidateQueries({ queryKey: PRODUCT_QUERY_KEYS.all });
     },
   });
 }

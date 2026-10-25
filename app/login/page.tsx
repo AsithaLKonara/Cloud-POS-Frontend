@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -117,6 +117,11 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedEmail, setSelectedEmail] = useState<string | null>(null);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
 
   const {
     register,
@@ -138,6 +143,7 @@ export default function LoginPage() {
   };
 
   const onSubmit = async (data: LoginFormData) => {
+    console.log("[LOGIN_PAGE] onSubmit triggered with:", data);
     setError(null);
     setLoading(true);
 
@@ -149,16 +155,27 @@ export default function LoginPage() {
       });
 
       const roles = (result.user.roles || []).map((r: string) => r.toUpperCase().replace(/[\s_]/g, ""));
+      let target = "/admin";
       if (roles.includes("SUPERADMIN") || roles.includes("SYSTEMOWNER") || result.user.email === "admin@xonit.space") {
-        router.push("/superadmin");
+        target = "/superadmin";
       } else if (roles.includes("CASHIER") || roles.includes("POSOPERATOR")) {
-        router.push("/pos");
-      } else if (roles.includes("BRANCHMANAGER")) {
-        router.push("/branch-admin");
-      } else {
-        router.push("/admin");
+        target = "/pos";
+      } else if (roles.includes("BRANCHMANAGER") || roles.includes("BRANCHADMIN")) {
+        target = "/branch-admin";
       }
+
+      const redirectParam = typeof window !== 'undefined' 
+        ? new URLSearchParams(window.location.search).get('redirect') 
+        : null;
+
+      if (redirectParam && redirectParam.startsWith('/')) {
+        target = redirectParam;
+      }
+
+      console.log("[LOGIN_PAGE] Navigating to target:", target);
+      window.location.href = target;
     } catch (err: any) {
+      console.error("[LOGIN_PAGE] Login failed error:", err?.response?.data || err?.message || err);
       const serverMsg =
         err.response?.data?.error?.message ||
         err.response?.data?.message ||
@@ -353,7 +370,14 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form action="#" method="POST" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form
+            data-hydrated={hydrated ? "true" : "false"}
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSubmit(onSubmit, (errs) => console.log("[LOGIN_PAGE] Validation errors:", errs))(e);
+            }}
+            className="space-y-4"
+          >
             {/* Optional Workspace / Tenant Identifier */}
             <div>
               <label className="block text-xs font-medium text-[#F4F5F1] mb-1.5">
@@ -436,6 +460,10 @@ export default function LoginPage() {
             {/* Submit Button */}
             <button
               type="submit"
+              onClick={(e) => {
+                e.preventDefault();
+                handleSubmit(onSubmit)(e);
+              }}
               disabled={loading}
               className="w-full h-11 bg-[#F4F5F1] hover:bg-white text-[#050706] font-manrope font-bold rounded-xl text-sm flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-[#00C987]/20 disabled:opacity-50 mt-3 group"
             >
