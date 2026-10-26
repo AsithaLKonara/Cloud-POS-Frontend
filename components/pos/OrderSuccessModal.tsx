@@ -136,8 +136,8 @@ export default function OrderSuccessModal({
 
           {receiptProps.change !== undefined && receiptProps.change > 0 && (
             <div className="flex justify-between items-center pt-2 border-t border-border">
-              <span className="font-bold text-emerald-600 uppercase tracking-wide">Cash Change Returned</span>
-              <span className="font-mono font-black text-base text-emerald-600">
+              <span className="font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">Cash Change Returned</span>
+              <span className="font-mono font-black text-base text-emerald-600 dark:text-emerald-400">
                 Rs. {receiptProps.change.toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </span>
             </div>

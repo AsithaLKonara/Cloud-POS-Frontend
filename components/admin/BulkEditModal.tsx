@@ -35,27 +35,27 @@ export default function BulkEditModal({ selectedProducts, onClose, onSuccess }: 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200 max-h-[90vh]">
-        <div className="flex items-center justify-between p-6 border-b border-stone-200 bg-stone-50 shrink-0">
+      <div className="bg-surface border border-border rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200 max-h-[90vh]">
+        <div className="flex items-center justify-between p-6 border-b border-border bg-surface shrink-0">
           <div>
-            <h2 className="font-inter font-bold text-xl text-stone-900 flex items-center gap-2">
-              <Edit className="text-stone-700" size={24} /> Bulk Edit Products
+            <h2 className="font-inter font-bold text-xl text-foreground flex items-center gap-2">
+              <Edit className="text-primary" size={24} /> Bulk Edit Products
             </h2>
-            <p className="font-inter text-sm text-stone-500 mt-1">Editing {selectedProducts.length} selected products.</p>
+            <p className="font-inter text-sm text-muted mt-1">Editing {selectedProducts.length} selected products.</p>
           </div>
-          <button onClick={onClose} className="p-2 text-stone-400 hover:text-stone-900 hover:bg-stone-200 rounded-lg transition-colors">
+          <button onClick={onClose} className="p-2 text-muted hover:text-foreground hover:bg-surface-elevated rounded-lg transition-colors">
             <X size={20} />
           </button>
         </div>
 
-        <div className="p-6 overflow-y-auto bg-stone-100 flex-1 flex flex-col gap-6">
-          <div className="bg-white border border-stone-200 rounded-xl p-5 shadow-sm flex flex-col gap-4">
+        <div className="p-6 overflow-y-auto bg-background flex-1 flex flex-col gap-6">
+          <div className="bg-surface border border-border rounded-xl p-5 shadow-sm flex flex-col gap-4">
             <div className="flex flex-col gap-2">
-              <label className="font-inter text-sm font-semibold text-stone-700">Change Status</label>
+              <label className="font-inter text-sm font-semibold text-foreground">Change Status</label>
               <select 
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="w-full border border-stone-200 rounded-lg px-3 py-2.5 text-sm font-inter outline-none focus:ring-2 focus:ring-stone-900 bg-stone-50 text-stone-900"
+                className="w-full border border-border rounded-lg px-3 py-2.5 text-sm font-inter outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-surface-elevated text-foreground"
               >
                 <option value="no_change">No Change</option>
                 <option value="Active">Set to Active</option>
@@ -65,11 +65,11 @@ export default function BulkEditModal({ selectedProducts, onClose, onSuccess }: 
             </div>
 
             <div className="flex flex-col gap-2">
-              <label className="font-inter text-sm font-semibold text-stone-700">Change Category</label>
+              <label className="font-inter text-sm font-semibold text-foreground">Change Category</label>
               <select 
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full border border-stone-200 rounded-lg px-3 py-2.5 text-sm font-inter outline-none focus:ring-2 focus:ring-stone-900 bg-stone-50 text-stone-900"
+                className="w-full border border-border rounded-lg px-3 py-2.5 text-sm font-inter outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-surface-elevated text-foreground"
               >
                 <option value="no_change">No Change</option>
                 <option value="T-Shirts">T-Shirts</option>
@@ -80,11 +80,11 @@ export default function BulkEditModal({ selectedProducts, onClose, onSuccess }: 
             </div>
 
             <div className="flex flex-col gap-2">
-              <label className="font-inter text-sm font-semibold text-stone-700">Add to Collection</label>
+              <label className="font-inter text-sm font-semibold text-foreground">Add to Collection</label>
               <select 
                 value={collection}
                 onChange={(e) => setCollection(e.target.value)}
-                className="w-full border border-stone-200 rounded-lg px-3 py-2.5 text-sm font-inter outline-none focus:ring-2 focus:ring-stone-900 bg-stone-50 text-stone-900"
+                className="w-full border border-border rounded-lg px-3 py-2.5 text-sm font-inter outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-surface-elevated text-foreground"
               >
                 <option value="no_change">No Change</option>
                 <option value="Summer 2026">Summer 2026</option>
@@ -96,11 +96,11 @@ export default function BulkEditModal({ selectedProducts, onClose, onSuccess }: 
           </div>
         </div>
 
-        <div className="p-6 border-t border-stone-200 bg-white flex justify-end gap-3 shrink-0">
-          <button onClick={onClose} disabled={bulkEditMutation.isPending} className="px-5 py-2.5 bg-white border border-stone-200 text-stone-700 font-inter font-medium text-sm rounded-lg hover:bg-stone-50 transition-colors shadow-sm disabled:opacity-50">
+        <div className="p-6 border-t border-border bg-surface flex justify-end gap-3 shrink-0">
+          <button onClick={onClose} disabled={bulkEditMutation.isPending} className="px-5 py-2.5 bg-surface border border-border text-foreground font-inter font-medium text-sm rounded-lg hover:bg-surface-elevated transition-colors shadow-sm disabled:opacity-50">
             Cancel
           </button>
-          <button onClick={handleProcess} disabled={bulkEditMutation.isPending} className="px-8 py-2.5 bg-stone-900 text-white font-inter font-medium text-sm rounded-lg hover:bg-stone-800 transition-colors shadow-sm flex items-center gap-2 disabled:opacity-80">
+          <button onClick={handleProcess} disabled={bulkEditMutation.isPending} className="px-8 py-2.5 bg-primary text-white font-inter font-medium text-sm rounded-lg hover:bg-primary-hover transition-colors shadow-sm flex items-center gap-2 disabled:opacity-80">
             {bulkEditMutation.isPending ? "Saving..." : `Save Changes`}
           </button>
         </div>

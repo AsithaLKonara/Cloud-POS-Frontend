@@ -143,10 +143,10 @@ export default function PaymentModal({ total, selectedCustomer, onOpenCustomerMo
                 {tenderedAmount && numTendered >= numTotal && (
                   <div className="flex justify-between items-center p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl mt-2">
                     <div className="flex items-center gap-2">
-                      <CheckCircle2 size={18} className="text-emerald-600" />
-                      <span className="font-inter font-bold text-emerald-800 text-xs uppercase tracking-wide">Change To Return</span>
+                      <CheckCircle2 size={18} className="text-emerald-600 dark:text-emerald-400" />
+                      <span className="font-inter font-bold text-emerald-800 dark:text-emerald-300 text-xs uppercase tracking-wide">Change To Return</span>
                     </div>
-                    <span className="font-mono font-black text-2xl text-emerald-700">
+                    <span className="font-mono font-black text-2xl text-emerald-700 dark:text-emerald-400">
                       Rs. {changeDue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
                   </div>
@@ -165,7 +165,7 @@ export default function PaymentModal({ total, selectedCustomer, onOpenCustomerMo
                           <h4 className="font-inter font-bold text-base text-foreground">
                             {selectedCustomer.companyName || selectedCustomer.name}
                           </h4>
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-800 border border-amber-500/20">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-amber-500/20">
                             {selectedCustomer.customerType || "GARAGE ACCOUNT"}
                           </span>
                         </div>
@@ -192,14 +192,14 @@ export default function PaymentModal({ total, selectedCustomer, onOpenCustomerMo
                         </span>
                       </div>
                       <div className="p-3 bg-background border border-border rounded-lg">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 block">Current Balance</span>
-                        <span className="font-mono font-bold text-sm text-amber-800">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 block">Current Balance</span>
+                        <span className="font-mono font-bold text-sm text-amber-800 dark:text-amber-300">
                           Rs. {customerCreditBalance.toLocaleString()}
                         </span>
                       </div>
                       <div className="p-3 bg-background border border-border rounded-lg">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-muted block">Remaining Credit</span>
-                        <span className={`font-mono font-bold text-sm ${remainingCredit !== null && remainingCredit < numTotal ? 'text-red-600' : 'text-emerald-700'}`}>
+                        <span className={`font-mono font-bold text-sm ${remainingCredit !== null && remainingCredit < numTotal ? 'text-red-600 dark:text-red-400' : 'text-emerald-700 dark:text-emerald-400'}`}>
                           {remainingCredit !== null ? `Rs. ${Math.max(0, remainingCredit).toLocaleString()}` : "N/A"}
                         </span>
                       </div>
@@ -207,15 +207,15 @@ export default function PaymentModal({ total, selectedCustomer, onOpenCustomerMo
 
                     {isCreditExceeded ? (
                       <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg flex items-center gap-2.5">
-                        <AlertTriangle size={18} className="text-red-600 shrink-0" />
-                        <p className="text-xs text-red-800 font-inter">
+                        <AlertTriangle size={18} className="text-red-600 dark:text-red-400 shrink-0" />
+                        <p className="text-xs text-red-800 dark:text-red-300 font-inter">
                           <strong>Credit Limit Exceeded:</strong> This transaction will exceed the workshop&apos;s approved limit by Rs. {(customerCreditBalance + numTotal - customerCreditLimit).toLocaleString()}.
                         </p>
                       </div>
                     ) : (
                       <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg flex items-center gap-2.5">
-                        <CheckCircle2 size={18} className="text-emerald-600 shrink-0" />
-                        <p className="text-xs text-emerald-800 font-inter">
+                        <CheckCircle2 size={18} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        <p className="text-xs text-emerald-800 dark:text-emerald-300 font-inter">
                           Approved for credit billing. Total will be added to the customer&apos;s ledger.
                         </p>
                       </div>
@@ -223,7 +223,7 @@ export default function PaymentModal({ total, selectedCustomer, onOpenCustomerMo
                   </div>
                 ) : (
                   <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-6 flex flex-col items-center justify-center text-center gap-3">
-                    <AlertCircle size={32} className="text-amber-700" />
+                    <AlertCircle size={32} className="text-amber-700 dark:text-amber-400" />
                     <div>
                       <h4 className="font-inter font-bold text-foreground text-sm">No Workshop / Customer Selected</h4>
                       <p className="font-inter text-xs text-muted max-w-sm mt-1">

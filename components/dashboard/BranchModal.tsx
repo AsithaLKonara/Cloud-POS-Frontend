@@ -63,10 +63,10 @@ export default function BranchModal({
   const isPending = createMutation.isPending || updateMutation.isPending;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
-        <div className="p-6 border-b flex justify-between items-center bg-stone-50">
-          <h2 className="text-xl font-bold text-stone-800">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="bg-surface border border-border rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="p-6 border-b border-border flex justify-between items-center bg-surface">
+          <h2 className="text-xl font-bold text-foreground">
             {branchToEdit ? "Edit Branch" : "Add New Branch"}
           </h2>
           <button onClick={onClose} className="text-muted hover:text-foreground transition-colors p-1 rounded-lg" aria-label="Close modal">
@@ -74,13 +74,13 @@ export default function BranchModal({
           </button>
         </div>
         
-        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto flex flex-col gap-4 bg-background">
           <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1">Branch Name</label>
+            <label className="block text-sm font-medium text-foreground mb-1">Branch Name</label>
             <input
               type="text"
               required
-              className="w-full border border-stone-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-black outline-none transition"
+              className="w-full border border-border bg-surface-elevated text-foreground placeholder:text-muted rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition"
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="e.g. Colombo City Center"
@@ -88,11 +88,11 @@ export default function BranchModal({
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1">Branch Code</label>
+            <label className="block text-sm font-medium text-foreground mb-1">Branch Code</label>
             <input
               type="text"
               required
-              className="w-full border border-stone-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-black outline-none transition uppercase"
+              className="w-full border border-border bg-surface-elevated text-foreground placeholder:text-muted rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition uppercase"
               value={code}
               onChange={e => setCode(e.target.value.toUpperCase())}
               placeholder="e.g. CMB-CCC"
@@ -100,9 +100,9 @@ export default function BranchModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1">Address</label>
+            <label className="block text-sm font-medium text-foreground mb-1">Address</label>
             <textarea
-              className="w-full border border-stone-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-black outline-none transition min-h-[80px]"
+              className="w-full border border-border bg-surface-elevated text-foreground placeholder:text-muted rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition min-h-[80px]"
               value={address}
               onChange={e => setAddress(e.target.value)}
               placeholder="Full physical address"
@@ -111,19 +111,19 @@ export default function BranchModal({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-stone-700 mb-1">Phone Number</label>
+              <label className="block text-sm font-medium text-foreground mb-1">Phone Number</label>
               <input
                 type="text"
-                className="w-full border border-stone-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-black outline-none transition"
+                className="w-full border border-border bg-surface-elevated text-foreground placeholder:text-muted rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition"
                 value={phone}
                 onChange={e => setPhone(e.target.value)}
                 placeholder="011 2..."
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-stone-700 mb-1">Type</label>
+              <label className="block text-sm font-medium text-foreground mb-1">Type</label>
               <select
-                className="w-full border border-stone-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-black outline-none transition bg-white"
+                className="w-full border border-border bg-surface-elevated text-foreground rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition"
                 value={type}
                 onChange={e => setType(e.target.value)}
               >
@@ -137,21 +137,21 @@ export default function BranchModal({
             <input
               type="checkbox"
               id="isActive"
-              className="w-4 h-4 rounded border-stone-300 text-black focus:ring-black"
+              className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
               checked={isActive}
               onChange={e => setIsActive(e.target.checked)}
             />
-            <label htmlFor="isActive" className="text-sm font-medium text-stone-700">
+            <label htmlFor="isActive" className="text-sm font-medium text-foreground">
               Branch is Operational (Active)
             </label>
           </div>
         </form>
 
-        <div className="p-6 border-t bg-stone-50 flex justify-end gap-3">
+        <div className="p-6 border-t border-border bg-surface flex justify-end gap-3">
           <button 
             type="button" 
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-stone-600 hover:text-stone-900 hover:bg-stone-200 rounded-lg transition"
+            className="px-4 py-2 text-sm font-medium text-foreground hover:bg-surface-elevated border border-border rounded-lg transition"
             disabled={isPending}
           >
             Cancel
@@ -159,7 +159,7 @@ export default function BranchModal({
           <button 
             type="submit" 
             onClick={handleSubmit}
-            className="px-6 py-2 bg-black text-white text-sm font-medium rounded-lg hover:bg-stone-800 transition disabled:opacity-50"
+            className="px-6 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-hover transition shadow-md disabled:opacity-50"
             disabled={isPending}
           >
             {isPending ? "Saving..." : branchToEdit ? "Update Branch" : "Create Branch"}

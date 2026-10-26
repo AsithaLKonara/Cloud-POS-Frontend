@@ -151,27 +151,27 @@ export default function ManualBulkReturnModal({ onClose, onSuccess }: ManualBulk
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200 max-h-[90vh]">
-        <div className="flex items-center justify-between p-6 border-b border-stone-200 bg-stone-50 shrink-0">
+      <div className="bg-surface border border-border rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200 max-h-[90vh]">
+        <div className="flex items-center justify-between p-6 border-b border-border bg-surface shrink-0">
           <div>
-            <h2 className="font-inter font-bold text-xl text-stone-900 flex items-center gap-2">
-              <PackagePlus className="text-stone-700" size={24} /> Manual / Offline Returns
+            <h2 className="font-inter font-bold text-xl text-foreground flex items-center gap-2">
+              <PackagePlus className="text-primary" size={24} /> Manual / Offline Returns
             </h2>
-            <p className="font-inter text-sm text-stone-500 mt-1">Scan items without an RMA to return them to stock or mark as damaged.</p>
+            <p className="font-inter text-sm text-muted mt-1">Scan items without an RMA to return them to stock or mark as damaged.</p>
           </div>
-          <button onClick={onClose} className="p-2 text-stone-400 hover:text-stone-900 hover:bg-stone-200 rounded-lg transition-colors">
+          <button onClick={onClose} className="p-2 text-muted hover:text-foreground hover:bg-surface-elevated rounded-lg transition-colors">
             <X size={20} />
           </button>
         </div>
 
-        <div className="p-6 overflow-y-auto bg-stone-100 flex-1 flex flex-col gap-6">
+        <div className="p-6 overflow-y-auto bg-background flex-1 flex flex-col gap-6">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1 flex flex-col gap-2">
-              <label className="font-inter font-semibold text-sm text-stone-700">Destination Branch</label>
+              <label className="font-inter font-semibold text-sm text-foreground">Destination Branch</label>
               <select 
                 value={selectedBranchId}
                 onChange={e => setSelectedBranchId(e.target.value)}
-                className="p-3 border border-stone-300 rounded-xl font-inter text-sm focus:outline-none focus:ring-2 focus:ring-stone-900"
+                className="p-3 border border-border bg-surface-elevated text-foreground rounded-xl font-inter text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
               >
                 <option value="">Select a branch...</option>
                 {branchesData?.map((b: any) => (
@@ -180,7 +180,7 @@ export default function ManualBulkReturnModal({ onClose, onSuccess }: ManualBulk
               </select>
             </div>
             <div className="flex-[2] flex flex-col gap-2">
-              <label className="font-inter font-semibold text-sm text-stone-700">Scan Barcode / SKU</label>
+              <label className="font-inter font-semibold text-sm text-foreground">Scan Barcode / SKU</label>
               <form onSubmit={handleScan} className="relative">
                 <input
                   ref={inputRef}
@@ -189,37 +189,37 @@ export default function ManualBulkReturnModal({ onClose, onSuccess }: ManualBulk
                   onChange={e => setSkuInput(e.target.value)}
                   disabled={isScanning}
                   placeholder={isScanning ? "Looking up..." : "Click here and scan barcode or type SKU and hit Enter..."}
-                  className="w-full pl-10 pr-4 py-3 border border-stone-300 rounded-xl font-inter text-sm focus:outline-none focus:ring-2 focus:ring-stone-900 disabled:bg-stone-100"
+                  className="w-full pl-10 pr-4 py-3 border border-border bg-surface-elevated text-foreground placeholder:text-muted rounded-xl font-inter text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary disabled:opacity-50"
                 />
-                <ScanBarcode className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
+                <ScanBarcode className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" size={18} />
               </form>
             </div>
           </div>
 
-          <div className="bg-white border border-stone-200 rounded-xl shadow-sm overflow-hidden">
+          <div className="bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-stone-50 border-b border-stone-200">
-                  <th className="font-inter font-semibold text-xs text-stone-500 uppercase tracking-wider py-4 px-6">Item</th>
-                  <th className="font-inter font-semibold text-xs text-stone-500 uppercase tracking-wider py-4 px-6 w-32">Qty</th>
-                  <th className="font-inter font-semibold text-xs text-stone-500 uppercase tracking-wider py-4 px-6 w-48">Condition</th>
+                <tr className="bg-surface-elevated border-b border-border">
+                  <th className="font-inter font-semibold text-xs text-muted uppercase tracking-wider py-4 px-6">Item</th>
+                  <th className="font-inter font-semibold text-xs text-muted uppercase tracking-wider py-4 px-6 w-32">Qty</th>
+                  <th className="font-inter font-semibold text-xs text-muted uppercase tracking-wider py-4 px-6 w-48">Condition</th>
                   <th className="py-4 px-6 w-16"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-stone-100">
+              <tbody className="divide-y divide-border">
                 {items.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="py-10 text-center text-stone-500 font-inter text-sm">
+                    <td colSpan={4} className="py-10 text-center text-muted font-inter text-sm">
                       No items scanned yet. Start scanning barcodes above.
                     </td>
                   </tr>
                 ) : (
                   items.map((item, index) => (
-                    <tr key={index} className="hover:bg-stone-50 transition-colors">
+                    <tr key={index} className="hover:bg-surface-elevated transition-colors">
                       <td className="py-4 px-6">
                         <div className="flex flex-col">
-                          <span className="font-inter font-medium text-sm text-stone-900">{item.name}</span>
-                          <span className="font-inter text-xs text-stone-500">SKU: {item.sku}</span>
+                          <span className="font-inter font-medium text-sm text-foreground">{item.name}</span>
+                          <span className="font-inter text-xs text-muted">SKU: {item.sku}</span>
                         </div>
                       </td>
                       <td className="py-4 px-6">
@@ -228,15 +228,15 @@ export default function ManualBulkReturnModal({ onClose, onSuccess }: ManualBulk
                           min="1"
                           value={item.quantity}
                           onChange={e => updateItem(index, "quantity", parseInt(e.target.value) || 1)}
-                          className="w-full p-2 border border-stone-300 rounded-md font-inter text-sm focus:outline-none focus:ring-2 focus:ring-stone-900"
+                          className="w-full p-2 border border-border bg-surface text-foreground rounded-md font-inter text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                         />
                       </td>
                       <td className="py-4 px-6">
                         <select
                           value={item.condition}
                           onChange={e => updateItem(index, "condition", e.target.value)}
-                          className={`w-full p-2 rounded-md font-inter text-sm border focus:outline-none focus:ring-2 focus:ring-stone-900 ${
-                            item.condition === 'DAMAGED' ? 'bg-red-50 border-red-200 text-red-900' : 'bg-green-50 border-green-200 text-green-900'
+                          className={`w-full p-2 rounded-md font-inter text-sm border focus:outline-none focus:ring-2 focus:ring-primary ${
+                            item.condition === 'DAMAGED' ? 'bg-rose-500/10 border-rose-500/30 text-rose-900 dark:text-rose-300' : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-900 dark:text-emerald-300'
                           }`}
                         >
                           <option value="GOOD">Good / Restock</option>
@@ -246,7 +246,7 @@ export default function ManualBulkReturnModal({ onClose, onSuccess }: ManualBulk
                       <td className="py-4 px-6 text-right">
                         <button
                           onClick={() => removeItem(index)}
-                          className="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-2 text-muted hover:text-rose-600 hover:bg-rose-500/10 rounded-lg transition-colors"
                         >
                           <Trash2 size={16} />
                         </button>
@@ -259,15 +259,15 @@ export default function ManualBulkReturnModal({ onClose, onSuccess }: ManualBulk
           </div>
         </div>
 
-        <div className="p-6 border-t border-stone-200 bg-white flex justify-between gap-3 shrink-0">
-          <div className="text-stone-500 font-inter text-sm flex items-center gap-2">
-            <span className="font-semibold text-stone-900">{items.reduce((sum, i) => sum + i.quantity, 0)}</span> Total Items
+        <div className="p-6 border-t border-border bg-surface flex justify-between gap-3 shrink-0">
+          <div className="text-muted font-inter text-sm flex items-center gap-2">
+            <span className="font-semibold text-foreground">{items.reduce((sum, i) => sum + i.quantity, 0)}</span> Total Items
           </div>
           <div className="flex gap-3">
-            <button onClick={onClose} disabled={isProcessing} className="px-5 py-2.5 bg-white border border-stone-200 text-stone-700 font-inter font-medium text-sm rounded-lg hover:bg-stone-50 transition-colors shadow-sm disabled:opacity-50">
+            <button onClick={onClose} disabled={isProcessing} className="px-5 py-2.5 bg-surface border border-border text-foreground font-inter font-medium text-sm rounded-lg hover:bg-surface-elevated transition-colors shadow-sm disabled:opacity-50">
               Cancel
             </button>
-            <button onClick={handleProcess} disabled={isProcessing || items.length === 0} className="px-8 py-2.5 bg-stone-900 text-white font-inter font-medium text-sm rounded-lg hover:bg-stone-800 transition-colors shadow-sm flex items-center gap-2 disabled:opacity-80">
+            <button onClick={handleProcess} disabled={isProcessing || items.length === 0} className="px-8 py-2.5 bg-primary text-white font-inter font-medium text-sm rounded-lg hover:bg-primary-hover transition-colors shadow-sm flex items-center gap-2 disabled:opacity-80">
               {isProcessing ? "Processing..." : "Process Returns"}
             </button>
           </div>

@@ -96,82 +96,82 @@ export default function UserModal({
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6">
-      <div className="absolute inset-0 bg-stone-950/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="relative w-full max-w-[550px] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden max-h-[90vh]">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-stone-200 bg-stone-50 shrink-0">
+      <div className="relative w-full max-w-[550px] bg-surface border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden max-h-[90vh]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-surface shrink-0">
           <div>
-            <h2 className="font-inter font-bold text-lg text-stone-900 flex items-center gap-2">
-              <UserPlus size={18} className="text-stone-900" />
+            <h2 className="font-inter font-bold text-lg text-foreground flex items-center gap-2">
+              <UserPlus size={18} className="text-primary" />
               {initialData ? "Edit User Access" : "Invite System User"}
             </h2>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-stone-200 rounded-lg text-stone-600 transition-colors">
+          <button onClick={onClose} className="p-2 hover:bg-surface-elevated rounded-lg text-muted hover:text-foreground transition-colors">
             <X size={20} />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-5 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-5 bg-background custom-scrollbar">
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">
+            <div className="bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-400 text-sm px-4 py-3 rounded-lg">
               {error}
             </div>
           )}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="font-inter text-xs font-semibold text-stone-700">First Name <span className="text-red-500">*</span></label>
+              <label className="font-inter text-xs font-semibold text-foreground">First Name <span className="text-red-500">*</span></label>
               <input
                 type="text"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 placeholder="e.g. Jane"
-                className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-stone-900 bg-white font-inter"
+                className="w-full border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary bg-surface-elevated text-foreground placeholder:text-muted font-inter"
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="font-inter text-xs font-semibold text-stone-700">Last Name <span className="text-red-500">*</span></label>
+              <label className="font-inter text-xs font-semibold text-foreground">Last Name <span className="text-red-500">*</span></label>
               <input
                 type="text"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 placeholder="e.g. Doe"
-                className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-stone-900 bg-white font-inter"
+                className="w-full border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary bg-surface-elevated text-foreground placeholder:text-muted font-inter"
               />
             </div>
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="font-inter text-xs font-semibold text-stone-700">Email Address <span className="text-red-500">*</span></label>
+            <label className="font-inter text-xs font-semibold text-foreground">Email Address <span className="text-red-500">*</span></label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={!!initialData?.id}
               placeholder="jane@seramaaduwen.lk"
-              className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-stone-900 bg-white font-inter disabled:bg-stone-100"
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary bg-surface-elevated text-foreground placeholder:text-muted font-inter disabled:opacity-50"
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="font-inter text-xs font-semibold text-stone-700">Phone (Optional)</label>
+            <label className="font-inter text-xs font-semibold text-foreground">Phone (Optional)</label>
             <input
               type="text"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="+94770000000"
-              className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-stone-900 bg-white font-inter"
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary bg-surface-elevated text-foreground placeholder:text-muted font-inter"
             />
           </div>
 
-          <div className="h-px bg-stone-100 w-full"></div>
+          <div className="h-px bg-border w-full"></div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="font-inter text-xs font-semibold text-stone-700">Role Assignment</label>
+            <label className="font-inter text-xs font-semibold text-foreground">Role Assignment</label>
             <select
               value={selectedRoleId}
               onChange={(e) => setSelectedRoleId(e.target.value)}
-              className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-stone-900 bg-white font-inter"
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary bg-surface-elevated text-foreground font-inter"
             >
               {availableRoles.map((r) => (
                 <option key={r.id} value={r.id}>
@@ -182,12 +182,12 @@ export default function UserModal({
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="font-inter text-xs font-semibold text-stone-700">Branch Scope</label>
+            <label className="font-inter text-xs font-semibold text-foreground">Branch Scope</label>
             <select
               value={selectedBranchId}
               onChange={(e) => setSelectedBranchId(e.target.value)}
               disabled={isSuperAdmin}
-              className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-stone-900 bg-white font-inter disabled:bg-stone-100 disabled:text-stone-500"
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary bg-surface-elevated text-foreground font-inter disabled:opacity-50"
             >
               <option value="">Global (All Branches)</option>
               {availableBranches.map((b) => (
@@ -197,9 +197,9 @@ export default function UserModal({
               ))}
             </select>
             {isSuperAdmin && (
-              <div className="flex items-start gap-2 bg-blue-50 border border-blue-200 p-2.5 rounded-lg mt-1">
-                <Info size={14} className="text-blue-600 mt-0.5 shrink-0" />
-                <p className="font-inter text-xs text-blue-700 leading-relaxed">
+              <div className="flex items-start gap-2 bg-blue-500/10 border border-blue-500/20 p-2.5 rounded-lg mt-1">
+                <Info size={14} className="text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
+                <p className="font-inter text-xs text-blue-900 dark:text-blue-300 leading-relaxed">
                   Super Admins are automatically assigned to Global scope and can access all branches.
                 </p>
               </div>
@@ -207,8 +207,8 @@ export default function UserModal({
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="font-inter text-xs font-semibold text-stone-700">Account Status</label>
-            <div className="flex items-center gap-4 bg-stone-50 border border-stone-200 p-3 rounded-lg">
+            <label className="font-inter text-xs font-semibold text-foreground">Account Status</label>
+            <div className="flex items-center gap-4 bg-surface-elevated border border-border p-3 rounded-lg">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="radio"
@@ -216,9 +216,9 @@ export default function UserModal({
                   value="ACTIVE"
                   checked={status === "ACTIVE" || status === "Active"}
                   onChange={() => setStatus("ACTIVE")}
-                  className="w-4 h-4 accent-stone-900"
+                  className="w-4 h-4 accent-primary"
                 />
-                <span className="text-sm font-inter text-stone-800">Active</span>
+                <span className="text-sm font-inter text-foreground">Active</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -227,26 +227,26 @@ export default function UserModal({
                   value="SUSPENDED"
                   checked={status === "SUSPENDED" || status === "Suspended"}
                   onChange={() => setStatus("SUSPENDED")}
-                  className="w-4 h-4 accent-stone-900"
+                  className="w-4 h-4 accent-primary"
                 />
-                <span className="text-sm font-inter text-stone-800 text-red-600 font-medium">Suspended</span>
+                <span className="text-sm font-inter text-rose-600 dark:text-rose-400 font-medium">Suspended</span>
               </label>
             </div>
           </div>
         </div>
 
-        <div className="border-t border-stone-200 px-6 py-4 bg-stone-50 shrink-0 flex items-center justify-end gap-3">
+        <div className="border-t border-border px-6 py-4 bg-surface shrink-0 flex items-center justify-end gap-3">
           <button
             onClick={onClose}
             disabled={loading}
-            className="px-4 py-2 bg-white border border-stone-300 rounded-lg font-inter font-medium text-sm text-stone-700 hover:bg-stone-50 transition-colors shadow-sm"
+            className="px-4 py-2 bg-surface border border-border rounded-lg font-inter font-medium text-sm text-foreground hover:bg-surface-elevated transition-colors shadow-sm"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
             disabled={loading || !firstName.trim() || !email.trim()}
-            className="px-5 py-2 bg-stone-900 text-white rounded-lg font-inter font-medium text-sm hover:bg-stone-800 transition-colors shadow-md shadow-stone-900/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-5 py-2 bg-primary text-white rounded-lg font-inter font-medium text-sm hover:bg-primary-hover transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {loading && <Loader2 size={14} className="animate-spin" />}
             {initialData ? "Save Changes" : "Create User"}

@@ -405,7 +405,7 @@ export default function POSSalesClient() {
 
       {/* Order Details Side Panel */}
       {isSidePanelOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-stone-900/60 backdrop-blur-sm transition-opacity" onClick={() => setIsSidePanelOpen(false)}>
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm transition-opacity" onClick={() => setIsSidePanelOpen(false)}>
           <div className="w-[450px] max-w-full bg-surface border-l border-border h-full flex flex-col shadow-2xl animate-in slide-in-from-right duration-300" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-6 border-b border-border shrink-0">
               <h2 className="text-xl font-bold font-inter text-foreground">Order Details</h2>

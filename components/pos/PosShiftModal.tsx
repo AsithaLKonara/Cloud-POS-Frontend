@@ -94,31 +94,31 @@ export default function PosShiftModal({ mode, activeSession, branchId, terminalI
 
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-        <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col p-8 items-center text-center animate-in zoom-in-95 duration-200">
-          <div className="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
+        <div className="bg-surface border border-border rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col p-8 items-center text-center animate-in zoom-in-95 duration-200">
+          <div className="w-16 h-16 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
             <CheckCircle2 size={36} />
           </div>
-          <h2 className="font-inter font-bold text-2xl text-stone-900 mb-1">Shift Successfully Closed</h2>
-          <p className="text-stone-500 font-inter text-xs mb-6">
+          <h2 className="font-inter font-bold text-2xl text-foreground mb-1">Shift Successfully Closed</h2>
+          <p className="text-muted font-inter text-xs mb-6">
             Terminal drawer balanced and all tender totals logged to the system.
           </p>
           
-          <div className="w-full bg-stone-50 border border-stone-200 rounded-xl p-4 mb-6 flex flex-col gap-2.5 text-xs text-left font-inter">
-            <div className="flex justify-between text-stone-600">
+          <div className="w-full bg-surface-elevated border border-border rounded-xl p-4 mb-6 flex flex-col gap-2.5 text-xs text-left font-inter">
+            <div className="flex justify-between text-muted">
               <span>Opening Cash Float</span>
-              <span className="font-mono font-bold">Rs. {(activeSession?.openingFloat || 0).toLocaleString()}</span>
+              <span className="font-mono font-bold text-foreground">Rs. {(activeSession?.openingFloat || 0).toLocaleString()}</span>
             </div>
-            <div className="flex justify-between text-stone-600">
+            <div className="flex justify-between text-muted">
               <span>Expected In Drawer</span>
-              <span className="font-mono font-bold">Rs. {expectedCash.toLocaleString()}</span>
+              <span className="font-mono font-bold text-foreground">Rs. {expectedCash.toLocaleString()}</span>
             </div>
-            <div className="flex justify-between text-stone-800 font-bold border-t border-stone-200 pt-2">
+            <div className="flex justify-between text-foreground font-bold border-t border-border pt-2">
               <span>Actual Counted Cash</span>
               <span className="font-mono font-black">Rs. {actualCash.toLocaleString()}</span>
             </div>
-            <div className="flex justify-between font-bold border-t border-stone-200 pt-2">
+            <div className="flex justify-between font-bold border-t border-border pt-2">
               <span>Variance (Over / Short)</span>
-              <span className={`font-mono font-black ${variance === 0 ? "text-emerald-700" : variance > 0 ? "text-blue-700" : "text-red-600"}`}>
+              <span className={`font-mono font-black ${variance === 0 ? "text-emerald-600 dark:text-emerald-400" : variance > 0 ? "text-blue-600 dark:text-blue-400" : "text-red-600 dark:text-rose-400"}`}>
                 {variance === 0 ? "Rs. 0.00 (Balanced)" : `${variance > 0 ? '+' : ''}Rs. ${variance.toLocaleString()}`}
               </span>
             </div>
@@ -134,7 +134,7 @@ export default function PosShiftModal({ mode, activeSession, branchId, terminalI
           <button 
             type="button"
             onClick={() => handlePrint()}
-            className="w-full py-3.5 bg-stone-900 text-white font-inter font-bold text-sm rounded-xl hover:bg-stone-800 transition-colors mb-3 flex items-center justify-center gap-2 shadow-md shadow-stone-900/10"
+            className="w-full py-3.5 bg-primary hover:bg-primary-hover text-white font-inter font-bold text-sm rounded-xl transition-colors mb-3 flex items-center justify-center gap-2 shadow-md shadow-primary/20"
           >
             <Printer size={16} /> Print Shift Z-Report (Thermal)
           </button>
@@ -142,7 +142,7 @@ export default function PosShiftModal({ mode, activeSession, branchId, terminalI
           <button 
             type="button"
             onClick={() => onSuccess(actualCash)}
-            className="w-full py-3 bg-stone-100 text-stone-700 font-inter font-semibold text-xs rounded-xl hover:bg-stone-200 transition-colors"
+            className="w-full py-3 bg-surface-elevated border border-border text-foreground font-inter font-semibold text-xs rounded-xl hover:bg-surface transition-colors"
           >
             Complete & Exit Shift
           </button>
@@ -154,16 +154,16 @@ export default function PosShiftModal({ mode, activeSession, branchId, terminalI
   // OPEN OR CLOSE INPUT FORM
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+      <div className="bg-surface border border-border rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
         
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-stone-200 bg-stone-50 shrink-0">
+        <div className="flex items-center justify-between p-6 border-b border-border bg-surface-elevated/50 shrink-0">
           <div>
-            <h2 className="font-inter font-bold text-lg text-stone-900 flex items-center gap-2">
-              {mode === "OPEN" ? <Unlock className="text-emerald-600" size={20} /> : <Lock className="text-stone-700" size={20} />}
+            <h2 className="font-inter font-bold text-lg text-foreground flex items-center gap-2">
+              {mode === "OPEN" ? <Unlock className="text-emerald-600 dark:text-emerald-400" size={20} /> : <Lock className="text-muted" size={20} />}
               {mode === "OPEN" ? "Open Register Shift" : "End Shift & Drawer Balancing"}
             </h2>
-            <p className="font-inter text-xs text-stone-500 mt-1">
+            <p className="font-inter text-xs text-muted mt-1">
               {mode === "OPEN" 
                 ? "Enter initial cash float before starting cashier sales" 
                 : "Count physical cash in the drawer and reconcile totals"}
@@ -172,7 +172,7 @@ export default function PosShiftModal({ mode, activeSession, branchId, terminalI
           <button 
             type="button"
             onClick={onClose} 
-            className="p-1.5 text-stone-400 hover:text-stone-700 rounded-lg transition-colors"
+            className="p-1.5 text-muted hover:text-foreground rounded-lg transition-colors"
           >
             <X size={18} />
           </button>
@@ -181,16 +181,16 @@ export default function PosShiftModal({ mode, activeSession, branchId, terminalI
         {/* Content */}
         <div className="p-6 flex flex-col gap-5">
           {mode === "CLOSE" && (
-            <div className="bg-stone-50 border border-stone-200 rounded-xl p-4 flex flex-col gap-2.5 text-xs font-inter">
-              <div className="flex justify-between text-stone-600">
+            <div className="bg-surface-elevated border border-border rounded-xl p-4 flex flex-col gap-2.5 text-xs font-inter">
+              <div className="flex justify-between text-muted">
                 <span>Shift Started</span>
-                <span className="font-mono">{activeSession?.openedAt ? new Date(activeSession.openedAt).toLocaleTimeString() : 'N/A'}</span>
+                <span className="font-mono text-foreground">{activeSession?.openedAt ? new Date(activeSession.openedAt).toLocaleTimeString() : 'N/A'}</span>
               </div>
-              <div className="flex justify-between text-stone-600">
+              <div className="flex justify-between text-muted">
                 <span>Opening Cash Float</span>
-                <span className="font-mono">Rs. {(activeSession?.openingFloat || 0).toLocaleString()}</span>
+                <span className="font-mono text-foreground">Rs. {(activeSession?.openingFloat || 0).toLocaleString()}</span>
               </div>
-              <div className="flex justify-between text-stone-900 font-bold border-t border-stone-200 pt-2">
+              <div className="flex justify-between text-foreground font-bold border-t border-border pt-2">
                 <span>System Expected Cash In Drawer</span>
                 <span className="font-mono font-black text-sm">
                   {expectedClosingLoading ? "Calculating..." : `Rs. ${expectedCash.toLocaleString()}`}
@@ -202,14 +202,14 @@ export default function PosShiftModal({ mode, activeSession, branchId, terminalI
           {/* Quick presets for opening float */}
           {mode === "OPEN" && (
             <div className="flex flex-col gap-2">
-              <label className="font-inter font-bold text-xs text-stone-700">Quick Cash Float Presets</label>
+              <label className="font-inter font-bold text-xs text-foreground">Quick Cash Float Presets</label>
               <div className="grid grid-cols-3 gap-2">
                 {['2,000', '5,000', '10,000'].map(p => (
                   <button
                     key={p}
                     type="button"
                     onClick={() => setFloatAmount(p.replace(/,/g, ''))}
-                    className="py-2 rounded-lg border border-stone-200 text-xs font-bold hover:border-stone-900 hover:bg-stone-50 font-mono transition-all text-stone-700"
+                    className="py-2 rounded-lg border border-border bg-surface text-xs font-bold hover:border-primary hover:bg-surface-elevated font-mono transition-all text-foreground"
                   >
                     Rs. {p}
                   </button>
@@ -220,17 +220,17 @@ export default function PosShiftModal({ mode, activeSession, branchId, terminalI
 
           {/* Cash Input */}
           <div className="flex flex-col gap-1.5">
-            <label className="font-inter font-bold text-xs text-stone-700">
+            <label className="font-inter font-bold text-xs text-foreground">
               {mode === "OPEN" ? "Opening Cash Float (Rs.)" : "Actual Counted Cash In Drawer (Rs.)"}
             </label>
-            <div className="flex items-center border border-stone-300 rounded-xl px-4 py-3 bg-white focus-within:border-stone-900 focus-within:ring-1 focus-within:ring-stone-900">
-              <span className="font-mono text-stone-400 font-bold mr-2 text-base">Rs.</span>
+            <div className="flex items-center border border-border rounded-xl px-4 py-3 bg-surface focus-within:border-primary focus-within:ring-1 focus-within:ring-primary">
+              <span className="font-mono text-muted font-bold mr-2 text-base">Rs.</span>
               <input
                 type="number"
                 value={floatAmount}
                 onChange={(e) => setFloatAmount(e.target.value)}
                 placeholder="0.00"
-                className="w-full bg-transparent font-mono font-bold text-xl text-stone-900 outline-none"
+                className="w-full bg-transparent font-mono font-bold text-xl text-foreground outline-none"
                 autoFocus
                 min={0}
               />
@@ -241,10 +241,10 @@ export default function PosShiftModal({ mode, activeSession, branchId, terminalI
           {mode === "CLOSE" && floatAmount && (
             <div className={`p-3.5 rounded-xl border flex items-center justify-between text-xs font-inter ${
               variance === 0 
-                ? "bg-emerald-50 border-emerald-200 text-emerald-800" 
+                ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-300" 
                 : variance > 0 
-                  ? "bg-blue-50 border-blue-200 text-blue-800" 
-                  : "bg-red-50 border-red-200 text-red-800"
+                  ? "bg-blue-500/10 border-blue-500/30 text-blue-800 dark:text-blue-300" 
+                  : "bg-red-500/10 border-red-500/30 text-red-800 dark:text-rose-300"
             }`}>
               <div className="flex items-center gap-2">
                 {variance >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
@@ -261,24 +261,24 @@ export default function PosShiftModal({ mode, activeSession, branchId, terminalI
           {/* Closing Notes */}
           {mode === "CLOSE" && (
             <div className="flex flex-col gap-1.5">
-              <label className="font-inter font-bold text-xs text-stone-700">Closing Remarks / Discrepancy Reason</label>
+              <label className="font-inter font-bold text-xs text-foreground">Closing Remarks / Discrepancy Reason</label>
               <textarea
                 value={closingNotes}
                 onChange={(e) => setClosingNotes(e.target.value)}
                 placeholder="Optional shift notes, petty cash explanation, etc..."
                 rows={2}
-                className="w-full border border-stone-200 rounded-xl p-3 text-xs font-inter text-stone-800 outline-none focus:border-stone-900 resize-none"
+                className="w-full border border-border bg-surface rounded-xl p-3 text-xs font-inter text-foreground outline-none focus:border-primary resize-none placeholder:text-muted"
               />
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-stone-200 bg-stone-50 flex items-center justify-end gap-3">
+        <div className="p-4 border-t border-border bg-surface-elevated/50 flex items-center justify-end gap-3">
           <button 
             type="button" 
             onClick={onClose} 
-            className="px-4 py-2.5 bg-white border border-stone-300 text-stone-700 font-inter font-semibold text-xs rounded-xl hover:bg-stone-50 transition-colors shadow-sm"
+            className="px-4 py-2.5 bg-surface border border-border text-foreground font-inter font-semibold text-xs rounded-xl hover:bg-surface-elevated transition-colors shadow-sm"
           >
             Cancel
           </button>
@@ -286,7 +286,7 @@ export default function PosShiftModal({ mode, activeSession, branchId, terminalI
             type="button" 
             onClick={handleProcess} 
             disabled={isProcessing || !floatAmount}
-            className="px-6 py-2.5 bg-stone-900 text-white font-inter font-bold text-xs rounded-xl hover:bg-stone-800 transition-colors shadow-md disabled:opacity-50"
+            className="px-6 py-2.5 bg-primary text-white font-inter font-bold text-xs rounded-xl hover:bg-primary-hover transition-colors shadow-md disabled:opacity-50"
           >
             {isProcessing ? "Processing..." : (mode === "OPEN" ? "Open Register Shift" : "Close Shift & Print Report")}
           </button>

@@ -90,7 +90,7 @@ export default function VariantSelectionModal({ product, onClose, onAdd, allowOu
           
           {/* Product Summary */}
           <div className="flex gap-4">
-            <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-stone-100 shrink-0 border border-border">
+            <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-surface-elevated shrink-0 border border-border">
               <Image src={imageUrl} alt={product.name} fill sizes="100px" className="object-cover" />
             </div>
             <div className="flex flex-col justify-center">
@@ -150,7 +150,7 @@ export default function VariantSelectionModal({ product, onClose, onAdd, allowOu
                       }}
                       className={`p-3 rounded-xl border flex items-center justify-between text-left transition-all ${
                         isSelected 
-                          ? "border-amber-600 bg-amber-500/10 shadow-sm ring-1 ring-amber-500" 
+                          ? "border-primary bg-primary-soft shadow-sm ring-1 ring-primary" 
                           : "border-border bg-surface hover:bg-background"
                       }`}
                     >
@@ -159,10 +159,10 @@ export default function VariantSelectionModal({ product, onClose, onAdd, allowOu
                         <span className="text-[11px] text-muted font-mono">{v.sku || v.barcode || ""}</span>
                       </div>
                       <div className="flex flex-col items-end">
-                        <span className="font-mono font-bold text-amber-600 text-sm">
+                        <span className="font-mono font-bold text-primary text-sm">
                           Rs {(v.price || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                         </span>
-                        <span className={`text-[10px] font-semibold ${vStock > 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                        <span className={`text-[10px] font-semibold ${vStock > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
                           {vStock > 0 ? `${vStock} in stock` : "Out of stock"}
                         </span>
                       </div>
@@ -182,7 +182,7 @@ export default function VariantSelectionModal({ product, onClose, onAdd, allowOu
                     onClick={() => setSelectedSize(size)}
                     className={`min-w-[50px] h-[40px] px-4 rounded-lg flex items-center justify-center font-inter font-semibold text-sm transition-colors border ${
                       selectedSize === size 
-                        ? 'border-amber-600 text-amber-600 bg-amber-50' 
+                        ? 'border-primary text-primary bg-primary-soft' 
                         : 'border-border text-foreground hover:border-muted bg-surface'
                     }`}
                   >
@@ -214,7 +214,7 @@ export default function VariantSelectionModal({ product, onClose, onAdd, allowOu
             disabled={!inStock && !allowOutOfStock}
             onClick={handleAdd} 
             className={`px-8 py-2 rounded-lg font-inter font-bold text-sm text-white transition-colors shadow-md ${
-              (inStock || allowOutOfStock) ? 'bg-primary hover:bg-primary-hover' : 'bg-stone-400 cursor-not-allowed'
+              (inStock || allowOutOfStock) ? 'bg-primary hover:bg-primary-hover' : 'bg-muted/40 text-muted cursor-not-allowed'
             }`}
           >
             Add to Order

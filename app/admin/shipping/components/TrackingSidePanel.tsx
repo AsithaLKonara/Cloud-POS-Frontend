@@ -42,7 +42,7 @@ export default function TrackingSidePanel({ order, isOpen, onClose }: TrackingSi
       {/* Backdrop */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-stone-900/20 backdrop-blur-sm z-[100] transition-opacity" 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] transition-opacity" 
           onClick={onClose} 
         />
       )}
@@ -53,27 +53,27 @@ export default function TrackingSidePanel({ order, isOpen, onClose }: TrackingSi
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        <div className="flex items-center justify-between p-6 border-b border-border">
+        <div className="flex items-center justify-between p-6 border-b border-border bg-surface">
           <h2 className="text-xl font-bold font-poppins text-foreground">Tracking Details</h2>
           <button onClick={onClose} className="p-2 text-muted hover:text-foreground rounded-full hover:bg-surface-elevated transition-colors">
             <X size={20} />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 space-y-8">
+        <div className="flex-1 overflow-y-auto p-6 space-y-8 bg-background">
           {/* Order Identity */}
-          <div className="bg-background p-4 rounded-xl border border-border">
+          <div className="bg-surface p-4 rounded-xl border border-border">
             <div className="flex justify-between items-start mb-2">
               <div>
                 <p className="text-xs text-muted font-medium uppercase tracking-wider mb-1">Order Number</p>
                 <p className="font-poppins font-semibold text-lg text-primary">{order.orderNumber}</p>
               </div>
               <div className="text-right">
-                <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide
-                  ${order.status === 'DELIVERED' ? 'bg-green-100 text-green-700' : 
-                    order.status === 'CANCELLED' ? 'bg-red-100 text-red-700' :
-                    order.status === 'DISPATCHED' || order.trackingNumber ? 'bg-blue-100 text-blue-700' :
-                    'bg-yellow-100 text-yellow-700'}`}
+                <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide border
+                  ${order.status === 'DELIVERED' ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20' : 
+                    order.status === 'CANCELLED' ? 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20' :
+                    order.status === 'DISPATCHED' || order.trackingNumber ? 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20' :
+                    'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'}`}
                 >
                   {order.status}
                 </span>
@@ -100,8 +100,8 @@ export default function TrackingSidePanel({ order, isOpen, onClose }: TrackingSi
                   return (
                     <div key={step.label} className={`flex gap-4 ${status === 'upcoming' ? 'opacity-50' : ''}`}>
                       <div className={`relative z-10 flex items-center justify-center w-8 h-8 rounded-full border-2 
-                        ${status === 'completed' ? 'bg-blue-500 border-blue-500 text-white' : 
-                          status === 'current' ? 'bg-surface border-blue-500 text-blue-500' : 
+                        ${status === 'completed' ? 'bg-primary border-primary text-primary-foreground' : 
+                          status === 'current' ? 'bg-surface border-primary text-primary' : 
                           'bg-surface border-border text-muted'}`}
                       >
                         {step.icon}
@@ -122,11 +122,11 @@ export default function TrackingSidePanel({ order, isOpen, onClose }: TrackingSi
                 })}
                 {order.status === 'CANCELLED' && (
                    <div className="flex gap-4 mt-6">
-                   <div className="relative z-10 flex items-center justify-center w-8 h-8 rounded-full border-2 bg-red-500 border-red-500 text-white">
+                   <div className="relative z-10 flex items-center justify-center w-8 h-8 rounded-full border-2 bg-rose-500 border-rose-500 text-white">
                      <X size={16} />
                    </div>
                    <div className="flex-1 pt-1">
-                     <p className="text-sm font-semibold text-red-600">Order Cancelled</p>
+                     <p className="text-sm font-semibold text-rose-600 dark:text-rose-400">Order Cancelled</p>
                    </div>
                  </div>
                 )}
@@ -136,11 +136,11 @@ export default function TrackingSidePanel({ order, isOpen, onClose }: TrackingSi
 
           {/* Customer Info */}
           <div>
-             <h3 className="font-semibold text-stone-900 mb-4 font-poppins">Customer & Shipping Details</h3>
-             <div className="bg-stone-50 rounded-xl p-4 border border-stone-100 text-sm space-y-3">
+             <h3 className="font-semibold text-foreground mb-4 font-poppins">Customer & Shipping Details</h3>
+             <div className="bg-surface rounded-xl p-4 border border-border text-sm space-y-3">
                <div className="flex justify-between">
-                 <span className="text-stone-500">Customer</span>
-                 <span className="font-medium text-stone-900 text-right">
+                 <span className="text-muted">Customer</span>
+                 <span className="font-medium text-foreground text-right">
                    {order.customer 
                     ? `${order.customer.firstName || ''} ${order.customer.lastName || ''}` 
                     : order.shippingAddress?.firstName 
@@ -149,14 +149,14 @@ export default function TrackingSidePanel({ order, isOpen, onClose }: TrackingSi
                  </span>
                </div>
                <div className="flex justify-between">
-                 <span className="text-stone-500">Phone</span>
-                 <span className="font-medium text-stone-900 text-right">
+                 <span className="text-muted">Phone</span>
+                 <span className="font-medium text-foreground text-right">
                     {order.customer?.phone || order.shippingAddress?.phone || 'N/A'}
                  </span>
                </div>
-               <div className="flex justify-between border-t border-stone-200 pt-3 mt-3">
-                 <span className="text-stone-500">Address</span>
-                 <span className="font-medium text-stone-900 text-right w-2/3 break-words">
+               <div className="flex justify-between border-t border-border pt-3 mt-3">
+                 <span className="text-muted">Address</span>
+                 <span className="font-medium text-foreground text-right w-2/3 break-words">
                     {order.shippingAddress 
                       ? `${order.shippingAddress.addressLine1}, ${order.shippingAddress.city}`
                       : 'N/A'}
@@ -166,7 +166,7 @@ export default function TrackingSidePanel({ order, isOpen, onClose }: TrackingSi
           </div>
         </div>
 
-        <div className="p-6 border-t border-stone-200 bg-stone-50">
+        <div className="p-6 border-t border-border bg-surface">
            {order.trackingUrl ? (
              <Button className="w-full" onClick={() => window.open(order.trackingUrl, '_blank')}>
                View Live Tracking on Courier

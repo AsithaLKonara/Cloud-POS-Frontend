@@ -124,12 +124,12 @@ export default function CustomerSelectionModal({ onClose, onSelect, activeSessio
             <div className="flex flex-col gap-4">
               <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex items-center justify-between">
                 <div>
-                  <span className="text-xs font-bold text-amber-800 uppercase tracking-wide">Current Outstanding Debt</span>
+                  <span className="text-xs font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wide">Current Outstanding Debt</span>
                   <p className="font-inter text-xs text-muted mt-0.5">
                     {settlingCustomer.phone} {settlingCustomer.vehicleNumber ? `• Reg: ${settlingCustomer.vehicleNumber}` : ''}
                   </p>
                 </div>
-                <span className="font-mono font-black text-2xl text-amber-900">
+                <span className="font-mono font-black text-2xl text-amber-900 dark:text-amber-400">
                   Rs. {(settlingCustomer.creditBalance || 0).toLocaleString()}
                 </span>
               </div>
@@ -241,7 +241,7 @@ export default function CustomerSelectionModal({ onClose, onSelect, activeSessio
                         className="flex-1 flex items-start gap-3 text-left"
                       >
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 font-bold ${
-                          isWorkshop ? 'bg-amber-500/10 text-amber-700' : 'bg-primary-soft text-primary'
+                          isWorkshop ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400' : 'bg-primary-soft text-primary'
                         }`}>
                           {isWorkshop ? <Building2 size={20} /> : <User size={20} />}
                         </div>
@@ -251,9 +251,9 @@ export default function CustomerSelectionModal({ onClose, onSelect, activeSessio
                               {c.companyName || c.name}
                             </span>
                             <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                              c.customerType === 'GARAGE_WORKSHOP' ? 'bg-amber-100 text-amber-800' :
-                              c.customerType === 'COMMERCIAL_FLEET' ? 'bg-blue-100 text-blue-800' :
-                              'bg-stone-100 text-stone-700'
+                              c.customerType === 'GARAGE_WORKSHOP' ? 'bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300' :
+                              c.customerType === 'COMMERCIAL_FLEET' ? 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300' :
+                              'bg-surface-elevated text-muted border border-border'
                             }`}>
                               {c.customerType || "RETAIL"}
                             </span>
@@ -263,7 +263,7 @@ export default function CustomerSelectionModal({ onClose, onSelect, activeSessio
                             {c.vehicleNumber && <span>• Plate: {c.vehicleNumber}</span>}
                           </div>
                           {hasDebt && (
-                            <span className="font-mono text-xs font-bold text-red-600 mt-1">
+                            <span className="font-mono text-xs font-bold text-red-600 dark:text-rose-400 mt-1">
                               Owes: Rs. {c.creditBalance.toLocaleString()} {c.creditLimit > 0 ? `(Limit: Rs. ${c.creditLimit.toLocaleString()})` : ''}
                             </span>
                           )}
@@ -277,7 +277,7 @@ export default function CustomerSelectionModal({ onClose, onSelect, activeSessio
                             e.stopPropagation();
                             setSettlingCustomer(c);
                           }}
-                          className="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500/10 text-amber-800 border border-amber-500/30 hover:bg-amber-500/20 transition-colors shrink-0 ml-2"
+                          className="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-amber-500/30 hover:bg-amber-500/20 transition-colors shrink-0 ml-2"
                         >
                           Settle Debt
                         </button>
