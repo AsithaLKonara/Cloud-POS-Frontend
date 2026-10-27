@@ -691,54 +691,38 @@ export default function POSPage() {
             </div>
 
             {/* Quick Item Type Filter Bar (Zero Emojis, Clean Vector Icons) */}
+            {/* Dynamic Category Filter Bar */}
             <div className="px-4 py-2 border-b border-border flex gap-2 overflow-x-auto shrink-0 no-scrollbar bg-surface/50">
-              {[
-                { id: "ALL", label: "All Items", icon: Layers },
-                { id: "LUBRICANT", label: "Oils & Lubricants", icon: Droplets },
-                { id: "FILTER", label: "Filters (Non-Oil)", icon: Wrench },
-                { id: "BATTERY", label: "Batteries", icon: Zap },
-                { id: "CAR_CARE", label: "Coolants & Fluids", icon: FlaskConical },
-                { id: "SPARE_PART", label: "Plugs & Spares", icon: Sparkles },
-              ].map((tab) => {
-                const TabIcon = tab.icon;
-                const isSelected = selectedType === tab.id;
+              <button
+                type="button"
+                onClick={() => setSelectedCategory("All")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-inter font-semibold text-xs whitespace-nowrap transition-all border ${
+                  selectedCategory === "All"
+                    ? "bg-amber-500 text-slate-950 border-amber-500 shadow-sm"
+                    : "bg-background text-muted border-border hover:bg-surface hover:text-foreground"
+                }`}
+              >
+                <Layers size={14} className={selectedCategory === "All" ? "text-slate-950" : "text-muted"} />
+                <span>All Items</span>
+              </button>
+              {categories.map((cat: any) => {
+                const isSelected = selectedCategory === cat.slug || selectedCategory === cat.name;
                 return (
                   <button
-                    key={tab.id}
+                    key={cat.id || cat.slug}
                     type="button"
-                    onClick={() => { setSelectedType(tab.id); setSelectedViscosity("ALL"); }}
+                    onClick={() => setSelectedCategory(isSelected ? "All" : (cat.slug || cat.name))}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-inter font-semibold text-xs whitespace-nowrap transition-all border ${
                       isSelected
                         ? "bg-amber-500 text-slate-950 border-amber-500 shadow-sm"
                         : "bg-background text-muted border-border hover:bg-surface hover:text-foreground"
                     }`}
                   >
-                    <TabIcon size={14} className={isSelected ? "text-slate-950" : "text-muted"} />
-                    <span>{tab.label}</span>
+                    <span>{cat.name}</span>
                   </button>
                 );
               })}
             </div>
-
-            {/* Viscosity / Oil Grade Fast Filter (Active when Lubricants or All selected) */}
-            {(selectedType === "ALL" || selectedType === "LUBRICANT") && (
-              <div className="px-4 py-2 border-b border-border flex gap-1.5 overflow-x-auto shrink-0 no-scrollbar bg-background/60">
-                <span className="text-[11px] font-bold text-muted self-center uppercase tracking-wider mr-1">Grade:</span>
-                {["ALL", "0W-20", "5W-30", "5W-40", "10W-30", "10W-40", "15W-40", "20W-50", "ATF", "80W-90"].map((grade) => (
-                  <button
-                    key={grade}
-                    onClick={() => setSelectedViscosity(grade)}
-                    className={`px-2.5 py-1 rounded-lg font-mono font-bold text-xs whitespace-nowrap transition-colors border ${
-                      selectedViscosity === grade
-                        ? "bg-amber-500 text-slate-950 border-amber-500 shadow-sm"
-                        : "bg-surface text-foreground border-border hover:bg-background"
-                    }`}
-                  >
-                    {grade === "ALL" ? "All Grades" : grade}
-                  </button>
-                ))}
-              </div>
-            )}
 
             {/* Products Container: Grid or List */}
             <div className="flex-1 overflow-y-auto p-4 bg-background pb-24 lg:pb-4 custom-scrollbar">
