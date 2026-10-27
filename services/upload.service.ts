@@ -44,10 +44,10 @@ export const uploadService = {
     onProgress?: (progress: number) => void
   ): Promise<UploadResponse> => {
     const formData = new FormData();
-    formData.append("file", file);
     if (folder) {
       formData.append("folder", folder);
     }
+    formData.append("file", file);
 
     const { data } = await api.post<UploadResponse>("/upload", formData, {
       headers: {
@@ -75,12 +75,12 @@ export const uploadService = {
     onProgress?: (progress: number) => void
   ): Promise<UploadResponse> => {
     const formData = new FormData();
-    files.forEach((file) => {
-      formData.append("files", file);
-    });
     if (folder) {
       formData.append("folder", folder);
     }
+    files.forEach((file) => {
+      formData.append("files", file);
+    });
 
     const { data } = await api.post<UploadResponse>("/upload", formData, {
       headers: {
