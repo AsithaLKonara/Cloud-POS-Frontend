@@ -385,6 +385,8 @@ export default function LoginPage() {
           )}
 
           <form
+            method="POST"
+            action="#"
             data-hydrated={hydrated ? "true" : "false"}
             onSubmit={(e) => {
               e.preventDefault();
