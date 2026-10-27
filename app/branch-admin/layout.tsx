@@ -42,11 +42,11 @@ export default function BranchAdminLayout({ children }: { children: React.ReactN
   ];
 
   const managementItems = [
-    { name: "Orders", href: "/branch-admin/orders", icon: ShoppingBag },
-    { name: "Inventory", href: "/branch-admin/inventory", icon: Box },
-    { name: "Payments", href: "/branch-admin/payments", icon: CreditCard },
-    { name: "Cashiers", href: "/branch-admin/cashiers", icon: Users },
-    { name: "Reports", href: "/branch-admin/reports", icon: FileText },
+    { name: "Orders", href: "/admin/orders", icon: ShoppingBag },
+    { name: "Inventory", href: "/admin/inventory", icon: Box },
+    { name: "Payments", href: "/admin/payments", icon: CreditCard },
+    { name: "Staff & Cashiers", href: "/admin/system/users", icon: Users },
+    { name: "Reports", href: "/admin/reports", icon: FileText },
   ];
 
   return (

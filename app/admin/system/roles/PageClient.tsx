@@ -92,21 +92,21 @@ export default function AccessControlPage() {
       className: "whitespace-nowrap",
       accessor: (row: RoleItem) => (
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-stone-900">{row.name}</span>
+          <span className="font-semibold text-foreground text-sm">{row.name}</span>
           {row.isSystem && (
-            <span className="text-[10px] bg-stone-100 text-stone-600 px-2 py-0.5 rounded font-mono font-medium">
+            <span className="text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25 px-2 py-0.5 rounded-md font-mono font-bold">
               System
             </span>
           )}
         </div>
       ),
     },
-    { header: "Description", accessor: "description" as const, className: "whitespace-nowrap" },
+    { header: "Description", accessor: "description" as const, className: "whitespace-nowrap text-muted" },
     {
       header: "Assigned Users",
       className: "whitespace-nowrap",
       accessor: (row: RoleItem) => (
-        <span className="font-medium text-stone-700">{row.users || 0} user(s)</span>
+        <span className="font-medium text-foreground">{row.users || 0} user(s)</span>
       ),
     },
     {
@@ -132,11 +132,11 @@ export default function AccessControlPage() {
     },
     {
       header: "Actions",
-      className: "whitespace-nowrap",
+      className: "whitespace-nowrap text-right",
       accessor: (row: RoleItem) => (
-        <div className="flex items-center gap-3">
+        <div className="flex items-center justify-end gap-3">
           <button
-            className="text-xs text-blue-600 hover:underline font-medium"
+            className="text-xs text-amber-500 hover:text-amber-400 font-semibold transition-colors"
             onClick={(e) => {
               e.stopPropagation();
               setEditingRole(row);
@@ -147,7 +147,7 @@ export default function AccessControlPage() {
           </button>
           {!row.isSystem && (
             <button
-              className="text-xs text-red-500 hover:text-red-700"
+              className="text-xs text-red-500 hover:text-red-400 transition-colors p-1"
               title="Delete Role"
               onClick={(e) => {
                 e.stopPropagation();
@@ -167,18 +167,18 @@ export default function AccessControlPage() {
       header: "Name",
       className: "whitespace-nowrap",
       accessor: (row: SystemUserItem) => (
-        <span className="font-semibold text-stone-900">{row.name}</span>
+        <span className="font-semibold text-foreground text-sm">{row.name}</span>
       ),
     },
-    { header: "Email", accessor: "email" as const, className: "whitespace-nowrap" },
+    { header: "Email", accessor: "email" as const, className: "whitespace-nowrap text-muted" },
     {
       header: "Role",
       className: "whitespace-nowrap",
       accessor: (row: SystemUserItem) => (
-        <span className="font-semibold text-stone-700">{row.role}</span>
+        <span className="font-semibold text-foreground">{row.role}</span>
       ),
     },
-    { header: "Branch", accessor: "branch" as const, className: "whitespace-nowrap" },
+    { header: "Branch", accessor: "branch" as const, className: "whitespace-nowrap text-muted" },
     {
       header: "Status",
       className: "whitespace-nowrap",
@@ -192,11 +192,11 @@ export default function AccessControlPage() {
     },
     {
       header: "Actions",
-      className: "whitespace-nowrap",
+      className: "whitespace-nowrap text-right",
       accessor: (row: SystemUserItem) => (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-end gap-2">
           <button
-            className="text-xs text-blue-600 hover:underline font-medium"
+            className="text-xs text-amber-500 hover:text-amber-400 font-semibold transition-colors"
             onClick={(e) => {
               e.stopPropagation();
               setEditingUser(row);
@@ -214,10 +214,10 @@ export default function AccessControlPage() {
     <div className="flex items-center gap-2">
       <button
         onClick={() => fetchData()}
-        className="p-2 border border-stone-200 hover:bg-stone-100 rounded-lg text-stone-700 transition-colors"
+        className="p-2 border border-border hover:bg-surface rounded-xl text-foreground transition-colors shadow-sm"
         title="Refresh Data"
       >
-        <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+        <RefreshCw size={15} className={loading ? "animate-spin text-amber-500" : "text-muted"} />
       </button>
       <button
         onClick={() => {
@@ -229,42 +229,42 @@ export default function AccessControlPage() {
             setUserModalOpen(true);
           }
         }}
-        className="bg-stone-900 text-white hover:bg-stone-800 active:scale-95 px-5 py-2 rounded-lg font-inter text-sm font-semibold transition-all whitespace-nowrap shadow-md shadow-stone-900/20 flex items-center gap-2"
+        className="bg-amber-500 hover:bg-amber-400 text-slate-950 active:scale-95 px-4 py-2 rounded-xl font-inter text-xs font-bold transition-all shadow-sm flex items-center gap-2"
       >
-        <Plus size={16} /> {activeTab === "roles" ? "Create Role" : "Invite User"}
+        <Plus size={15} /> {activeTab === "roles" ? "Create Role" : "Add Staff Member"}
       </button>
     </div>
   );
 
   return (
-    <div className="flex flex-col p-4 md:p-10 max-w-[1280px] mx-auto w-full">
+    <div className="flex flex-col p-4 md:p-8 max-w-[1400px] mx-auto w-full gap-6">
       <PageHeader
-        title="Access Control Center"
-        description="Manage system users, define roles, and configure granular permissions across the platform."
+        title="Access Control & Permissions"
+        description="Configure role-based access control (RBAC), system roles, and employee permissions."
         action={pageActions}
       />
 
       {/* Tabs */}
-      <div className="flex items-center gap-6 border-b border-stone-200 mb-6">
+      <div className="flex items-center gap-6 border-b border-border">
         <button
           onClick={() => setActiveTab("roles")}
-          className={`pb-3 font-inter text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 ${
+          className={`pb-3 font-inter text-xs font-semibold border-b-2 transition-colors flex items-center gap-2 ${
             activeTab === "roles"
-              ? "border-stone-900 text-stone-900"
-              : "border-transparent text-stone-500 hover:text-stone-700"
+              ? "border-amber-500 text-amber-500 font-bold"
+              : "border-transparent text-muted hover:text-foreground"
           }`}
         >
-          <Shield size={16} /> Roles & Permissions ({roles.length})
+          <Shield size={15} /> Roles & Permissions ({roles.length})
         </button>
         <button
           onClick={() => setActiveTab("users")}
-          className={`pb-3 font-inter text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 ${
+          className={`pb-3 font-inter text-xs font-semibold border-b-2 transition-colors flex items-center gap-2 ${
             activeTab === "users"
-              ? "border-stone-900 text-stone-900"
-              : "border-transparent text-stone-500 hover:text-stone-700"
+              ? "border-amber-500 text-amber-500 font-bold"
+              : "border-transparent text-muted hover:text-foreground"
           }`}
         >
-          <Users size={16} /> System Users ({users.length})
+          <Users size={15} /> Staff Users ({users.length})
         </button>
       </div>
 
