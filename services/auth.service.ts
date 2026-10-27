@@ -7,6 +7,8 @@ export interface UserProfile {
   birthday?: string | null;
   phone?: string | null;
   status: string;
+  tenantId?: string | null;
+  tenant?: { id: string; name: string; slug: string; businessType?: string } | null;
   branchId?: string | null;
   branch?: { id: string; name: string; code: string } | null;
   roles: string[];

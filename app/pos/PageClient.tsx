@@ -33,7 +33,7 @@ import {
   Sun,
   Moon,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import VariantSelectionModal from "@/components/pos/VariantSelectionModal";
@@ -119,10 +119,23 @@ export default function POSPage() {
   const { data: branchesResponse } = useBranches();
   const branches = Array.isArray(branchesResponse) ? branchesResponse : (branchesResponse as any)?.data || [];
 
-  // Priority: If activeSession is for user's assigned branch, use that. Otherwise, strictly preserve userAssignedBranchId to prevent cross-branch stock mismatches
-  const branchId = (activeSession?.branchId && (!userAssignedBranchId || activeSession.branchId === userAssignedBranchId)) 
-    ? activeSession.branchId 
-    : (userAssignedBranchId || branches?.[0]?.id || "");
+  const [selectedBranchId, setSelectedBranchId] = useState<string>("");
+
+  // Strictly filter branches to the user's tenant to prevent cross-tenant collisions
+  const tenantBranches = useMemo(() => {
+    if (!branches || !Array.isArray(branches)) return [];
+    if (user?.tenantId) {
+      const filtered = branches.filter((b: any) => !b.tenantId || b.tenantId === user.tenantId);
+      return filtered.length > 0 ? filtered : branches;
+    }
+    return branches;
+  }, [branches, user?.tenantId]);
+
+  // Priority: If activeSession is for user's assigned branch, use that. Otherwise, strictly preserve userAssignedBranchId or selected tenant branch
+  const branchId = selectedBranchId || 
+    (activeSession?.branchId && (!userAssignedBranchId || activeSession.branchId === userAssignedBranchId) 
+      ? activeSession.branchId 
+      : (userAssignedBranchId || tenantBranches?.[0]?.id || branches?.[0]?.id || ""));
   
   const processOrderMutation = useProcessPosOrder();
   const scanBarcodeMutation = useScanBarcode();
@@ -412,14 +425,29 @@ export default function POSPage() {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <span className="text-stone-400">Branch:</span>
-            <span className="text-white" suppressHydrationWarning>
-              {!mounted
-                ? "Loading..."
-                : (activeSession?.branch?.name || 
-                   user?.branch?.name || 
-                   (branches?.find((b: any) => b.id === branchId)?.name) || 
-                   (branchesResponse === undefined ? "Loading..." : "Unknown Branch"))}
-            </span>
+            {tenantBranches.length > 1 && !activeSession ? (
+              <select
+                value={branchId}
+                onChange={(e) => setSelectedBranchId(e.target.value)}
+                className="bg-stone-800 text-amber-400 border border-stone-700 rounded px-1.5 py-0.5 text-xs outline-none cursor-pointer hover:border-amber-500/50"
+              >
+                {tenantBranches.map((b: any) => (
+                  <option key={b.id} value={b.id} className="bg-stone-900 text-stone-200">
+                    {b.name}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <span className="text-white" suppressHydrationWarning>
+                {!mounted
+                  ? "Loading..."
+                  : (activeSession?.branch?.name || 
+                     user?.branch?.name || 
+                     (tenantBranches?.find((b: any) => b.id === branchId)?.name) || 
+                     (branches?.find((b: any) => b.id === branchId)?.name) || 
+                     (branchesResponse === undefined ? "Loading..." : "Unknown Branch"))}
+              </span>
+            )}
           </div>
           <div className="w-px h-3 bg-stone-700"></div>
           <div className="flex items-center gap-2">
@@ -1162,7 +1190,7 @@ export default function POSPage() {
               tax: 0
             });
             
-            const activeBranch = activeSession?.branch || user?.branch || branches?.find((b: any) => b.id === branchId);
+            const activeBranch = activeSession?.branch || user?.branch || tenantBranches?.find((b: any) => b.id === branchId) || branches?.find((b: any) => b.id === branchId);
 
             const newOrderData = {
               orderId: orderRes?.orderNumber || `POS-${Date.now()}`,
