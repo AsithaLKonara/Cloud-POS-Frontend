@@ -63,6 +63,26 @@ export default function POSPage() {
   const { user } = useAuthStore();
   const { theme, toggleTheme } = useTheme();
 
+  const isBranchStaffOnly = Boolean(
+    user?.roles?.some((r: string) => {
+      const norm = r.toUpperCase().replace(/[\s_]/g, "");
+      return norm === "BRANCHADMIN" || norm === "BRANCHMANAGER";
+    }) && !user?.roles?.some((r: string) => {
+      const norm = r.toUpperCase().replace(/[\s_]/g, "");
+      return norm === "ADMIN" || norm === "SUPERADMIN" || norm === "TENANTADMIN" || norm === "SYSTEMOWNER";
+    })
+  );
+
+  const isCashierOnly = Boolean(
+    user?.roles?.length &&
+    user?.roles?.every((r: string) => {
+      const norm = r.toUpperCase().replace(/[\s_]/g, "");
+      return norm === "CASHIER" || norm === "POSOPERATOR";
+    })
+  );
+
+  const backDashboardHref = isBranchStaffOnly ? "/branch-admin" : "/admin";
+
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
@@ -431,11 +451,17 @@ export default function POSPage() {
       {/* POS Header */}
       <div className="h-[60px] bg-surface text-foreground flex items-center justify-between px-6 shrink-0 shadow-sm border-b border-border z-10">
         <div className="flex items-center gap-6">
-          <Link href="/admin" className="flex items-center gap-2 text-muted hover:text-foreground transition-colors mr-2 group">
-            <div className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center group-hover:bg-surface transition-colors">
-              <ArrowLeft size={16} />
-            </div>
-          </Link>
+          {mounted && !isCashierOnly && (
+            <Link 
+              href={backDashboardHref} 
+              title={isBranchStaffOnly ? "Back to Branch Terminal" : "Back to Executive Dashboard"}
+              className="flex items-center gap-2 text-muted hover:text-foreground transition-colors mr-2 group"
+            >
+              <div className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center group-hover:bg-surface transition-colors">
+                <ArrowLeft size={16} />
+              </div>
+            </Link>
+          )}
           <h1 className="font-bold text-lg tracking-wider uppercase flex items-center gap-2 text-foreground">
             <LayoutGrid size={18} className="text-amber-500" />
             <span>XONIT <span className="text-amber-500 font-black">POS</span></span>

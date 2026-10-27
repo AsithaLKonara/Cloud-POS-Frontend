@@ -19,8 +19,12 @@ interface AuthState {
   hasPermission: (permissionCode: string) => boolean;
   hasRole: (roleName: string) => boolean;
   isAdmin: () => boolean;
+  isTenantAdmin: () => boolean;
+  isBranchManager: () => boolean;
+  isCashier: () => boolean;
   isSuperAdmin: () => boolean;
   isPublicUser: () => boolean;
+  isStaffMember: () => boolean;
 }
 
 const USER_KEY = "laural_user";
@@ -217,8 +221,40 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const { user } = get();
     if (!user || !user.roles) return false;
 
-    const nonAdminRoles = new Set(["PUBLIC_USER", "public user", "CUSTOMER", "customer"]);
-    return user.roles.some((r) => !nonAdminRoles.has(r));
+    return user.roles.some((r) => {
+      const norm = r.toUpperCase().replace(/[\s_]/g, "");
+      return norm === "ADMIN" || norm === "SUPERADMIN" || norm === "TENANTADMIN" || norm === "SYSTEMOWNER" || norm === "STOREOWNER";
+    });
+  },
+
+  isTenantAdmin: () => {
+    const { user } = get();
+    if (!user || !user.roles) return false;
+
+    return user.roles.some((r) => {
+      const norm = r.toUpperCase().replace(/[\s_]/g, "");
+      return norm === "ADMIN" || norm === "TENANTADMIN";
+    });
+  },
+
+  isBranchManager: () => {
+    const { user } = get();
+    if (!user || !user.roles) return false;
+
+    return user.roles.some((r) => {
+      const norm = r.toUpperCase().replace(/[\s_]/g, "");
+      return norm === "BRANCHADMIN" || norm === "BRANCHMANAGER";
+    });
+  },
+
+  isCashier: () => {
+    const { user } = get();
+    if (!user || !user.roles) return false;
+
+    return user.roles.some((r) => {
+      const norm = r.toUpperCase().replace(/[\s_]/g, "");
+      return norm === "CASHIER" || norm === "POSOPERATOR";
+    });
   },
 
   isSuperAdmin: () => {
@@ -235,5 +271,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const { user } = get();
     if (!user || !user.roles) return true;
     return user.roles.length === 1 && (user.roles[0] === "PUBLIC_USER" || user.roles[0] === "Public User");
+  },
+
+  isStaffMember: () => {
+    const { user } = get();
+    if (!user || !user.roles) return false;
+    const nonStaffRoles = new Set(["PUBLIC_USER", "public user", "CUSTOMER", "customer"]);
+    return user.roles.some((r) => !nonStaffRoles.has(r));
   },
 }));

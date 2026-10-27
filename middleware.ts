@@ -50,8 +50,8 @@ export function middleware(request: NextRequest) {
 
     // Role-based route guard
     const isCashier = roles.includes("CASHIER") || roles.includes("POSOPERATOR");
-    const isBranchManager = roles.includes("BRANCHMANAGER");
-    const isAdmin = roles.includes("SUPERADMIN") || roles.includes("ADMIN") || roles.includes("SYSTEMOWNER");
+    const isAdmin = roles.includes("SUPERADMIN") || roles.includes("ADMIN") || roles.includes("TENANTADMIN") || roles.includes("SYSTEMOWNER");
+    const isBranchManager = (roles.includes("BRANCHMANAGER") || roles.includes("BRANCHADMIN")) && !isAdmin;
 
     // Cashiers attempting to access Admin dashboard get redirected to POS
     if (isCashier && !isAdmin && (pathname.startsWith("/admin") || pathname.startsWith("/superadmin"))) {
@@ -61,10 +61,11 @@ export function middleware(request: NextRequest) {
 
   // 2. Authenticated user visiting /login
   if (isAuthRoute && token && !isExpired) {
-    const isCashier = roles.includes("CASHIER") || roles.includes("POSOPERATOR");
-    const isBranchManager = roles.includes("BRANCHMANAGER");
     const isSuperAdmin = roles.includes("SUPERADMIN") || roles.includes("SYSTEMOWNER");
-    const redirectTarget = isCashier ? "/pos" : isBranchManager ? "/branch-admin" : isSuperAdmin ? "/superadmin" : "/admin";
+    const isAdmin = roles.includes("ADMIN") || roles.includes("TENANTADMIN");
+    const isCashier = roles.includes("CASHIER") || roles.includes("POSOPERATOR");
+    const isBranchManager = (roles.includes("BRANCHMANAGER") || roles.includes("BRANCHADMIN")) && !isAdmin && !isSuperAdmin;
+    const redirectTarget = isSuperAdmin ? "/superadmin" : isAdmin ? "/admin" : isBranchManager ? "/branch-admin" : isCashier ? "/pos" : "/admin";
     return NextResponse.redirect(new URL(redirectTarget, request.url));
   }
 

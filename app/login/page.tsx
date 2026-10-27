@@ -96,6 +96,18 @@ const DEV_ACCOUNTS: MultiTenantDevAccount[] = [
     defaultPassword: "Password@123",
   },
   {
+    role: "Branch Store Manager",
+    badgeColor: "text-blue-400",
+    badgeBg: "bg-blue-400/10",
+    badgeBorder: "border-blue-400/30",
+    email: "branch.manager@xonit.space",
+    tenantSlug: "velvet-threads",
+    businessType: "Store Operations",
+    scope: "Branch Terminal & Shift",
+    icon: Building2,
+    defaultPassword: "Password@123",
+  },
+  {
     role: "POS Terminal Cashier",
     badgeColor: "text-[#00C987]",
     badgeBg: "bg-[#00C987]/10",
@@ -158,6 +170,8 @@ export default function LoginPage() {
       let target = "/admin";
       if (roles.includes("SUPERADMIN") || roles.includes("SYSTEMOWNER") || result.user.email === "admin@xonit.space") {
         target = "/superadmin";
+      } else if (roles.includes("TENANTADMIN") || roles.includes("ADMIN") || roles.includes("STOREOWNER") || roles.includes("BUSINESSOWNER")) {
+        target = "/admin";
       } else if (roles.includes("CASHIER") || roles.includes("POSOPERATOR")) {
         target = "/pos";
       } else if (roles.includes("BRANCHMANAGER") || roles.includes("BRANCHADMIN")) {
