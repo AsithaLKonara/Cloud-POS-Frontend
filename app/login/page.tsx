@@ -474,10 +474,6 @@ export default function LoginPage() {
             {/* Submit Button */}
             <button
               type="submit"
-              onClick={(e) => {
-                e.preventDefault();
-                handleSubmit(onSubmit)(e);
-              }}
               disabled={loading}
               className="w-full h-11 bg-[#F4F5F1] hover:bg-white text-[#050706] font-manrope font-bold rounded-xl text-sm flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-[#00C987]/20 disabled:opacity-50 mt-3 group"
             >
