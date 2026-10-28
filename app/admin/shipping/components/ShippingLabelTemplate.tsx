@@ -20,7 +20,14 @@ export default function ShippingLabelTemplate({ order, index, total, storeName, 
       <div className="absolute top-3 right-3 font-bold text-lg tracking-widest z-10">FARDAR</div>
       
       <div className="border-b-2 border-black pb-2 mb-2 flex items-center h-[50px]">
-        <img src="/logo.png" alt="Seramaaduwen Logo" width={180} height={36} className="object-contain" />
+        <div className="flex flex-col justify-center">
+          <span className="font-black text-xl tracking-tight text-black uppercase leading-none">
+            {storeName || 'STORE NAME'}
+          </span>
+          <span className="text-[10px] tracking-widest text-gray-500 uppercase mt-1 font-bold">
+            Shipping & Dispatch Hub
+          </span>
+        </div>
       </div>
 
       {/* Addresses Section (Side by Side) */}
@@ -28,8 +35,8 @@ export default function ShippingLabelTemplate({ order, index, total, storeName, 
         {/* Sender (From) Section */}
         <div className="text-xs">
           <h2 className="font-bold border-b border-gray-300 mb-1 uppercase text-[10px] text-gray-600">From:</h2>
-          <p className="font-bold whitespace-pre-wrap">{storeName || 'SERAMAADUWEN.LK Ltd.'}</p>
-          <p className="whitespace-pre-wrap">{storeAddress || '123 Fashion Avenue\nColombo 07'}</p>
+          <p className="font-bold whitespace-pre-wrap">{storeName || 'Store Dispatch Hub'}</p>
+          <p className="whitespace-pre-wrap">{storeAddress || 'Commercial Hub\nColombo, Sri Lanka'}</p>
           <p className="mt-1 font-bold text-[10px]">Tel: {storePhone || '+94 11 234 5678'}</p>
         </div>
 

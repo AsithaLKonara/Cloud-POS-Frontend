@@ -4,8 +4,11 @@ import React, { useState, useRef } from "react";
 import { useProducts } from "@/hooks/useProducts";
 import { Printer, Search, Plus, Minus, FileText } from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useAuthStore } from "@/store/auth.store";
 
 export default function BarcodePrinterClient() {
+  const { user } = useAuthStore();
+  const tenantName = user?.tenant?.name;
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
@@ -179,7 +182,7 @@ export default function BarcodePrinterClient() {
       <div className="barcode-print-zone hidden print:grid">
         {labelsToPrint.map((item, i) => (
           <div key={`${item.sku}-${i}`} className="barcode-label">
-            <div className="text-[10px] font-bold text-black truncate w-full text-center leading-tight">Seramaaduwen - {item.name.substring(0, 20)}</div>
+            <div className="text-[10px] font-bold text-black truncate w-full text-center leading-tight">{tenantName || 'Store'} - {item.name.substring(0, 20)}</div>
             
             {/* Pseudo-barcode */}
             <div className="flex-1 w-full flex flex-col items-center justify-center py-1">

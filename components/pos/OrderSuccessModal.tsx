@@ -6,6 +6,7 @@ import { useReactToPrint } from "react-to-print";
 import Receipt from "./Receipt";
 import WorkshopInvoiceA4 from "./WorkshopInvoiceA4";
 import { hardwareService } from "@/services/hardware.service";
+import { useAuthStore } from "@/store/auth.store";
 
 export default function OrderSuccessModal({ 
   onClose, 
@@ -14,6 +15,8 @@ export default function OrderSuccessModal({
   onClose: () => void,
   orderData?: any
 }) {
+  const { user } = useAuthStore();
+  const tenantName = orderData?.tenantName || user?.tenant?.name;
   const thermalRef = useRef<HTMLDivElement>(null);
   const a4InvoiceRef = useRef<HTMLDivElement>(null);
 
@@ -40,8 +43,9 @@ export default function OrderSuccessModal({
     paymentMethod: orderData?.paymentMethod || "Cash",
     tendered: orderData?.tendered || undefined,
     change: orderData?.change || undefined,
-    branchName: orderData?.branchName || "XONIT Flagship Store",
-    branchAddress: orderData?.branchAddress || "Universal Retail Hub, Colombo 03",
+    tenantName: tenantName,
+    branchName: orderData?.branchName || tenantName || "Store",
+    branchAddress: orderData?.branchAddress || "Colombo, Sri Lanka",
     branchPhone: orderData?.branchPhone || "+94 11 234 5678"
   };
 
@@ -52,7 +56,7 @@ export default function OrderSuccessModal({
     }
     // Update customer display to completed state
     hardwareService.updateCustomerDisplay({
-      storeName: receiptProps.branchName,
+      storeName: tenantName || receiptProps.branchName,
       cashier: receiptProps.cashierName,
       itemCount: receiptProps.items.length,
       subtotalLkr: receiptProps.subtotal,
@@ -62,12 +66,12 @@ export default function OrderSuccessModal({
       changeDueLkr: receiptProps.change,
       status: "COMPLETED",
     });
-  }, [orderData, receiptProps]);
+  }, [orderData, receiptProps, tenantName]);
 
   const handlePrintThermal = async () => {
     // Attempt zero-click silent hardware print via local bridge
     const silentSuccess = await hardwareService.printThermalReceipt({
-      companyName: receiptProps.branchName,
+      companyName: tenantName || receiptProps.branchName,
       companyAddress: receiptProps.branchAddress,
       phone: receiptProps.branchPhone,
       orderNumber: receiptProps.orderId,

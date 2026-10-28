@@ -7,6 +7,7 @@ import { useScanBarcode } from "@/hooks/useProducts";
 import { globalDialog } from "@/store/dialog.store";
 import { orderService } from "@/services/order.service";
 import { useReactToPrint } from "react-to-print";
+import { useAuthStore } from "@/store/auth.store";
 
 interface PosExchangeTicketProps {
   isMobileCartOpen: boolean;
@@ -18,6 +19,8 @@ interface PosExchangeTicketProps {
 }
 
 export default function PosExchangeTicket({ isMobileCartOpen, setIsMobileCartOpen, branchId }: PosExchangeTicketProps) {
+  const { user } = useAuthStore();
+  const tenantName = user?.tenant?.name;
   const [returnedItems, setReturnedItems] = useState<any[]>([]);
   const [scanQuery, setScanQuery] = useState("");
   const [orderQuery, setOrderQuery] = useState("");
@@ -192,8 +195,10 @@ export default function PosExchangeTicket({ isMobileCartOpen, setIsMobileCartOpe
         <div className="hidden print:block">
           <div ref={printRef} style={{ padding: '20px', fontFamily: 'monospace', fontSize: '14px', color: '#000', background: '#fff', width: '280px' }}>
             <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-              <img src="/logo.png" alt="LAURAL" style={{ height: '24px', objectFit: 'contain', filter: 'grayscale(100%) brightness(0)', margin: '0 auto 4px auto' }} />
-              <p style={{ fontSize: '12px', color: '#555' }}>EXCHANGE VOUCHER</p>
+              <p style={{ fontSize: '15px', fontWeight: 'bold', letterSpacing: '1px', textTransform: 'uppercase', color: '#000', margin: '0 0 2px 0' }}>
+                {tenantName || 'STORE'}
+              </p>
+              <p style={{ fontSize: '12px', color: '#555', margin: 0 }}>EXCHANGE VOUCHER</p>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}><span>Date:</span><span>{new Date().toLocaleDateString()}</span></div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}><span>Order:</span><span>{loadedOrder?.orderNumber || '-'}</span></div>
@@ -209,7 +214,7 @@ export default function PosExchangeTicket({ isMobileCartOpen, setIsMobileCartOpe
             <hr style={{ borderStyle: 'dashed', borderColor: '#000', margin: '8px 0' }} />
             <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '11px', color: '#555' }}>
               <p>Scan this code at checkout to redeem.</p>
-              <p>Valid at all LAURAL branches.</p>
+              <p>Valid at all {tenantName || 'store'} branches.</p>
             </div>
           </div>
         </div>

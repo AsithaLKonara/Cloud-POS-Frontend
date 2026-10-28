@@ -148,7 +148,7 @@ export default function UserModal({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={!!initialData?.id}
-              placeholder="jane@seramaaduwen.lk"
+              placeholder="staff@example.com"
               className="w-full border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary bg-surface-elevated text-foreground placeholder:text-muted font-inter disabled:opacity-50"
             />
           </div>

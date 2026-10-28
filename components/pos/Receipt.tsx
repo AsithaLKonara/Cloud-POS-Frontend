@@ -13,13 +13,14 @@ export interface ReceiptProps {
   paymentMethod: string;
   tendered?: number;
   change?: number;
+  tenantName?: string;
   branchName?: string;
   branchAddress?: string;
   branchPhone?: string;
 }
 
 const Receipt = forwardRef<HTMLDivElement, ReceiptProps>((props, ref) => {
-  const { orderId, cashierName, date, items, subtotal, discount, total, paymentMethod, tendered, change, branchName, branchAddress, branchPhone } = props;
+  const { orderId, cashierName, date, items, subtotal, discount, total, paymentMethod, tendered, change, tenantName, branchName, branchAddress, branchPhone } = props;
 
   const fmt = (n: number) => n.toFixed(2);
   const truncate = (str: string, max = 28) => str.length > max ? str.slice(0, max - 1) + "\u2026" : str;
@@ -58,8 +59,12 @@ const Receipt = forwardRef<HTMLDivElement, ReceiptProps>((props, ref) => {
     <div ref={ref} className="print-receipt" style={containerStyle}>
       {/* Store Header */}
       <div style={{ textAlign: "center", marginBottom: "4px" }}>
-        <div style={{ fontSize: "14px", fontWeight: "900", letterSpacing: "1px" }}>XONIT POS</div>
-        {branchName && <div style={{ fontSize: "12px", fontWeight: "bold" }}>{branchName}</div>}
+        <div style={{ fontSize: "14px", fontWeight: "900", letterSpacing: "1px", textTransform: "uppercase" }}>
+          {tenantName || branchName || "XONIT POS"}
+        </div>
+        {branchName && tenantName && branchName !== tenantName && (
+          <div style={{ fontSize: "11px", fontWeight: "bold" }}>{branchName}</div>
+        )}
         <div style={{ fontSize: "10px" }}>{branchAddress || "Point of Sale Receipt"}</div>
         <div style={{ fontSize: "10px", marginTop: "2px" }}>Tel: {branchPhone || "+94 11 234 5678"}</div>
       </div>

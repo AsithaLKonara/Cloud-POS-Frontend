@@ -12,6 +12,7 @@ export interface WorkshopInvoiceProps {
   discount: number;
   total: number;
   paymentMethod: string;
+  tenantName?: string;
   branchName?: string;
   branchAddress?: string;
   branchPhone?: string;
@@ -35,6 +36,7 @@ const WorkshopInvoiceA4 = forwardRef<HTMLDivElement, WorkshopInvoiceProps>((prop
     discount, 
     total, 
     paymentMethod, 
+    tenantName,
     branchName, 
     branchAddress, 
     branchPhone,
@@ -55,8 +57,11 @@ const WorkshopInvoiceA4 = forwardRef<HTMLDivElement, WorkshopInvoiceProps>((prop
       <div className="flex justify-between items-start border-b-2 border-stone-900 pb-6 mb-6">
         <div>
           <h1 className="text-2xl font-black tracking-tight text-stone-900 uppercase">
-            {branchName || "XONIT Flagship Store"}
+            {tenantName || branchName || "STORE"}
           </h1>
+          {branchName && tenantName && branchName !== tenantName && (
+            <p className="text-sm font-bold text-stone-800 mt-0.5">{branchName}</p>
+          )}
           <p className="text-xs text-stone-600 mt-1">Enterprise Retail, Wholesale & Commercial Supplies</p>
           <p className="text-xs text-stone-500">{branchAddress || "Central Distribution Hub"}</p>
           <p className="text-xs text-stone-500">Hotline: {branchPhone || "+94 11 234 5678"}</p>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { X, Send, Users, AlertCircle, Link } from "lucide-react";
 import { notificationsService } from "../../services/notifications.service";
 import { useFlashSales } from "../../hooks/usePromotions";
+import { useAuthStore } from "@/store/auth.store";
 
 interface BulkMessageModalProps {
   isOpen: boolean;
@@ -11,6 +12,8 @@ interface BulkMessageModalProps {
 }
 
 export default function BulkMessageModal({ isOpen, onClose }: BulkMessageModalProps) {
+  const { user } = useAuthStore();
+  const tenantName = user?.tenant?.name || "our store";
   const [numbers, setNumbers] = useState("");
   const [message, setMessage] = useState("");
   const [selectedFlashSale, setSelectedFlashSale] = useState("");
@@ -59,7 +62,7 @@ export default function BulkMessageModal({ isOpen, onClose }: BulkMessageModalPr
     if (fsId) {
       const fs = activeFlashSales.find((s: any) => s.id === fsId);
       if (fs && !message) {
-        setMessage(`Flash Sale: ${fs.name}! Shop now at seramaaduwen.lk`);
+        setMessage(`Flash Sale: ${fs.name}! Shop now at ${tenantName}`);
       }
     }
   }

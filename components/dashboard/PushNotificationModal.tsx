@@ -4,6 +4,7 @@ import { useState } from "react";
 import { X, Bell, ImagePlus, Link, AlertCircle, MessageSquare } from "lucide-react";
 import { notificationsService } from "../../services/notifications.service";
 import { useFlashSales } from "../../hooks/usePromotions";
+import { useAuthStore } from "@/store/auth.store";
 
 interface PushNotificationModalProps {
   isOpen: boolean;
@@ -11,6 +12,8 @@ interface PushNotificationModalProps {
 }
 
 export default function PushNotificationModal({ isOpen, onClose }: PushNotificationModalProps) {
+  const { user } = useAuthStore();
+  const tenantName = user?.tenant?.name || "Store";
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [link, setLink] = useState("");
@@ -76,7 +79,7 @@ export default function PushNotificationModal({ isOpen, onClose }: PushNotificat
       const fs = activeFlashSales.find((s: any) => s.id === fsId);
       if (fs) {
         if (!title) setTitle(`Flash Sale: ${fs.name}!`);
-        if (!link) setLink(`https://seramaaduwen.lk/sale`);
+        if (!link) setLink(`/sale`);
       }
     }
   }
@@ -151,7 +154,7 @@ export default function PushNotificationModal({ isOpen, onClose }: PushNotificat
                 type="text"
                 value={link}
                 onChange={e => setLink(e.target.value)}
-                placeholder="https://seramaaduwen.lk/sale"
+                placeholder="https://example.com/sale"
                 className="w-full border border-border bg-surface-elevated text-foreground placeholder:text-muted rounded-lg px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-inter"
               />
             </div>
@@ -245,7 +248,7 @@ export default function PushNotificationModal({ isOpen, onClose }: PushNotificat
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-start">
-                    <span className="font-inter text-xs font-bold text-stone-900 dark:text-stone-100">SERAMAADUWEN.LK</span>
+                    <span className="font-inter text-xs font-bold text-stone-900 dark:text-stone-100 uppercase">{tenantName}</span>
                     <span className="font-inter text-[10px] text-stone-500 dark:text-stone-400">now</span>
                   </div>
                   <p className="font-inter text-sm font-semibold text-stone-900 dark:text-stone-100 mt-0.5 truncate">{title || "Notification Title"}</p>
