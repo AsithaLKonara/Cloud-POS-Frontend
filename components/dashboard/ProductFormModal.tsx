@@ -19,6 +19,12 @@ import {
   Zap,
   FlaskConical,
   Car,
+  ShoppingBag,
+  UtensilsCrossed,
+  Laptop,
+  HeartPulse,
+  Home,
+  SlidersHorizontal,
 } from "lucide-react";
 import BarcodeLib from "react-barcode";
 import { useReactToPrint } from "react-to-print";
@@ -55,40 +61,38 @@ interface ProductFormModalProps {
 }
 
 const PRODUCT_TYPES = [
-  { value: "LUBRICANT", label: "Lubricant / Engine Oil", icon: Droplets, desc: "Engine oil, Gear oil, ATF, Hydraulic fluid" },
-  { value: "FILTER", label: "Oil / Air / Cabin Filter", icon: Wrench, desc: "Spin-on, Cartridge, Air, Cabin, Fuel filters" },
-  { value: "BATTERY", label: "Automotive Battery", icon: Zap, desc: "Maintenance-free, AGM, EFB automotive batteries" },
-  { value: "CAR_CARE", label: "Coolant & Car Care Fluid", icon: FlaskConical, desc: "Radiator coolant, Brake fluid, Additives, Flushes" },
-  { value: "SPARE_PART", label: "Spare Part & Spark Plug", icon: Sparkles, desc: "Spark plugs, Belts, Wiper blades, Bulbs" },
-  { value: "ACCESSORY", label: "Vehicle Accessory", icon: Car, desc: "Car accessories and maintenance tools" },
-  { value: "SERVICE", label: "Labor & Service Package", icon: Wrench, desc: "Oil change labor, Filter replacement, Inspection" },
-  { value: "GENERAL", label: "General Merchandise", icon: Package, desc: "Other retail items" },
+  { value: "RETAIL", label: "Retail & Apparel", icon: ShoppingBag, desc: "Clothing, footwear, fashion, leather goods" },
+  { value: "FMCG_GROCERY", label: "Food, Beverage & Grocery", icon: UtensilsCrossed, desc: "Packaged foods, beverages, produce, FMCG" },
+  { value: "ELECTRONICS", label: "Electronics & Tech", icon: Laptop, desc: "Devices, accessories, appliances, components" },
+  { value: "HEALTH_BEAUTY", label: "Health & Beauty", icon: HeartPulse, desc: "Cosmetics, skincare, personal care, pharmacy" },
+  { value: "HOME_HARDWARE", label: "Home & Hardware", icon: Home, desc: "Tools, fixtures, paints, home improvement" },
+  { value: "AUTOMOTIVE", label: "Automotive & Industrial", icon: Car, desc: "Lubricants, filters, parts, fluids, batteries" },
+  { value: "SERVICE", label: "Labor & Service Package", icon: Wrench, desc: "Consulting, repair, labor, maintenance" },
+  { value: "GENERAL", label: "General Merchandise", icon: Package, desc: "Miscellaneous & universal retail inventory" },
 ];
-
-const COMMON_VISCOSITIES = [
-  "0W-16", "0W-20", "5W-20", "5W-30", "5W-40",
-  "10W-30", "10W-40", "15W-40", "20W-50",
-  "ATF WS", "ATF T-IV", "CVTF", "75W-90", "80W-90", "85W-140"
-];
-
-const OIL_TYPES = ["Fully Synthetic", "Semi-Synthetic", "Mineral", "Hydrocracked Synthetic"];
-
-const API_STANDARDS = ["API SP", "API SN Plus", "API SN/CF", "API CK-4", "API CI-4", "API GL-5", "JASO MA2", "JASO DL-1"];
 
 const PACK_PRESETS_BY_TYPE: Record<string, string[]> = {
+  RETAIL: ["Single Piece", "Pair", "Set of 2", "Pack of 3", "Dozen (12)"],
+  FMCG_GROCERY: ["Single Unit", "Pack", "Box", "Carton", "500g", "1 Kg", "1 Liter"],
+  ELECTRONICS: ["Single Unit", "Box", "Bundle Set"],
+  HEALTH_BEAUTY: ["Single Unit", "Bottle", "Jar", "Pack of 2", "Gift Set"],
+  HOME_HARDWARE: ["Single Piece", "Pack of 10", "Box", "Carton", "Set"],
+  AUTOMOTIVE: ["1L Can", "4L Can", "5L Can", "Single Piece", "Pack of 4"],
+  SERVICE: ["Standard Service Job", "Hourly Rate", "Fixed Package"],
+  GENERAL: ["Single Unit", "Piece", "Box", "Carton"],
+  // Legacy support for previously seeded automotive items:
   LUBRICANT: ["1L Can", "4L Can", "5L Can", "20L Pail", "208L Drum"],
   FILTER: ["Single Piece", "Pack of 10"],
   BATTERY: ["Single Unit"],
   CAR_CARE: ["1L Bottle", "4L Can", "500ml Bottle", "300ml Spray"],
   SPARE_PART: ["Single Piece", "Set of 4 (Plugs)"],
   ACCESSORY: ["Single Piece"],
-  SERVICE: ["Standard Service Job"],
-  GENERAL: ["Single Unit"],
+  PHYSICAL: ["Single Unit", "Box", "Carton"],
 };
 
 const SECTION_TABS = [
   { id: "basic", label: "Basic Info", icon: Package },
-  { id: "specs", label: "Specifications & Fitment", icon: Wrench },
+  { id: "specs", label: "Specifications & Attributes", icon: SlidersHorizontal },
   { id: "variants", label: "Pack Units & Pricing", icon: Layers },
   { id: "pricing", label: "Base Margins & COGS", icon: DollarSign },
   { id: "inventory", label: "Branch Stock Matrix", icon: Box },
@@ -136,7 +140,7 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
       name: "",
       slug: "",
       description: "",
-      productType: "LUBRICANT",
+      productType: "RETAIL",
       brand: "",
       viscosity: "",
       oilType: "",
@@ -156,7 +160,7 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
   });
 
   const productName = watch("name");
-  const currentProductType = watch("productType") || "LUBRICANT";
+  const currentProductType = watch("productType") || "RETAIL";
   const basePrice = watch("basePrice");
   const costPrice = watch("costPrice");
   const wholesalePrice = watch("wholesalePrice");
@@ -175,7 +179,7 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
       setValue("slug", productToEdit.slug || "");
       setValue("description", productToEdit.description || "");
       setValue("category", productToEdit.categoryId || "");
-      setValue("productType", (productToEdit.productType as any) || "LUBRICANT");
+      setValue("productType", (productToEdit.productType as any) || "RETAIL");
       setValue("brand", productToEdit.brand || "");
       setValue("viscosity", productToEdit.viscosity || "");
       setValue("oilType", productToEdit.oilType || "");
@@ -221,7 +225,7 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
       setValue("name", "");
       setValue("slug", "");
       setValue("description", "");
-      setValue("productType", "LUBRICANT");
+      setValue("productType", "RETAIL");
       setValue("brand", "");
       setValue("viscosity", "");
       setValue("oilType", "");
@@ -399,7 +403,7 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
         name: data.name,
         slug: data.slug || undefined,
         description: data.description,
-        productType: data.productType || "LUBRICANT",
+        productType: data.productType || "RETAIL",
         brand: data.brand || null,
         viscosity: data.viscosity || null,
         oilType: data.oilType || null,
@@ -449,14 +453,14 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
           <div>
             <div className="flex items-center gap-2">
               <h2 className="font-inter font-bold text-xl text-foreground">
-                {productToEdit ? "Edit Item" : "Add Oil or Non-Oil Item"}
+                {productToEdit ? "Edit Item" : "Add New Item"}
               </h2>
               <span className="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
                 {currentProductType}
               </span>
             </div>
             <p className="font-inter text-sm text-muted mt-0.5">
-              Configure lubricants, filters, batteries, car care fluids, or spare parts with live COGS tracking.
+              Configure product details, variants, unit packaging, and live multi-branch inventory tracking.
             </p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-surface-hover rounded-lg text-muted hover:text-foreground transition-colors" aria-label="Close panel">
@@ -531,11 +535,14 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
                     type="text"
                     {...register("name")}
                     placeholder={
-                      currentProductType === "LUBRICANT" ? "e.g. Mobil 1 0W-20 Advanced Fuel Economy" :
-                      currentProductType === "FILTER" ? "e.g. Toyota Genuine Oil Filter #15601-BZ010" :
-                      currentProductType === "BATTERY" ? "e.g. Amaron Hi-Life 65B24L Maintenance Free" :
-                      currentProductType === "CAR_CARE" ? "e.g. Toyota Super Long Life Coolant Pre-mixed" :
-                      "e.g. NGK Laser Iridium Spark Plug FK20HR11"
+                      currentProductType === "RETAIL" ? "e.g. Slim-Fit Cotton Chino Pants or Italian Leather Belt" :
+                      currentProductType === "FMCG_GROCERY" ? "e.g. Organic Ceylon Black Tea 500g or Pure Coconut Milk" :
+                      currentProductType === "ELECTRONICS" ? "e.g. Wireless Noise-Cancelling Headphones Pro" :
+                      currentProductType === "HEALTH_BEAUTY" ? "e.g. Hydrating Hyaluronic Acid Serum 50ml" :
+                      currentProductType === "HOME_HARDWARE" ? "e.g. Cordless Impact Drill Kit 18V" :
+                      currentProductType === "AUTOMOTIVE" || currentProductType === "LUBRICANT" ? "e.g. Mobil 1 0W-20 Advanced Fuel Economy" :
+                      currentProductType === "SERVICE" ? "e.g. Full System Diagnostics & Preventive Maintenance" :
+                      "e.g. Universal Multi-Purpose Product Name"
                     }
                     className={`input ${errors.name ? 'border-red-500' : ''}`}
                   />
@@ -549,7 +556,7 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
                     <input
                       type="text"
                       {...register("brand")}
-                      placeholder="e.g. Mobil, Toyota, Denso, NGK, Amaron, Castrol"
+                      placeholder="e.g. Nike, Apple, Nestlé, Unilever, Bosch, Mobil, Sony"
                       className="input"
                     />
                   </div>
@@ -584,43 +591,83 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
                   <textarea
                     {...register("description")}
                     rows={4}
-                    placeholder="Technical specifications, base oils, OEM approvals, and usage guidelines..."
+                    placeholder="Product details, materials, ingredients, technical specifications, and key features..."
                     className="input resize-none"
                   />
                 </div>
               </div>
             )}
 
-            {/* ────────── SPECIFICATIONS & FITMENT ────────── */}
+            {/* ────────── SPECIFICATIONS & ATTRIBUTES ────────── */}
             {activeTab === "specs" && (
               <div className="flex flex-col gap-6 max-w-[760px]">
                 <div className="bg-background border border-border rounded-xl p-5 flex flex-col gap-5">
                   <div className="flex items-center justify-between border-b border-border pb-3">
-                    <h3 className="font-inter font-bold text-foreground text-sm">
-                      {currentProductType === "LUBRICANT" ? "Oil & Lubricant Technical Data" :
-                       currentProductType === "FILTER" ? "Filter Specifications & OEM Cross-Reference" :
-                       currentProductType === "BATTERY" ? "Battery Electrical & Fitment Specs" :
-                       "Part Number & Vehicle Compatibility"}
-                    </h3>
+                    <div>
+                      <h3 className="font-inter font-bold text-foreground text-sm">
+                        Product Specifications & Universal Attributes
+                      </h3>
+                      <p className="text-xs text-muted mt-0.5">
+                        Technical parameters, materials, codes, certifications, and fitment details.
+                      </p>
+                    </div>
                     <span className="text-xs text-muted font-mono">Type: {currentProductType}</span>
                   </div>
 
-                  {/* LUBRICANT SPECIFICATIONS */}
-                  {currentProductType === "LUBRICANT" && (
-                    <div className="flex flex-col gap-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="flex flex-col gap-2">
-                          <label className="label">Viscosity Grade (SAE)</label>
-                          <input
-                            type="text"
-                            {...register("viscosity")}
-                            placeholder="e.g. 0W-20, 5W-30, 15W-40, ATF"
-                            className="input font-mono uppercase"
-                            list="viscosity-suggestions"
-                          />
-                          <datalist id="viscosity-suggestions">
-                            {COMMON_VISCOSITIES.map(v => <option key={v} value={v} />)}
-                          </datalist>
+                  <div className="flex flex-col gap-4">
+                    {/* Row 1: Model/Style Code & Material/Formulation */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-2">
+                        <label className="label">Model / Part / Style Code</label>
+                        <input
+                          type="text"
+                          {...register("partNumber")}
+                          placeholder={
+                            currentProductType === "RETAIL" ? "e.g. ART-882, BLT-01, SLM-202" :
+                            currentProductType === "ELECTRONICS" ? "e.g. A2848, WH-1000XM5, SKU-88" :
+                            currentProductType === "AUTOMOTIVE" || currentProductType === "LUBRICANT" ? "e.g. #15601-BZ010, FK20HR11" :
+                            "e.g. ITM-1094, REF-990"
+                          }
+                          className="input font-mono uppercase font-bold text-foreground"
+                        />
+                        <p className="text-[11px] text-muted">Essential for fast search lookup on POS checkout terminals.</p>
+                      </div>
+
+                      <div className="flex flex-col gap-2">
+                        <label className="label">Material, Fabric or Formulation</label>
+                        <input
+                          type="text"
+                          {...register("oilType")}
+                          placeholder={
+                            currentProductType === "RETAIL" ? "e.g. 100% Cotton, Genuine Italian Leather, Silk" :
+                            currentProductType === "FMCG_GROCERY" ? "e.g. Organic Black Tea Leaves, 100% Pure Coconut" :
+                            currentProductType === "HEALTH_BEAUTY" ? "e.g. Hyaluronic Acid, Aloe Vera, Paraben-Free" :
+                            currentProductType === "AUTOMOTIVE" || currentProductType === "LUBRICANT" ? "e.g. Fully Synthetic, Mineral, DOT 4" :
+                            "e.g. Anodized Aluminum, Ceramic, Synthetic"
+                          }
+                          className="input"
+                        />
+                        <p className="text-[11px] text-muted">Primary textile composition, material, or active formula.</p>
+                      </div>
+                    </div>
+
+                    {/* Row 2: Sizing / Spec Grade & Standards / Compliance */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-2">
+                        <label className="label">Dimensions / Sizing / Spec Grade</label>
+                        <input
+                          type="text"
+                          {...register("viscosity")}
+                          placeholder={
+                            currentProductType === "RETAIL" ? "e.g. Size M (32-34W), Regular Fit, 110cm" :
+                            currentProductType === "ELECTRONICS" ? "e.g. 15.6\", 65W USB-C, 220V" :
+                            currentProductType === "AUTOMOTIVE" || currentProductType === "LUBRICANT" ? "e.g. 0W-20, 5W-30, 15W-40" :
+                            "e.g. 500g, 100x50cm, Standard Spec"
+                          }
+                          className="input font-mono uppercase"
+                          list="viscosity-suggestions"
+                        />
+                        {(currentProductType === "AUTOMOTIVE" || currentProductType === "LUBRICANT") && (
                           <div className="flex flex-wrap gap-1 mt-1">
                             {["0W-20", "5W-30", "10W-40", "15W-40", "ATF WS"].map(v => (
                               <button
@@ -633,91 +680,44 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
                               </button>
                             ))}
                           </div>
-                        </div>
-
-                        <div className="flex flex-col gap-2">
-                          <label className="label">Base Oil Formulation</label>
-                          <select {...register("oilType")} className="input">
-                            <option value="">Select Formulation</option>
-                            {OIL_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-                          </select>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="flex flex-col gap-2">
-                          <label className="label">API Standard / Performance Rating</label>
-                          <input
-                            type="text"
-                            {...register("apiStandard")}
-                            placeholder="e.g. API SP/CF, ILSAC GF-6A, CK-4"
-                            className="input font-mono uppercase"
-                            list="api-suggestions"
-                          />
-                          <datalist id="api-suggestions">
-                            {API_STANDARDS.map(s => <option key={s} value={s} />)}
-                          </datalist>
-                        </div>
-
-                        <div className="flex flex-col gap-2">
-                          <label className="label">Recommended Vehicle Applications</label>
-                          <input
-                            type="text"
-                            {...register("compatibleVehicles")}
-                            placeholder="e.g. Japanese Hybrids (Aqua, Axio, Prius, Vitz)"
-                            className="input"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* FILTER / NON-OIL SPECIFICATIONS */}
-                  {currentProductType !== "LUBRICANT" && (
-                    <div className="flex flex-col gap-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="flex flex-col gap-2">
-                          <label className="label">OEM / Manufacturer Part Number</label>
-                          <input
-                            type="text"
-                            {...register("partNumber")}
-                            placeholder={
-                              currentProductType === "FILTER" ? "e.g. #15601-BZ010 or C-110" :
-                              currentProductType === "BATTERY" ? "e.g. DIN55, 65B24L, 46B24L" :
-                              "e.g. FK20HR11, BKR6E-11"
-                            }
-                            className="input font-mono uppercase font-bold text-stone-900"
-                          />
-                          <p className="text-[11px] text-stone-400">Essential for fast search lookup on POS checkout terminals.</p>
-                        </div>
-
-                        <div className="flex flex-col gap-2">
-                          <label className="label">Specification / Model Details</label>
-                          <input
-                            type="text"
-                            {...register("oilType")}
-                            placeholder={
-                              currentProductType === "BATTERY" ? "e.g. 45Ah, 430 CCA, 18 Months Warranty" :
-                              currentProductType === "CAR_CARE" ? "e.g. Pre-mixed 50/50, Pink Organic Acid" :
-                              "e.g. Laser Iridium, 0.4mm Tip"
-                            }
-                            className="input"
-                          />
-                        </div>
+                        )}
                       </div>
 
                       <div className="flex flex-col gap-2">
-                        <label className="label">Compatible Vehicles & Engine Models</label>
-                        <textarea
-                          {...register("compatibleVehicles")}
-                          rows={3}
-                          placeholder="e.g. Toyota Aqua NHP10 (1NZ-FXE), Axio NKE165, Prius ZVW30, Vitz KSP130, Honda Fit GP5"
-                          className="input resize-none"
+                        <label className="label">Standards / Certification / Compliance</label>
+                        <input
+                          type="text"
+                          {...register("apiStandard")}
+                          placeholder={
+                            currentProductType === "RETAIL" ? "e.g. OEKO-TEX Standard 100, GOTS Certified" :
+                            currentProductType === "FMCG_GROCERY" ? "e.g. ISO 22000, HACCP, Halal Certified" :
+                            currentProductType === "ELECTRONICS" ? "e.g. CE, FCC, RoHS, EnergyStar" :
+                            currentProductType === "AUTOMOTIVE" || currentProductType === "LUBRICANT" ? "e.g. API SP/CF, ILSAC GF-6A, CK-4" :
+                            "e.g. ISO 9001, Quality Grade A"
+                          }
+                          className="input font-mono uppercase"
                         />
-                        <p className="text-[11px] text-stone-400">Cashiers can search by car model to find matching parts instantly.</p>
+                        <p className="text-[11px] text-muted">Quality, environmental, or regulatory standards.</p>
                       </div>
                     </div>
-                  )}
+
+                    {/* Row 3: Target Compatibility, Fitment or Application Notes */}
+                    <div className="flex flex-col gap-2">
+                      <label className="label">Target Compatibility, Fitment & Application Notes</label>
+                      <textarea
+                        {...register("compatibleVehicles")}
+                        rows={3}
+                        placeholder={
+                          currentProductType === "RETAIL" ? "e.g. Suitable for casual and formal wear. Dry clean or gentle machine wash." :
+                          currentProductType === "ELECTRONICS" ? "e.g. Compatible with macOS, Windows 11, iOS, Android (Bluetooth 5.3)." :
+                          currentProductType === "AUTOMOTIVE" || currentProductType === "LUBRICANT" ? "e.g. Toyota Aqua, Axio, Prius, Honda Fit GP5, Nissan Note" :
+                          "e.g. Universal compatibility, specific model fitment, or customer application guidelines..."
+                        }
+                        className="input resize-none"
+                      />
+                      <p className="text-[11px] text-muted">Cashiers can search notes or fitment to find matching items instantly.</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -752,7 +752,7 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
                   </div>
 
                   <div className="flex flex-wrap gap-2 pt-2 border-t border-border">
-                    {(PACK_PRESETS_BY_TYPE[currentProductType] || PACK_PRESETS_BY_TYPE.LUBRICANT).map(preset => (
+                    {(PACK_PRESETS_BY_TYPE[currentProductType] || PACK_PRESETS_BY_TYPE.RETAIL).map(preset => (
                       <button
                         key={preset}
                         type="button"
@@ -949,7 +949,7 @@ export default function ProductFormModal({ isOpen, onClose, productToEdit }: Pro
                 <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex gap-3">
                   <AlertCircle size={16} className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                   <p className="text-xs font-inter text-amber-700 dark:text-amber-300 leading-relaxed">
-                    Stock is tracked independently per branch. Spillage and oil wastage transactions will adjust these quantities directly.
+                    Stock is tracked independently per branch. Stock transfers, wastage, or audit adjustments will update these quantities in real time.
                   </p>
                 </div>
 

@@ -135,7 +135,7 @@ export default function InventoryDashboard() {
               <table className="w-full text-left font-inter text-xs table-auto">
                 <thead className="bg-surface-hover/70 border-b border-border text-muted font-bold uppercase tracking-wider">
                   <tr>
-                    <th className="py-3.5 px-6 min-w-[200px]">Variant / Lubricant</th>
+                    <th className="py-3.5 px-6 min-w-[200px]">Variant / Item</th>
                     <th className="py-3.5 px-4 min-w-[120px]">Branch</th>
                     <th className="py-3.5 px-4 text-center min-w-[90px]">Quantity</th>
                     <th className="py-3.5 px-4 min-w-[110px]">Status</th>

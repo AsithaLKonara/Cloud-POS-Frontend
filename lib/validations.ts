@@ -140,21 +140,29 @@ export const posCustomerSchema = z.object({
 
 export type POSCustomerFormData = z.infer<typeof posCustomerSchema>;
 
-// Admin Create Product Schema (Oil & Non-Oil Retail)
+// Universal Product Classification Schema
 export const createProductSchema = z.object({
   name: z.string().min(2, "Product name is required"),
   slug: z.string().min(2, "Slug is required").regex(/^[a-z0-9-]+$/, "Slug must contain only lowercase letters, numbers, and hyphens"),
   description: z.string().optional(),
   productType: z.enum([
+    "RETAIL",
+    "FMCG_GROCERY",
+    "ELECTRONICS",
+    "HEALTH_BEAUTY",
+    "HOME_HARDWARE",
+    "AUTOMOTIVE",
+    "SERVICE",
+    "GENERAL",
+    "PHYSICAL",
+    // Legacy support
     "LUBRICANT",
     "FILTER",
     "BATTERY",
     "CAR_CARE",
     "SPARE_PART",
-    "ACCESSORY",
-    "SERVICE",
-    "GENERAL"
-  ]).default("LUBRICANT"),
+    "ACCESSORY"
+  ]).default("RETAIL"),
   brand: z.string().optional(),
   viscosity: z.string().optional(),
   oilType: z.string().optional(),

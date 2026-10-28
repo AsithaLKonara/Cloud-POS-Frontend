@@ -54,9 +54,9 @@ export default function Header({ onMenuClick, session }: { onMenuClick?: () => v
     if (path.includes("/orders")) return "POS Sales & Orders";
     if (path.includes("/inventory")) return "Multi-Branch Stock";
     if (path.includes("/branches")) return "Branches & Outlets";
-    if (path.includes("/products")) return "Oil & Non-Oil Catalog";
-    if (path.includes("/categories")) return "Categories & Grades";
-    if (path.includes("/customers")) return "Customers & Garages";
+    if (path.includes("/products")) return "Products & Items";
+    if (path.includes("/categories")) return "Categories & Tags";
+    if (path.includes("/customers")) return "Customers & Accounts";
     if (path.includes("/roles")) return "Access Control (RBAC)";
     if (path.includes("/users")) return "Staff Management";
     if (path.includes("/settings")) return "System Settings";
@@ -117,7 +117,7 @@ export default function Header({ onMenuClick, session }: { onMenuClick?: () => v
           <Search size={14} className="text-muted shrink-0" />
           <input 
             type="text" 
-            placeholder="Search orders, SKU, oil grade…"
+            placeholder="Search orders, SKU, barcode, customer…"
             className="flex-1 bg-transparent border-none outline-none font-inter text-xs text-foreground placeholder:text-muted"
           />
           <kbd className="hidden sm:flex items-center px-1.5 py-0.5 bg-border/60 rounded text-[9px] font-semibold text-muted font-mono shrink-0">
@@ -236,7 +236,7 @@ export default function Header({ onMenuClick, session }: { onMenuClick?: () => v
                 {mounted ? (user?.name || "Staff Member") : "Staff Member"}
               </span>
               <span className="text-[11px] text-muted block truncate font-mono mt-0.5">
-                {mounted ? (user?.email || "staff@oilpos.lk") : "staff@oilpos.lk"}
+                {mounted ? (user?.email || "admin@xonitspace.com") : "admin@xonitspace.com"}
               </span>
             </div>
 

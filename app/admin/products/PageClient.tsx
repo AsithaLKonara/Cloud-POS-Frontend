@@ -216,14 +216,15 @@ export default function ProductsPage() {
         onChange={(e) => { setProductTypeFilter(e.target.value); setPage(1); }}
         className="bg-surface border border-border rounded-xl py-2 px-3 text-sm font-inter text-foreground outline-none focus:ring-1 focus:ring-amber-500"
       >
-        <option value="">All Item Types</option>
-        <option value="LUBRICANT">Oils & Lubricants</option>
-        <option value="FILTER">Filters (Non-Oil)</option>
-        <option value="BATTERY">Batteries (Non-Oil)</option>
-        <option value="CAR_CARE">Car Care & Fluids</option>
-        <option value="SPARE_PART">Spares & Plugs</option>
-        <option value="ACCESSORY">Tools & Accessories</option>
-        <option value="SERVICE">Labor & Service</option>
+        <option value="">All Item Classifications</option>
+        <option value="RETAIL">Retail & Apparel</option>
+        <option value="FMCG_GROCERY">Food, Beverage & Grocery</option>
+        <option value="HEALTH_BEAUTY">Health & Beauty</option>
+        <option value="ELECTRONICS">Electronics & Tech</option>
+        <option value="HOME_HARDWARE">Home & Hardware</option>
+        <option value="AUTOMOTIVE">Automotive & Industrial</option>
+        <option value="SERVICE">Service & Labor</option>
+        <option value="GENERAL">General Merchandise</option>
       </select>
       <select 
         value={statusFilter}
@@ -252,7 +253,7 @@ export default function ProductsPage() {
       <div className="flex flex-col p-4 md:p-8 max-w-[1400px] mx-auto w-full gap-4">
         <PageHeader
           title="Product Catalog & Inventory Items"
-          description="Manage lubricants, viscosities, auto parts, filters, and store catalog items."
+          description="Manage universal product catalog, variants, pricing, packaging, and stock levels."
         />
 
         <div className="mb-2">

@@ -75,7 +75,7 @@ export default function StockTransferModal({ onClose, onSuccess, initialFromBran
             <h2 className="font-inter font-bold text-xl text-foreground flex items-center gap-2">
               <ArrowRightLeft className="text-amber-500" size={24} /> Inter-Branch Stock Transfer
             </h2>
-            <p className="font-inter text-sm text-muted mt-1">Move lubricants and inventory between branches.</p>
+            <p className="font-inter text-sm text-muted mt-1">Move products and inventory between branches.</p>
           </div>
           <button onClick={onClose} className="p-2 text-muted hover:text-foreground hover:bg-surface-elevated rounded-lg transition-colors">
             <X size={20} />
@@ -128,7 +128,7 @@ export default function StockTransferModal({ onClose, onSuccess, initialFromBran
 
             {/* SKU Search */}
             <div className="flex flex-col gap-2 relative">
-              <label className="font-inter text-xs font-bold uppercase tracking-wider text-muted">Select Lubricant / Item</label>
+              <label className="font-inter text-xs font-bold uppercase tracking-wider text-muted">Select Product / Item</label>
               <div className="relative">
                 <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
                 <input
@@ -136,7 +136,7 @@ export default function StockTransferModal({ onClose, onSuccess, initialFromBran
                   value={skuSearch}
                   onChange={e => { setSkuSearch(e.target.value); setVariantId(""); setShowDropdown(true); }}
                   onFocus={() => setShowDropdown(true)}
-                  placeholder="Search brand, grade, or SKU..."
+                  placeholder="Search product name, variant, or SKU..."
                   className="w-full pl-9 border border-border rounded-lg px-3 py-2.5 text-sm font-inter outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-surface-elevated text-foreground placeholder:text-muted"
                 />
               </div>

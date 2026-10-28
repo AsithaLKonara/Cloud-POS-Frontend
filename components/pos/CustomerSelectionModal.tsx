@@ -203,7 +203,7 @@ export default function CustomerSelectionModal({ onClose, onSelect, activeSessio
                 <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
                 <input 
                   type="text" 
-                  placeholder="Search workshop name, phone, plate #..."
+                  placeholder="Search customer name, company, phone, plate #..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full bg-background border border-border rounded-xl py-2.5 pl-10 pr-4 font-inter text-sm text-foreground focus:outline-none focus:border-primary"
@@ -306,27 +306,27 @@ export default function CustomerSelectionModal({ onClose, onSelect, activeSessio
               <div className="flex flex-col gap-1.5">
                 <label className="font-inter font-bold text-xs text-foreground">Account Classification</label>
                 <select {...register("customerType")} className="input">
-                  <option value="GARAGE_WORKSHOP">Garage / Auto Repair Workshop</option>
-                  <option value="COMMERCIAL_FLEET">Commercial Vehicle Fleet</option>
-                  <option value="RETAIL">Individual Retail Driver</option>
+                  <option value="RETAIL">Individual Retail Customer</option>
+                  <option value="COMMERCIAL_FLEET">Corporate / Commercial Account</option>
+                  <option value="GARAGE_WORKSHOP">Workshop / Wholesale Partner</option>
                 </select>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1.5">
-                  <label className="font-inter font-bold text-xs text-foreground">Company / Workshop Name</label>
+                  <label className="font-inter font-bold text-xs text-foreground">Company / Business Name</label>
                   <input 
                     type="text" 
-                    placeholder="e.g. Pitstop Auto Care"
+                    placeholder="e.g. Acme Corporation or Business Name"
                     {...register("companyName")}
                     className="input" 
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="font-inter font-bold text-xs text-foreground">Vehicle Reg / Plate #</label>
+                  <label className="font-inter font-bold text-xs text-foreground">Tax ID / Reference / Plate #</label>
                   <input 
                     type="text" 
-                    placeholder="e.g. CAB-4821"
+                    placeholder="e.g. TAX-8821 or CAB-4821"
                     {...register("vehicleNumber")}
                     className="input uppercase font-mono" 
                   />

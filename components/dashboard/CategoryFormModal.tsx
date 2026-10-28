@@ -135,7 +135,7 @@ export default function CategoryFormModal({ isOpen, onClose, categoryToEdit }: C
               type="text"
               value={name}
               onChange={e => handleNameChange(e.target.value)}
-              placeholder="e.g. Engine Oils"
+              placeholder="e.g. Apparel, Groceries, Electronics, Automotive"
               className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-inter"
             />
           </div>

@@ -207,7 +207,7 @@ export default function BranchAdminPage() {
           {/* Critical Low Stock Count */}
           <div className="bg-surface border border-border rounded-2xl p-5 shadow-sm">
             <div className="flex items-center justify-between text-muted mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-muted">Low Stock Lubricants</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-muted">Low Stock Items</span>
               <AlertTriangle size={16} className="text-amber-500" />
             </div>
             <div className="text-2xl font-black text-amber-600 dark:text-amber-400 tracking-tight">{criticalLubricants.length}</div>
@@ -280,7 +280,7 @@ export default function BranchAdminPage() {
             <div>
               <h3 className="font-inter font-bold text-foreground text-base flex items-center gap-2">
                 <AlertTriangle size={18} className="text-amber-500" />
-                Critical Low Stock Lubricants
+                Critical Low Stock Items
               </h3>
               <p className="text-xs text-muted mt-0.5">Items in this branch at or below threshold</p>
             </div>
@@ -296,8 +296,8 @@ export default function BranchAdminPage() {
             <table className="w-full text-left font-inter text-xs">
               <thead className="bg-surface-hover/70 border-b border-border text-muted font-bold uppercase tracking-wider">
                 <tr>
-                  <th className="py-3 px-5">Lubricant / Part</th>
-                  <th className="py-3 px-4">Brand / Viscosity</th>
+                  <th className="py-3 px-5">Product / Item</th>
+                  <th className="py-3 px-4">Brand / Specification</th>
                   <th className="py-3 px-4 text-center">Stock</th>
                   <th className="py-3 px-5 text-right">Price</th>
                 </tr>
