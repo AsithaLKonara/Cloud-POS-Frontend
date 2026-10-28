@@ -6,6 +6,7 @@ import { X, Printer, Loader2 } from 'lucide-react';
 import { orderService } from '@/services/order.service';
 import ShippingLabelTemplate from './ShippingLabelTemplate';
 import { useSettings } from '@/hooks/useSettings';
+import { useAuthStore } from '@/store/auth.store';
 
 interface ShippingLabelModalProps {
   orderIds: string[];
@@ -20,9 +21,11 @@ export default function ShippingLabelModal({ orderIds, isOpen, onClose }: Shippi
   const [mounted, setMounted] = useState(false);
   const { data: settingsData } = useSettings();
   const settings = settingsData || [];
+  const { user } = useAuthStore();
   
-  const storeName = settings.find(s => s.key === 'store_name')?.value || 'SERAMAADUWEN.LK Ltd.';
-  const storeAddress = settings.find(s => s.key === 'store_address')?.value || '123 Fashion Avenue\nColombo 07';
+  const tenantName = user?.tenant?.name;
+  const storeName = tenantName || settings.find(s => s.key === 'store_name')?.value || 'Store';
+  const storeAddress = settings.find(s => s.key === 'store_address')?.value || 'Colombo, Sri Lanka';
   const storePhone = settings.find(s => s.key === 'support_phone')?.value || '+94 11 234 5678';
 
   useEffect(() => {
@@ -60,7 +63,7 @@ export default function ShippingLabelModal({ orderIds, isOpen, onClose }: Shippi
         <ShippingLabelTemplate 
           key={`print-${order.id}`} 
           order={order} 
-          storeName={order.branch?.name || storeName} 
+          storeName={order.tenant?.name || tenantName || order.branch?.name || storeName} 
           storeAddress={order.branch?.address || storeAddress} 
           storePhone={order.branch?.phone || storePhone} 
         />
@@ -124,7 +127,7 @@ export default function ShippingLabelModal({ orderIds, isOpen, onClose }: Shippi
                     order={order} 
                     index={index + 1} 
                     total={orders.length}
-                    storeName={order.branch?.name || storeName}
+                    storeName={order.tenant?.name || tenantName || order.branch?.name || storeName}
                     storeAddress={order.branch?.address || storeAddress}
                     storePhone={order.branch?.phone || storePhone}
                   />

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "SERAMAADUWEN.LK POS",
-  description: "SERAMAADUWEN.LK Point of Sale Terminal",
+  title: "POS Terminal | Xonit Point of Sale",
+  description: "Enterprise Point of Sale Terminal and checkout engine",
 };
 
 export default function POSLayout({

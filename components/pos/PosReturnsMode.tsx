@@ -6,8 +6,11 @@ import Image from "next/image";
 import { orderService } from "@/services/order.service";
 import { useGenerateVoucher } from "@/hooks/usePos";
 import { useScanBarcode } from "@/hooks/useProducts";
+import { useAuthStore } from "@/store/auth.store";
 
 export default function PosReturnsMode({ branchId }: { branchId?: string }) {
+  const { user } = useAuthStore();
+  const tenantName = user?.tenant?.name;
   const [searchQuery, setSearchQuery] = useState("");
   const [orderFound, setOrderFound] = useState(false);
   const [loadedOrder, setLoadedOrder] = useState<any>(null);
@@ -155,8 +158,10 @@ export default function PosReturnsMode({ branchId }: { branchId?: string }) {
         {/* Hidden Printable Receipt */}
         <div className="print-receipt print-only bg-white text-black p-4 font-mono text-sm leading-snug mx-auto">
           <div className="text-center flex flex-col items-center gap-1 mb-4">
-            <img src="/logo.png" alt="LAURAL" className="h-6 object-contain grayscale brightness-0" />
-            <span className="text-xs">RETURN RECEIPT</span>
+            <span className="font-bold text-sm tracking-wider uppercase text-black">
+              {tenantName || 'STORE'}
+            </span>
+            <span className="text-xs text-gray-600 font-bold">RETURN RECEIPT</span>
           </div>
           <div className="flex justify-between mb-1">
             <span>Date:</span>

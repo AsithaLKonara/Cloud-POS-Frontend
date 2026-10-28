@@ -85,7 +85,7 @@ api.interceptors.response.use(
     ) {
       originalRequest._csrfRetry = true;
       try {
-        // This GET will cause the backend to set a fresh seramaaduwen_csrf cookie
+        // This GET will cause the backend to set a fresh csrf cookie
         await api.get("/auth/csrf");
         // Re-attach the new token and retry
         const freshToken = csrfTokenMemory || getCookie("laural_csrf");
