@@ -54,26 +54,22 @@ export function StatusBadge({ label, status, variant, icon, dot = true }: BadgeP
 
 // Pre-configured semantic badges based on business context rules
 
-export function PaymentGatewayBadge({ gateway, status = 'paid' }: { gateway: string, status?: 'paid' | 'pending' | 'failed' | 'refunded' }) {
+export function PaymentGatewayBadge({ gateway, status = 'paid' }: { gateway: string, status?: string }) {
   let icon;
   let variant: 'success' | 'warning' | 'error' | 'neutral' = 'neutral';
   
-  switch(status) {
-    case 'paid': 
-      icon = <CheckCircle2 size={12} className="text-success" />;
-      variant = 'success';
-      break;
-    case 'pending': 
-      icon = <Clock size={12} className="text-warning" />;
-      variant = 'warning';
-      break;
-    case 'failed': 
-      icon = <XCircle size={12} className="text-error" />;
-      variant = 'error';
-      break;
-    case 'refunded': 
-      icon = <Undo2 size={12} className="text-muted" />;
-      break;
+  const s = (status || '').toLowerCase();
+  if (['paid', 'success', 'completed'].includes(s)) {
+    icon = <CheckCircle2 size={12} className="text-emerald-500" />;
+    variant = 'success';
+  } else if (['pending', 'unpaid', 'awaiting_payment'].includes(s)) {
+    icon = <Clock size={12} className="text-amber-500" />;
+    variant = 'warning';
+  } else if (['failed', 'cancelled', 'rejected'].includes(s)) {
+    icon = <XCircle size={12} className="text-rose-500" />;
+    variant = 'error';
+  } else if (s === 'refunded') {
+    icon = <Undo2 size={12} className="text-muted" />;
   }
 
   return (

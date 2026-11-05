@@ -61,6 +61,7 @@ export const posService = {
     paymentMethod: string;
     appliedVouchers: string[];
     subtotal: number;
+    discount?: number;
     total: number;
     tax: number;
   }) {

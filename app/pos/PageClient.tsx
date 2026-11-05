@@ -32,6 +32,7 @@ import {
   LogOut,
   Sun,
   Moon,
+  Percent,
 } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
@@ -207,7 +208,30 @@ export default function POSPage() {
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
   const [cart, setCart] = useState<any[]>([]);
   const [cartVouchers, setCartVouchers] = useState<{code: string, amount: number}[]>([]);
+  const [cartDiscount, setCartDiscount] = useState<{ type: 'FIXED' | 'PERCENT'; value: number }>({ type: 'FIXED', value: 0 });
+  const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
+  const [tempDiscountType, setTempDiscountType] = useState<'FIXED' | 'PERCENT'>('FIXED');
+  const [tempDiscountValue, setTempDiscountValue] = useState<string>('0');
   const [lastOrderData, setLastOrderData] = useState<any>(null);
+
+  const subtotal = useMemo(() => {
+    return cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+  }, [cart]);
+
+  const voucherAmount = useMemo(() => {
+    return cartVouchers.reduce((sum, v) => sum + v.amount, 0);
+  }, [cartVouchers]);
+
+  const discountAmount = useMemo(() => {
+    if (cartDiscount.type === 'PERCENT') {
+      return Math.round(((subtotal * cartDiscount.value) / 100) * 100) / 100;
+    }
+    return Math.min(subtotal, Math.max(0, cartDiscount.value));
+  }, [subtotal, cartDiscount]);
+
+  const totalPayable = useMemo(() => {
+    return Math.max(0, subtotal - voucherAmount - discountAmount);
+  }, [subtotal, voucherAmount, discountAmount]);
 
   const holdCurrentCart = () => {
     if (cart.length === 0) return;
@@ -287,7 +311,11 @@ export default function POSPage() {
     }).filter(item => item.qty > 0));
   };
 
-  const clearCart = () => { setCart([]); setCartVouchers([]); };
+  const clearCart = () => { 
+    setCart([]); 
+    setCartVouchers([]); 
+    setCartDiscount({ type: 'FIXED', value: 0 }); 
+  };
 
   useBarcodeScanner({
     onScan: async (barcode) => {
@@ -421,10 +449,10 @@ export default function POSPage() {
     <div className="flex flex-col w-full h-full bg-background">
       
       {/* POS Top Ribbon */}
-      <div className="h-[28px] bg-stone-900 text-stone-300 flex items-center justify-between px-6 shrink-0 z-20 text-xs font-inter font-medium tracking-wide">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-stone-400">Branch:</span>
+      <div className="h-[28px] bg-stone-900 text-stone-300 flex items-center justify-between px-2.5 sm:px-6 shrink-0 z-20 text-[11px] sm:text-xs font-inter font-medium tracking-wide overflow-x-auto no-scrollbar whitespace-nowrap">
+        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+          <div className="flex items-center gap-1.5">
+            <span className="text-stone-400 hidden xs:inline">Branch:</span>
             {tenantBranches.length > 1 && !activeSession ? (
               <select
                 value={branchId}
@@ -438,7 +466,7 @@ export default function POSPage() {
                 ))}
               </select>
             ) : (
-              <span className="text-white" suppressHydrationWarning>
+              <span className="text-white truncate max-w-[120px] sm:max-w-none" suppressHydrationWarning>
                 {!mounted
                   ? "Loading..."
                   : (activeSession?.branch?.name || 
@@ -450,17 +478,17 @@ export default function POSPage() {
             )}
           </div>
           <div className="w-px h-3 bg-stone-700"></div>
-          <div className="flex items-center gap-2">
-            <span className="text-stone-400">Terminal:</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-stone-400 hidden xs:inline">Terminal:</span>
             <span className="text-white" suppressHydrationWarning>
               {!mounted ? "TERM-001" : (activeSession?.terminal?.name || terminalId)}
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-stone-400">Cashier:</span>
-            <span className="text-white" suppressHydrationWarning>
+        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+          <div className="flex items-center gap-1.5">
+            <span className="text-stone-400 hidden xs:inline">Cashier:</span>
+            <span className="text-white truncate max-w-[90px] sm:max-w-none" suppressHydrationWarning>
               {!mounted
                 ? "User"
                 : (activeSession?.user?.firstName ? `${activeSession.user.firstName} ${activeSession.user.lastName}` : (user?.name || "User"))}
@@ -477,69 +505,69 @@ export default function POSPage() {
       </div>
 
       {/* POS Header */}
-      <div className="h-[60px] bg-surface text-foreground flex items-center justify-between px-6 shrink-0 shadow-sm border-b border-border z-10">
-        <div className="flex items-center gap-6">
+      <div className="h-[56px] sm:h-[60px] bg-surface text-foreground flex items-center justify-between px-2.5 sm:px-6 shrink-0 shadow-sm border-b border-border z-10 gap-2 overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-2 sm:gap-6 shrink-0">
           {mounted && !isCashierOnly && (
             <Link 
               href={backDashboardHref} 
               title={isBranchStaffOnly ? "Back to Branch Terminal" : "Back to Executive Dashboard"}
-              className="flex items-center gap-2 text-muted hover:text-foreground transition-colors mr-2 group"
+              className="flex items-center gap-2 text-muted hover:text-foreground transition-colors mr-1 sm:mr-2 group"
             >
-              <div className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center group-hover:bg-surface transition-colors">
-                <ArrowLeft size={16} />
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-background border border-border flex items-center justify-center group-hover:bg-surface transition-colors">
+                <ArrowLeft size={15} />
               </div>
             </Link>
           )}
-          <h1 className="font-bold text-lg tracking-wider uppercase flex items-center gap-2 text-foreground">
-            <LayoutGrid size={18} className="text-amber-500" />
-            <span>XONIT <span className="text-amber-500 font-black">POS</span></span>
+          <h1 className="font-bold text-base sm:text-lg tracking-wider uppercase flex items-center gap-1.5 sm:gap-2 text-foreground shrink-0">
+            <LayoutGrid size={16} className="text-amber-500" />
+            <span className="hidden xs:inline">XONIT </span><span className="text-amber-500 font-black">POS</span>
           </h1>
           
           {/* Mode Switcher */}
-          <div className="hidden sm:flex bg-background border border-border rounded-lg p-1">
+          <div className="hidden sm:flex bg-background border border-border rounded-lg p-1 shrink-0">
             <button 
               onClick={() => setPosMode("SALES")}
-              className={`px-4 py-1.5 rounded-md font-inter font-bold text-xs flex items-center gap-2 transition-colors ${posMode === 'SALES' ? 'bg-primary text-white shadow-sm' : 'text-muted hover:bg-surface'}`}
+              className={`px-3 sm:px-4 py-1.5 rounded-md font-inter font-bold text-xs flex items-center gap-1.5 sm:gap-2 transition-colors ${posMode === 'SALES' ? 'bg-primary text-white shadow-sm' : 'text-muted hover:bg-surface'}`}
             >
-              <ShoppingCart size={14} /> SALES
+              <ShoppingCart size={13} /> SALES
             </button>
             <button 
               onClick={() => setPosMode("RETURNS")}
-              className={`px-4 py-1.5 rounded-md font-inter font-bold text-xs flex items-center gap-2 transition-colors ${posMode === 'RETURNS' ? 'bg-primary text-white shadow-sm' : 'text-muted hover:bg-surface'}`}
+              className={`px-3 sm:px-4 py-1.5 rounded-md font-inter font-bold text-xs flex items-center gap-1.5 sm:gap-2 transition-colors ${posMode === 'RETURNS' ? 'bg-primary text-white shadow-sm' : 'text-muted hover:bg-surface'}`}
             >
-              <RotateCcw size={14} /> RETURNS
+              <RotateCcw size={13} /> RETURNS
             </button>
             <button 
               onClick={() => setPosMode("EXCHANGE")}
-              className={`px-4 py-1.5 rounded-md font-inter font-bold text-xs flex items-center gap-2 transition-colors ${posMode === 'EXCHANGE' ? 'bg-primary text-white shadow-sm' : 'text-muted hover:bg-surface'}`}
+              className={`px-3 sm:px-4 py-1.5 rounded-md font-inter font-bold text-xs flex items-center gap-1.5 sm:gap-2 transition-colors ${posMode === 'EXCHANGE' ? 'bg-primary text-white shadow-sm' : 'text-muted hover:bg-surface'}`}
             >
-              <ArrowRightLeft size={14} /> EXCHANGE
+              <ArrowRightLeft size={13} /> EXCHANGE
             </button>
             <button 
               onClick={() => setPosMode("DISPATCH")}
-              className={`px-4 py-1.5 rounded-md font-inter font-bold text-xs flex items-center gap-2 transition-colors ${posMode === 'DISPATCH' ? 'bg-primary text-white shadow-sm' : 'text-muted hover:bg-surface'}`}
+              className={`px-3 sm:px-4 py-1.5 rounded-md font-inter font-bold text-xs flex items-center gap-1.5 sm:gap-2 transition-colors ${posMode === 'DISPATCH' ? 'bg-primary text-white shadow-sm' : 'text-muted hover:bg-surface'}`}
             >
-              <Zap size={14} /> DISPATCH
+              <Zap size={13} /> DISPATCH
             </button>
           </div>
         </div>
         
-        <div className="flex items-center gap-4 md:gap-6">
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           <button 
             onClick={() => setShiftModalMode(shiftState === "CLOSED" ? "OPEN" : "CLOSE")}
-            className="hidden md:flex items-center gap-2 hover:bg-surface border border-transparent hover:border-border px-3 py-1.5 rounded transition-colors cursor-pointer"
+            className="hidden md:flex items-center gap-2 hover:bg-surface border border-transparent hover:border-border px-2.5 py-1.5 rounded transition-colors cursor-pointer"
           >
             <div className={`w-2 h-2 rounded-full ${shiftState === "OPEN" ? "bg-success animate-pulse" : "bg-error"}`}></div>
-            <span className="text-sm font-inter font-bold text-foreground">
+            <span className="text-xs sm:text-sm font-inter font-bold text-foreground">
               {shiftState === "OPEN" ? "Shift OPEN" : "Shift CLOSED"}
             </span>
           </button>
           
           <button 
             onClick={() => setIsHeldCartsModalOpen(true)}
-            className="hidden md:flex items-center gap-2 text-sm font-inter text-muted hover:text-foreground transition-colors border-l border-border pl-6 relative"
+            className="hidden md:flex items-center gap-1.5 text-xs sm:text-sm font-inter text-muted hover:text-foreground transition-colors border-l border-border pl-3 sm:pl-6 relative"
           >
-            <History size={16} />
+            <History size={15} />
             <span>Held Orders</span>
             {heldCarts.length > 0 && (
               <span className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-4 h-4 bg-primary text-white text-[10px] flex items-center justify-center rounded-full font-bold">
@@ -549,10 +577,10 @@ export default function POSPage() {
           </button>
           <button 
             onClick={() => setIsHardwareModalOpen(true)}
-            className="hidden md:flex items-center gap-1.5 text-sm font-inter text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 bg-cyan-50 dark:bg-cyan-950/30 hover:bg-cyan-100 dark:hover:bg-cyan-950/50 border border-cyan-500/20 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+            className="hidden md:flex items-center gap-1 text-xs sm:text-sm font-inter text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 bg-cyan-50 dark:bg-cyan-950/30 hover:bg-cyan-100 dark:hover:bg-cyan-950/50 border border-cyan-500/20 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer"
             title="Configure 80mm printers, cash drawers, scales, scanners, customer display"
           >
-            <Cpu size={15} />
+            <Cpu size={14} />
             <span className="font-semibold text-xs">Hardware</span>
           </button>
 
@@ -560,18 +588,18 @@ export default function POSPage() {
           <button
             type="button"
             onClick={toggleTheme}
-            className="flex items-center gap-1.5 bg-background hover:bg-surface border border-border px-3 py-1.5 rounded-lg transition-all text-xs font-inter cursor-pointer shadow-sm group"
+            className="flex items-center gap-1 bg-background hover:bg-surface border border-border px-2.5 py-1.5 rounded-lg transition-all text-xs font-inter cursor-pointer shadow-sm group"
             title={theme === "dark" ? "Switch to Calm Light Theme" : "Switch to Deep Dark Theme"}
             aria-label="Toggle POS Theme"
           >
             {theme === "dark" ? (
               <>
-                <Sun size={15} className="text-amber-400 group-hover:rotate-45 transition-transform" />
+                <Sun size={14} className="text-amber-400 group-hover:rotate-45 transition-transform" />
                 <span className="hidden sm:inline font-semibold text-slate-200">Light</span>
               </>
             ) : (
               <>
-                <Moon size={15} className="text-slate-700 group-hover:-rotate-12 transition-transform" />
+                <Moon size={14} className="text-slate-700 group-hover:-rotate-12 transition-transform" />
                 <span className="hidden sm:inline font-semibold text-slate-700">Dark</span>
               </>
             )}
@@ -579,14 +607,14 @@ export default function POSPage() {
 
           <button 
             onClick={toggleFullscreen}
-            className="flex items-center gap-2 bg-background hover:bg-surface border border-border px-3 py-1.5 rounded-lg transition-colors text-xs font-inter"
+            className="flex items-center gap-1 bg-background hover:bg-surface border border-border px-2.5 py-1.5 rounded-lg transition-colors text-xs font-inter"
           >
             <Maximize size={14} />
             <span className="hidden sm:inline">{isFullscreen ? "Exit Full Screen" : "Full Screen"}</span>
           </button>
           <button 
             onClick={() => useAuthStore.getState().logout('/login')}
-            className="flex items-center gap-1.5 text-xs font-inter font-semibold text-rose-500 hover:text-rose-400 hover:bg-rose-950/20 border border-rose-500/20 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+            className="flex items-center gap-1 text-xs font-inter font-semibold text-rose-500 hover:text-rose-400 hover:bg-rose-950/20 border border-rose-500/20 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer"
             title="Log out of Cashier Terminal"
           >
             <LogOut size={14} />
@@ -1042,24 +1070,81 @@ export default function POSPage() {
               </div>
 
               {/* Totals & Payment Actions */}
-              <div className="border-t border-border bg-surface p-6 shrink-0 flex flex-col gap-4 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
+              <div className="border-t border-border bg-surface p-5 sm:p-6 shrink-0 flex flex-col gap-3 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
                 
                 {cartVouchers.length > 0 && (
                   <div className="flex flex-col gap-2">
-                    <span className="font-inter font-bold text-sm text-muted">Applied Vouchers</span>
+                    <span className="font-inter font-bold text-xs text-muted">Applied Vouchers</span>
                     {cartVouchers.map(v => (
-                      <div key={v.code} className="flex justify-between items-center bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-800">
-                        <span className="font-mono text-xs font-bold">{v.code}</span>
+                      <div key={v.code} className="flex justify-between items-center bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 px-3 py-1.5 rounded-lg border border-emerald-200 dark:border-emerald-800 text-xs">
+                        <span className="font-mono font-bold">{v.code}</span>
                         <div className="flex items-center gap-3">
                           <span className="font-inter font-bold">-Rs. {v.amount.toLocaleString()}</span>
-                          <button onClick={() => setCartVouchers(prev => prev.filter(cv => cv.code !== v.code))} className="text-emerald-600 hover:text-emerald-900 dark:hover:text-emerald-200"><Trash2 size={14} /></button>
+                          <button onClick={() => setCartVouchers(prev => prev.filter(cv => cv.code !== v.code))} className="text-emerald-600 hover:text-emerald-900 dark:hover:text-emerald-200"><Trash2 size={13} /></button>
                         </div>
                       </div>
                     ))}
                   </div>
                 )}
 
-                <div className="mt-4">
+                {/* Live Financial Breakdown & Discount Control */}
+                <div className="flex flex-col gap-2 pt-1 border-t border-border/50 text-xs font-inter">
+                  <div className="flex justify-between items-center text-muted">
+                    <span>Subtotal</span>
+                    <span className="font-mono font-bold text-foreground">
+                      Rs. {subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+
+                  {/* Manual Order Discount */}
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-muted">Order Discount</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setTempDiscountType(cartDiscount.type);
+                          setTempDiscountValue(cartDiscount.value.toString());
+                          setIsDiscountModalOpen(true);
+                        }}
+                        className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 border border-amber-500/20 transition-colors cursor-pointer"
+                      >
+                        {discountAmount > 0 ? "Edit" : "+ Add"}
+                      </button>
+                    </div>
+                    {discountAmount > 0 ? (
+                      <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-bold font-mono">
+                        <span>-Rs. {discountAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                        <button
+                          type="button"
+                          onClick={() => setCartDiscount({ type: 'FIXED', value: 0 })}
+                          className="text-muted hover:text-rose-500 p-0.5 cursor-pointer"
+                          title="Remove discount"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="font-mono text-muted">Rs. 0.00</span>
+                    )}
+                  </div>
+
+                  {voucherAmount > 0 && (
+                    <div className="flex justify-between items-center text-emerald-600 dark:text-emerald-400 font-bold">
+                      <span>Vouchers</span>
+                      <span className="font-mono">-Rs. {voucherAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between items-center pt-2 border-t border-border font-bold text-foreground">
+                    <span className="text-sm">Total Payable</span>
+                    <span className="font-mono font-black text-lg text-amber-500">
+                      Rs. {totalPayable.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-2">
                   <button 
                     disabled={cart.length === 0}
                     onClick={() => {
@@ -1069,9 +1154,9 @@ export default function POSPage() {
                       }
                       setIsPaymentModalOpen(true);
                     }}
-                    className="w-full flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 disabled:bg-stone-200 dark:disabled:bg-stone-800 disabled:text-stone-400 dark:disabled:text-stone-600 disabled:cursor-not-allowed text-slate-950 font-inter font-bold text-base rounded-xl py-4 transition-all shadow-lg shadow-amber-500/20"
+                    className="w-full flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 disabled:bg-stone-200 dark:disabled:bg-stone-800 disabled:text-stone-400 dark:disabled:text-stone-600 disabled:cursor-not-allowed text-slate-950 font-inter font-bold text-base rounded-xl py-3.5 transition-all shadow-lg shadow-amber-500/20 cursor-pointer"
                   >
-                    <span>Charge</span>
+                    <span>Charge (Rs. {totalPayable.toLocaleString(undefined, { minimumFractionDigits: 2 })})</span>
                     <ChevronRight size={20} className="text-slate-950" />
                   </button>
                 </div>
@@ -1145,7 +1230,7 @@ export default function POSPage() {
 
       {isVariantModalOpen && <VariantSelectionModal product={selectedProduct} onClose={() => setIsVariantModalOpen(false)} onAdd={addToCart} allowOutOfStock={posMode !== 'SALES'} />}
       {isPaymentModalOpen && <PaymentModal 
-        total={Math.max(0, cart.reduce((sum, item) => sum + (item.price * item.qty), 0) - cartVouchers.reduce((sum, v) => sum + v.amount, 0)).toFixed(2)} 
+        total={totalPayable.toFixed(2)} 
         selectedCustomer={selectedCustomer}
         onOpenCustomerModal={() => {
           setIsPaymentModalOpen(false);
@@ -1154,9 +1239,6 @@ export default function POSPage() {
         onClose={() => setIsPaymentModalOpen(false)} 
         onSuccess={async (method: string) => {
           setIsPaymentModalOpen(false);
-          const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-          const voucherAmount = cartVouchers.reduce((sum, v) => sum + v.amount, 0);
-          const total = Math.max(0, subtotal - voucherAmount);
           try {
             const orderRes = await processOrderMutation.mutateAsync({
               branchId,
@@ -1170,7 +1252,8 @@ export default function POSPage() {
               paymentMethod: method,
               appliedVouchers: cartVouchers.map(v => v.code),
               subtotal,
-              total,
+              discount: discountAmount,
+              total: totalPayable,
               tax: 0
             });
             
@@ -1182,10 +1265,10 @@ export default function POSPage() {
               cashierName: user?.name || "User",
               items: cart,
               subtotal,
-              discount: voucherAmount,
-              total,
+              discount: discountAmount + voucherAmount,
+              total: totalPayable,
               paymentMethod: method,
-              tendered: total,
+              tendered: totalPayable,
               change: 0,
               branchName: activeBranch?.name,
               branchAddress: activeBranch?.address,
@@ -1204,6 +1287,122 @@ export default function POSPage() {
           }
         }}  
       />}
+
+      {/* POS Cart Discount Modal */}
+      {isDiscountModalOpen && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-surface border border-border rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl p-6 animate-in zoom-in-95 duration-200 space-y-4">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <h3 className="font-inter font-bold text-base text-foreground flex items-center gap-2">
+                <Percent size={18} className="text-amber-500" />
+                <span>Apply Order Discount</span>
+              </h3>
+              <button
+                onClick={() => setIsDiscountModalOpen(false)}
+                className="text-muted hover:text-foreground p-1 cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {/* Type Toggle: Fixed Rs. vs Percentage % */}
+              <div className="grid grid-cols-2 gap-2 bg-background p-1 rounded-xl border border-border">
+                <button
+                  type="button"
+                  onClick={() => setTempDiscountType('FIXED')}
+                  className={`py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    tempDiscountType === 'FIXED'
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'text-muted hover:text-foreground'
+                  }`}
+                >
+                  Fixed (Rs.)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTempDiscountType('PERCENT')}
+                  className={`py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    tempDiscountType === 'PERCENT'
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'text-muted hover:text-foreground'
+                  }`}
+                >
+                  Percentage (%)
+                </button>
+              </div>
+
+              {/* Quick Presets */}
+              <div className="grid grid-cols-4 gap-2">
+                {(tempDiscountType === 'PERCENT' ? [5, 10, 15, 20] : [100, 250, 500, 1000]).map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => setTempDiscountValue(preset.toString())}
+                    className="py-1.5 px-2 bg-background hover:bg-surface border border-border hover:border-amber-500/50 rounded-lg text-xs font-mono font-bold text-foreground transition-colors cursor-pointer"
+                  >
+                    {tempDiscountType === 'PERCENT' ? `${preset}%` : `Rs.${preset}`}
+                  </button>
+                ))}
+              </div>
+
+              {/* Input Value */}
+              <div>
+                <label className="block text-xs font-semibold text-muted mb-1">
+                  Discount Value ({tempDiscountType === 'PERCENT' ? '%' : 'Rs.'})
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max={tempDiscountType === 'PERCENT' ? 100 : subtotal}
+                  step={tempDiscountType === 'PERCENT' ? '1' : '0.5'}
+                  value={tempDiscountValue}
+                  onChange={(e) => setTempDiscountValue(e.target.value)}
+                  className="w-full h-11 px-3 rounded-xl bg-background border border-border text-foreground font-mono font-bold text-base focus:outline-none focus:border-amber-500"
+                  placeholder="0"
+                />
+              </div>
+
+              {/* Preview */}
+              <div className="p-3 bg-background rounded-xl border border-border text-xs flex justify-between items-center text-muted">
+                <span>Calculated Deduction:</span>
+                <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400 text-sm">
+                  -Rs. {(
+                    tempDiscountType === 'PERCENT'
+                      ? Math.round(((subtotal * (Number(tempDiscountValue) || 0)) / 100) * 100) / 100
+                      : Math.min(subtotal, Math.max(0, Number(tempDiscountValue) || 0))
+                  ).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2 border-t border-border">
+              <button
+                type="button"
+                onClick={() => {
+                  setCartDiscount({ type: 'FIXED', value: 0 });
+                  setIsDiscountModalOpen(false);
+                }}
+                className="flex-1 py-2.5 rounded-xl border border-border text-muted hover:text-foreground text-xs font-semibold cursor-pointer"
+              >
+                Reset
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const val = Math.max(0, parseFloat(tempDiscountValue) || 0);
+                  setCartDiscount({ type: tempDiscountType, value: val });
+                  setIsDiscountModalOpen(false);
+                }}
+                className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold shadow-md shadow-amber-500/20 cursor-pointer"
+              >
+                Apply Discount
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {isCustomerModalOpen && (
         <CustomerSelectionModal 
           activeSessionId={activeSession?.id}

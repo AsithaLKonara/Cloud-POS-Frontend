@@ -180,8 +180,18 @@ export default function OrderSuccessModal({
           </button>
         </div>
 
-        {/* Hidden Thermal Receipt & A4 Invoice (rendered for iframe printing fallback) */}
-        <div className="hidden">
+        {/* Offscreen Thermal Receipt & A4 Invoice (rendered for iframe printing fallback without display:none) */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: "fixed",
+            left: "-99999px",
+            top: 0,
+            opacity: 0,
+            pointerEvents: "none",
+            zIndex: -1,
+          }}
+        >
           <Receipt ref={thermalRef} {...receiptProps} />
           <WorkshopInvoiceA4 ref={a4InvoiceRef} {...receiptProps} customer={orderData?.customer} />
         </div>
