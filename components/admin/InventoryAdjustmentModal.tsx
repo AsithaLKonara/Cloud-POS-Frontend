@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, PackagePlus, AlertTriangle, Search } from "lucide-react";
-import { useAdjustStock, useInventory } from "@/hooks/useInventory";
+import { X, PackagePlus, AlertTriangle, Search, Building2 } from "lucide-react";
+import { useAdjustStock, useInventory, useBranches } from "@/hooks/useInventory";
 
 interface InventoryAdjustmentModalProps {
   type: "receive" | "deduct";
@@ -16,6 +16,7 @@ interface InventoryAdjustmentModalProps {
 export default function InventoryAdjustmentModal({ type, onClose, onSuccess, initialVariantId, initialSkuSearch, initialVariantData }: InventoryAdjustmentModalProps) {
   const [variantId, setVariantId] = useState(initialVariantId || "");
   const [skuSearch, setSkuSearch] = useState(initialSkuSearch || "");
+  const [branchId, setBranchId] = useState<string>(initialVariantData?.branchId || "");
   const [qty, setQty] = useState(1);
   const [reason, setReason] = useState("");
   const [supplierPo, setSupplierPo] = useState("");
@@ -23,23 +24,33 @@ export default function InventoryAdjustmentModal({ type, onClose, onSuccess, ini
 
   const isReceive = type === "receive";
   const adjustMutation = useAdjustStock();
+  const { data: branchesData } = useBranches();
+  const branches: any[] = Array.isArray(branchesData) ? branchesData : (branchesData as any)?.data || [];
 
   // Live search inventory for SKU picker
-  const { data: searchResults } = useInventory(undefined, skuSearch, undefined, 1);
+  const { data: searchResults } = useInventory(branchId || undefined, skuSearch, undefined, 1);
 
-  const selectedVariant = searchResults?.data?.find((v: any) => v.variantId === variantId) || initialVariantData;
+  const effectiveBranchId = branchId || initialVariantData?.branchId || (branches.length > 0 ? branches[0].id : "");
+
+  const selectedVariant = 
+    (effectiveBranchId ? searchResults?.data?.find((v: any) => v.variantId === variantId && v.branchId === effectiveBranchId) : null) ||
+    searchResults?.data?.find((v: any) => v.variantId === variantId) || 
+    initialVariantData;
 
   const handleSelectVariant = (v: any) => {
     setVariantId(v.variantId);
     setSkuSearch(v.sku);
+    if (v.branchId) {
+      setBranchId(v.branchId);
+    }
     setShowDropdown(false);
   };
 
   const handleProcess = async () => {
-    if (!variantId) return;
+    if (!variantId || !effectiveBranchId) return;
     await adjustMutation.mutateAsync({
       variantId,
-      branchId: selectedVariant?.branchId || "BR-001",
+      branchId: effectiveBranchId,
       type: isReceive ? "RECEIVE" : "DEDUCT",
       quantity: qty,
       reason: isReceive ? supplierPo : reason,
@@ -48,7 +59,7 @@ export default function InventoryAdjustmentModal({ type, onClose, onSuccess, ini
   };
 
   const isProcessing = adjustMutation.isPending;
-  const canSubmit = variantId && qty > 0 && (isReceive ? !!supplierPo : !!reason);
+  const canSubmit = variantId && effectiveBranchId && qty > 0 && (isReceive ? !!supplierPo : !!reason);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -93,13 +104,20 @@ export default function InventoryAdjustmentModal({ type, onClose, onSuccess, ini
                   ) : (
                     (searchResults?.data ?? []).map((v: any) => (
                       <button
-                        key={v.variantId}
+                        key={v.id || `${v.variantId}-${v.branchId || 'default'}`}
                         onClick={() => handleSelectVariant(v)}
                         className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-surface-elevated transition-colors text-left"
                       >
                         <div>
                           <p className="font-mono text-xs font-medium text-foreground">{v.sku}</p>
-                          <p className="text-xs text-muted">{v.productName} — {v.name}</p>
+                          <p className="text-xs text-muted">
+                            {v.productName} — {v.name}
+                            {v.branchName && (
+                              <span className="ml-1.5 px-1.5 py-0.5 rounded text-[10px] bg-primary/10 text-primary font-medium">
+                                {v.branchName}
+                              </span>
+                            )}
+                          </p>
                         </div>
                         <span className={`text-xs font-bold px-2 py-0.5 rounded border ${v.isOutOfStock ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20" : "bg-surface-elevated text-foreground border-border"}`}>
                           {v.quantity} in stock
@@ -116,11 +134,34 @@ export default function InventoryAdjustmentModal({ type, onClose, onSuccess, ini
               <div className="flex items-center justify-between bg-surface-elevated border border-border rounded-lg px-4 py-2.5">
                 <div>
                   <p className="font-inter text-sm font-semibold text-foreground">{selectedVariant.productName}</p>
-                  <p className="font-mono text-xs text-muted">{selectedVariant.sku} · {selectedVariant.name}</p>
+                  <p className="font-mono text-xs text-muted">{selectedVariant.sku} · {selectedVariant.name} · {selectedVariant.branchName ? `Branch: ${selectedVariant.branchName}` : ''}</p>
                 </div>
                 <span className="text-sm font-bold text-foreground">{selectedVariant.quantity} on hand</span>
               </div>
             )}
+
+            {/* Target Branch Selector */}
+            <div className="flex flex-col gap-2">
+              <label className="font-inter text-sm font-semibold text-foreground flex items-center gap-1.5">
+                <Building2 size={15} className="text-muted" />
+                Target Branch <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={effectiveBranchId}
+                onChange={e => setBranchId(e.target.value)}
+                className="w-full border border-border rounded-lg px-3 py-2.5 text-sm font-inter outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-surface-elevated text-foreground"
+              >
+                {branches.length === 0 ? (
+                  <option value="" disabled>No branches available</option>
+                ) : (
+                  branches.map((b: any) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name} ({b.code || 'MAIN'})
+                    </option>
+                  ))
+                )}
+              </select>
+            </div>
 
             {/* Quantity */}
             <div className="flex flex-col gap-2">

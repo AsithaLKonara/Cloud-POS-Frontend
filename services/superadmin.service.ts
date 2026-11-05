@@ -233,4 +233,24 @@ export const superAdminService = {
     const res = await api.patch(`/superadmin/invoices/${invoiceId}/status`, { status });
     return res.data.data;
   },
+
+  async getTenantAdmins(tenantId: string): Promise<any[]> {
+    const res = await api.get(`/superadmin/tenants/${tenantId}/admins`);
+    return res.data.data;
+  },
+
+  async createTenantAdmin(tenantId: string, payload: { email: string; password: string; name?: string; phone?: string; branchId?: string }): Promise<any> {
+    const res = await api.post(`/superadmin/tenants/${tenantId}/admins`, payload);
+    return res.data.data;
+  },
+
+  async updateTenantAdminStatus(tenantId: string, adminId: string, status: 'ACTIVE' | 'SUSPENDED' | 'INACTIVE'): Promise<any> {
+    const res = await api.patch(`/superadmin/tenants/${tenantId}/admins/${adminId}/status`, { status });
+    return res.data.data;
+  },
+
+  async resetTenantAdminPassword(tenantId: string, adminId: string, newPassword?: string): Promise<any> {
+    const res = await api.post(`/superadmin/tenants/${tenantId}/admins/${adminId}/reset-password`, { newPassword });
+    return res.data.data;
+  },
 };

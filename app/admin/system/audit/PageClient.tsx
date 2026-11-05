@@ -32,7 +32,7 @@ export default function AuditPage() {
   const formattedLogs = logs.map((log: any) => ({
     id: log.id,
     timestamp: new Date(log.createdAt).toLocaleString(),
-    user: log.userId || "System",
+    user: log.userName || log.user?.name || log.user?.email || log.userId || "System",
     action: log.action,
     resource: log.entity,
     details: log.entityId ? `${log.action} ${log.entity} ID: ${log.entityId}` : `${log.action} ${log.entity}`,

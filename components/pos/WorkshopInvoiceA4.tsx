@@ -116,25 +116,29 @@ const WorkshopInvoiceA4 = forwardRef<HTMLDivElement, WorkshopInvoiceProps>((prop
         </thead>
         <tbody className="divide-y divide-stone-200">
           {items.map((item, idx) => {
+            const itemName = item.name || item.productName || item.product?.name || "Product Item";
+            const itemQty = Number(item.qty ?? item.quantity ?? 1);
+            const itemPrice = Number(item.price ?? item.unitPrice ?? item.priceAtPurchase ?? 0);
+            const itemTotal = Number(item.total ?? (itemPrice * itemQty));
             const packOrVolume = item.packUnit || item.size || (item.dispensedVolumeLiters ? `${item.dispensedVolumeLiters}L Loose` : 'Standard');
-            const spec = item.viscosity || item.partNumber || item.color || 'Standard';
+            const spec = item.viscosity || item.partNumber || item.color || item.variantName || 'Standard';
 
             return (
               <tr key={idx} className="hover:bg-stone-50">
                 <td className="py-3 px-3 font-semibold text-stone-900">
-                  {item.name}
+                  {itemName}
                   {item.brand && <span className="block text-[10px] text-stone-500 font-normal">Brand: {item.brand}</span>}
                 </td>
                 <td className="py-3 px-3 font-mono text-stone-700">{spec}</td>
                 <td className="py-3 px-3 font-medium text-stone-600">{packOrVolume}</td>
                 <td className="py-3 px-3 text-center font-bold text-stone-900">
-                  {item.dispensedVolumeLiters ? `${item.dispensedVolumeLiters} L` : item.qty}
+                  {item.dispensedVolumeLiters ? `${item.dispensedVolumeLiters} L` : itemQty}
                 </td>
                 <td className="py-3 px-3 text-right font-mono text-stone-700">
-                  Rs. {item.price?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  Rs. {itemPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </td>
                 <td className="py-3 px-3 text-right font-mono font-bold text-stone-900">
-                  Rs. {(item.price * item.qty).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  Rs. {itemTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </td>
               </tr>
             );

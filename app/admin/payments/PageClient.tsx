@@ -13,8 +13,19 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 const GATEWAY_COLORS: Record<string, string> = {
   "COD": "#10b981", // Emerald
+  "CASH": "#10b981", // Emerald
+  "Cash": "#10b981",
+  "CARD": "#3b82f6", // Blue
+  "Card": "#3b82f6",
+  "SPLIT": "#8b5cf6", // Purple
+  "Split": "#8b5cf6",
+  "CREDIT_ACCOUNT": "#f59e0b", // Amber
+  "Garage / Account Credit": "#f59e0b",
+  "Bank Transfer": "#06b6d4", // Cyan
   "Koko": "#f59e0b", // Amber
   "Mintpay": "#3b82f6", // Blue
+  "PayHere": "#0284c7", // Sky
+  "LankaQR": "#e11d48", // Rose
   "Payzy": "#8b5cf6", // Purple
   "OnePay": "#ef4444", // Red
   "MANUAL": "#6b7280" // Gray

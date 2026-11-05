@@ -796,6 +796,7 @@ def get_order_status(order_id):
                   <h4 className="font-bold text-foreground text-[11px] uppercase tracking-wider font-mono mb-1.5">Response (200 OK)</h4>
                   <pre className="p-3 bg-zinc-950 rounded-xl text-emerald-400 font-mono text-[11px] overflow-x-auto border border-zinc-800">
 {`{
+  "statusCode": 200,
   "success": true,
   "data": {
     "subtotal": 2900.00,
@@ -869,6 +870,7 @@ def get_order_status(order_id):
                   <h4 className="font-bold text-foreground text-[11px] uppercase tracking-wider font-mono mb-1.5">Response (201 Created)</h4>
                   <pre className="p-3 bg-zinc-950 rounded-xl text-emerald-400 font-mono text-[11px] overflow-x-auto border border-zinc-800">
 {`{
+  "statusCode": 201,
   "success": true,
   "data": {
     "id": "ord_9901726a",

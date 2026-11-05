@@ -53,6 +53,8 @@ import {
   ChevronRight,
   Cpu,
   HardDrive,
+  KeyRound,
+  UserPlus,
 } from "lucide-react";
 
 export default function SuperAdminDashboard() {
@@ -95,6 +97,7 @@ export default function SuperAdminDashboard() {
     adminEmail: "",
     adminPassword: "Password@123",
     adminFullName: "",
+    initialBranchName: "",
     subscriptionTier: "STARTER",
   });
   const [provisionLoading, setProvisionLoading] = useState(false);
@@ -130,6 +133,21 @@ export default function SuperAdminDashboard() {
     currencySymbol: "Rs.",
   });
   const [tenantEditLoading, setTenantEditLoading] = useState(false);
+
+  // Tenant Super Admins Management Modal State
+  const [selectedTenantForAdmins, setSelectedTenantForAdmins] = useState<TenantRegistryItem | null>(null);
+  const [isTenantAdminsOpen, setIsTenantAdminsOpen] = useState(false);
+  const [tenantAdminsList, setTenantAdminsList] = useState<any[]>([]);
+  const [tenantAdminsLoading, setTenantAdminsLoading] = useState(false);
+  const [newAdminForm, setNewAdminForm] = useState({
+    name: "",
+    email: "",
+    password: "Password@123",
+    phone: "",
+  });
+  const [isAddAdminOpen, setIsAddAdminOpen] = useState(false);
+  const [addAdminLoading, setAddAdminLoading] = useState(false);
+  const [adminActionMsg, setAdminActionMsg] = useState<string | null>(null);
 
   // Tenant Filters
   const [statusFilter, setStatusFilter] = useState("ALL");
@@ -204,6 +222,7 @@ export default function SuperAdminDashboard() {
           adminEmail: "",
           adminPassword: "Password@123",
           adminFullName: "",
+          initialBranchName: "",
           subscriptionTier: "STARTER",
         });
       }, 1200);
@@ -316,6 +335,65 @@ export default function SuperAdminDashboard() {
       alert(err?.response?.data?.message || err?.message || "Failed to update tenant settings");
     } finally {
       setTenantEditLoading(false);
+    }
+  };
+
+  const handleOpenTenantAdmins = async (tenant: TenantRegistryItem) => {
+    setSelectedTenantForAdmins(tenant);
+    setIsTenantAdminsOpen(true);
+    setTenantAdminsLoading(true);
+    setAdminActionMsg(null);
+    try {
+      const admins = await superAdminService.getTenantAdmins(tenant.id);
+      setTenantAdminsList(admins || []);
+    } catch (err: any) {
+      alert("Failed to load tenant admins: " + (err.message || err));
+    } finally {
+      setTenantAdminsLoading(false);
+    }
+  };
+
+  const handleCreateTenantAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedTenantForAdmins) return;
+    setAddAdminLoading(true);
+    setAdminActionMsg(null);
+    try {
+      await superAdminService.createTenantAdmin(selectedTenantForAdmins.id, newAdminForm);
+      setAdminActionMsg("Admin successfully created!");
+      setIsAddAdminOpen(false);
+      setNewAdminForm({ name: "", email: "", password: "Password@123", phone: "" });
+      const admins = await superAdminService.getTenantAdmins(selectedTenantForAdmins.id);
+      setTenantAdminsList(admins || []);
+    } catch (err: any) {
+      alert(err?.response?.data?.message || err?.message || "Failed to create admin");
+    } finally {
+      setAddAdminLoading(false);
+    }
+  };
+
+  const handleToggleAdminStatus = async (adminId: string, currentStatus: string) => {
+    if (!selectedTenantForAdmins) return;
+    const newStatus = currentStatus === "ACTIVE" ? "SUSPENDED" : "ACTIVE";
+    if (!confirm(`Are you sure you want to change this admin's status to ${newStatus}?`)) return;
+    try {
+      await superAdminService.updateTenantAdminStatus(selectedTenantForAdmins.id, adminId, newStatus);
+      const admins = await superAdminService.getTenantAdmins(selectedTenantForAdmins.id);
+      setTenantAdminsList(admins || []);
+    } catch (err: any) {
+      alert(err?.response?.data?.message || err?.message || "Failed to update admin status");
+    }
+  };
+
+  const handleResetAdminPassword = async (adminId: string, email: string) => {
+    if (!selectedTenantForAdmins) return;
+    const newPassword = prompt(`Enter new password for ${email}:`, "Password@123");
+    if (!newPassword) return;
+    try {
+      await superAdminService.resetTenantAdminPassword(selectedTenantForAdmins.id, adminId, newPassword);
+      alert(`Password successfully reset for ${email}!`);
+    } catch (err: any) {
+      alert(err?.response?.data?.message || err?.message || "Failed to reset password");
     }
   };
 
@@ -859,6 +937,14 @@ export default function SuperAdminDashboard() {
                               </td>
                               <td className="py-3.5 px-4 text-right">
                                 <div className="inline-flex items-center gap-1.5">
+                                  <button
+                                    onClick={() => handleOpenTenantAdmins(t)}
+                                    className="px-2 py-1 rounded bg-[#1C2025] hover:bg-amber-950/40 text-amber-400 text-[11px] font-medium border border-[#2B3037] hover:border-amber-500/40 transition-colors flex items-center gap-1"
+                                    title="Manage Tenant Super Admins"
+                                  >
+                                    <Users size={12} />
+                                    <span>Admins</span>
+                                  </button>
                                   <button
                                     onClick={() => handleOpenTenantSettings(t)}
                                     className="px-2 py-1 rounded bg-[#1C2025] hover:bg-blue-950/40 text-blue-400 text-[11px] font-medium border border-[#2B3037] hover:border-blue-500/40 transition-colors flex items-center gap-1"
@@ -1526,14 +1612,32 @@ export default function SuperAdminDashboard() {
                   >
                     <option value="RETAIL">Retail & Apparel</option>
                     <option value="RESTAURANT_CAFE">Restaurant & Cafe</option>
-                    <option value="SUPERMARKET_GROCERY">Supermarket</option>
+                    <option value="GROCERY_SUPERMARKET">Supermarket & Grocery</option>
                     <option value="SALON_SPA">Salon & Wellness</option>
-                    <option value="PHARMACY">Pharmacy</option>
+                    <option value="PHARMACY_CLINIC">Pharmacy & Healthcare</option>
+                    <option value="AUTOMOTIVE_SERVICES">Automotive Services</option>
+                    <option value="WHOLESALE_DISTRIBUTION">Wholesale & Distribution</option>
+                    <option value="GENERAL_SERVICES">General Services</option>
                   </select>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
+                    Admin Full Name
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Asitha Lakmal"
+                    value={provisionData.adminFullName}
+                    onChange={(e) =>
+                      setProvisionData({ ...provisionData, adminFullName: e.target.value })
+                    }
+                    className="w-full h-9 px-3 rounded-lg bg-[#181A1D] border border-[#2B3037] text-xs text-white focus:outline-none focus:border-zinc-400"
+                  />
+                </div>
+
                 <div>
                   <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
                     Admin Email
@@ -1547,6 +1651,24 @@ export default function SuperAdminDashboard() {
                       setProvisionData({ ...provisionData, adminEmail: e.target.value })
                     }
                     className="w-full h-9 px-3 rounded-lg bg-[#181A1D] border border-[#2B3037] text-xs text-white focus:outline-none focus:border-zinc-400"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
+                    Initial Admin Password
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Password@123"
+                    value={provisionData.adminPassword}
+                    onChange={(e) =>
+                      setProvisionData({ ...provisionData, adminPassword: e.target.value })
+                    }
+                    className="w-full h-9 px-3 rounded-lg bg-[#181A1D] border border-[#2B3037] text-xs text-white font-mono focus:outline-none focus:border-zinc-400"
                   />
                 </div>
 
@@ -1569,6 +1691,21 @@ export default function SuperAdminDashboard() {
                     <option value="ENTERPRISE">Enterprise (Rs. 18,500/mo)</option>
                   </select>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
+                  Initial Branch Name (Optional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Flagship Store - Colombo 07"
+                  value={provisionData.initialBranchName}
+                  onChange={(e) =>
+                    setProvisionData({ ...provisionData, initialBranchName: e.target.value })
+                  }
+                  className="w-full h-9 px-3 rounded-lg bg-[#181A1D] border border-[#2B3037] text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-400"
+                />
               </div>
 
               <div className="pt-3 border-t border-[#1E2227] flex items-center justify-end gap-2.5">
@@ -1969,6 +2106,215 @@ export default function SuperAdminDashboard() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          MODAL: TENANT SUPER ADMINS MANAGEMENT
+          ========================================================================= */}
+      {isTenantAdminsOpen && selectedTenantForAdmins && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-2xl rounded-2xl bg-[#121417] border border-[#2B3037] p-6 shadow-2xl space-y-4 max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between border-b border-[#1E2227] pb-3 shrink-0">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-bold text-white">
+                    Tenant Super Admins
+                  </h3>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-amber-500/10 text-amber-400 border border-amber-500/20 font-bold">
+                    {selectedTenantForAdmins.name}
+                  </span>
+                </div>
+                <p className="text-xs text-zinc-400 mt-0.5 font-mono">
+                  Tenant ID: {selectedTenantForAdmins.id} • Slug: {selectedTenantForAdmins.slug}
+                </p>
+              </div>
+              <button
+                onClick={() => setIsTenantAdminsOpen(false)}
+                className="text-zinc-500 hover:text-white p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            {adminActionMsg && (
+              <div className="p-3 rounded-lg text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0">
+                {adminActionMsg}
+              </div>
+            )}
+
+            {/* Quick Actions Bar */}
+            <div className="flex items-center justify-between shrink-0">
+              <span className="text-xs text-zinc-400 font-medium">
+                {tenantAdminsList.length} Administrator{tenantAdminsList.length === 1 ? "" : "s"} Assigned
+              </span>
+              <button
+                onClick={() => setIsAddAdminOpen(!isAddAdminOpen)}
+                className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-black text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
+              >
+                <UserPlus size={13} />
+                <span>{isAddAdminOpen ? "Close Form" : "Add Super Admin"}</span>
+              </button>
+            </div>
+
+            {/* Add Admin Form Accordion */}
+            {isAddAdminOpen && (
+              <form onSubmit={handleCreateTenantAdmin} className="p-4 rounded-xl bg-[#181A1D] border border-[#2B3037] space-y-3 shrink-0 animate-fade-in">
+                <div className="text-xs font-bold text-white flex items-center gap-1.5 mb-1">
+                  <Users size={14} className="text-amber-400" />
+                  <span>Create New Tenant Administrator</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-zinc-300 mb-1">Full Name</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Kasun Fernando"
+                      value={newAdminForm.name}
+                      onChange={(e) => setNewAdminForm({ ...newAdminForm, name: e.target.value })}
+                      className="w-full h-8 px-3 rounded-lg bg-[#121417] border border-[#2B3037] text-xs text-white focus:outline-none focus:border-amber-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-zinc-300 mb-1">Email Address</label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="admin@tenant.com"
+                      value={newAdminForm.email}
+                      onChange={(e) => setNewAdminForm({ ...newAdminForm, email: e.target.value })}
+                      className="w-full h-8 px-3 rounded-lg bg-[#121417] border border-[#2B3037] text-xs text-white focus:outline-none focus:border-amber-400"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-zinc-300 mb-1">Initial Password</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Password@123"
+                      value={newAdminForm.password}
+                      onChange={(e) => setNewAdminForm({ ...newAdminForm, password: e.target.value })}
+                      className="w-full h-8 px-3 rounded-lg bg-[#121417] border border-[#2B3037] text-xs text-white font-mono focus:outline-none focus:border-amber-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-zinc-300 mb-1">Phone (Optional)</label>
+                    <input
+                      type="text"
+                      placeholder="+94 77 123 4567"
+                      value={newAdminForm.phone}
+                      onChange={(e) => setNewAdminForm({ ...newAdminForm, phone: e.target.value })}
+                      className="w-full h-8 px-3 rounded-lg bg-[#121417] border border-[#2B3037] text-xs text-white focus:outline-none focus:border-amber-400"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsAddAdminOpen(false)}
+                    className="px-3 py-1.5 rounded-lg bg-[#121417] text-zinc-400 hover:text-white text-xs font-medium"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={addAdminLoading}
+                    className="px-4 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-black text-xs font-bold disabled:opacity-50"
+                  >
+                    {addAdminLoading ? "Creating..." : "Save Admin"}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Admins Table */}
+            <div className="flex-1 overflow-y-auto rounded-xl border border-[#1E2227] bg-[#16181B]">
+              {tenantAdminsLoading ? (
+                <div className="py-12 text-center text-zinc-500 flex flex-col items-center justify-center gap-2">
+                  <RefreshCw size={18} className="animate-spin text-zinc-400" />
+                  <span className="text-xs">Loading tenant administrators...</span>
+                </div>
+              ) : tenantAdminsList.length === 0 ? (
+                <div className="py-12 text-center text-zinc-500 text-xs">
+                  No administrators configured for this tenant.
+                </div>
+              ) : (
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-[#121417] text-zinc-400 border-b border-[#1E2227] text-[11px] font-semibold">
+                    <tr>
+                      <th className="py-2.5 px-3">Administrator</th>
+                      <th className="py-2.5 px-3">Branch</th>
+                      <th className="py-2.5 px-3">Status</th>
+                      <th className="py-2.5 px-3 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#1E2227]">
+                    {tenantAdminsList.map((adm) => (
+                      <tr key={adm.id} className="hover:bg-[#1A1D21] transition-colors">
+                        <td className="py-3 px-3">
+                          <div className="font-semibold text-white">{adm.name || "Tenant Admin"}</div>
+                          <div className="text-[10px] text-zinc-400 font-mono">{adm.email}</div>
+                          {adm.phone && <div className="text-[10px] text-zinc-500">{adm.phone}</div>}
+                        </td>
+                        <td className="py-3 px-3 font-mono text-zinc-300 text-[11px]">
+                          {adm.branch?.name || "All Branches"}
+                        </td>
+                        <td className="py-3 px-3">
+                          <span
+                            className={`text-[10px] px-2 py-0.5 rounded-full font-bold font-mono ${
+                              adm.status === "ACTIVE"
+                                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                            }`}
+                          >
+                            {adm.status}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3 text-right">
+                          <div className="inline-flex items-center gap-1.5">
+                            <button
+                              onClick={() => handleToggleAdminStatus(adm.id, adm.status)}
+                              className={`px-2 py-1 rounded text-[11px] font-medium border transition-colors ${
+                                adm.status === "ACTIVE"
+                                  ? "bg-[#1C2025] hover:bg-rose-950/30 text-rose-400 border-[#2B3037] hover:border-rose-500/40"
+                                  : "bg-[#1C2025] hover:bg-emerald-950/30 text-emerald-400 border-[#2B3037] hover:border-emerald-500/40"
+                              }`}
+                              title={adm.status === "ACTIVE" ? "Suspend Admin" : "Activate Admin"}
+                            >
+                              {adm.status === "ACTIVE" ? "Suspend" : "Activate"}
+                            </button>
+                            <button
+                              onClick={() => handleResetAdminPassword(adm.id, adm.email)}
+                              className="px-2 py-1 rounded bg-[#1C2025] hover:bg-amber-950/40 text-amber-400 text-[11px] font-medium border border-[#2B3037] hover:border-amber-500/40 transition-colors flex items-center gap-1"
+                              title="Reset Password"
+                            >
+                              <KeyRound size={11} />
+                              <span>Reset PW</span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+            <div className="pt-3 border-t border-[#1E2227] flex items-center justify-end shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsTenantAdminsOpen(false)}
+                className="px-4 py-2 rounded-lg bg-[#181A1D] text-zinc-300 text-xs font-medium hover:bg-[#22262B] transition-colors"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
