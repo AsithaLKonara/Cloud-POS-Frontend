@@ -58,6 +58,8 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { useBarcodeScanner } from "@/hooks/useBarcodeScanner";
 import { globalDialog } from "@/store/dialog.store";
 import { useAuthStore } from "@/store/auth.store";
+import { OfflineStorageManager } from "@/lib/offlineSync";
+import { posService } from "@/services/pos.service";
 
 export default function POSPage() {
   const router = useRouter();
@@ -210,9 +212,53 @@ export default function POSPage() {
   const [cartVouchers, setCartVouchers] = useState<{code: string, amount: number}[]>([]);
   const [cartDiscount, setCartDiscount] = useState<{ type: 'FIXED' | 'PERCENT'; value: number }>({ type: 'FIXED', value: 0 });
   const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
-  const [tempDiscountType, setTempDiscountType] = useState<'FIXED' | 'PERCENT'>('FIXED');
+  const [tempDiscountType, setTempDiscountType] = useState<'FIXED' | 'PERCENT'>('PERCENT');
   const [tempDiscountValue, setTempDiscountValue] = useState<string>('0');
   const [lastOrderData, setLastOrderData] = useState<any>(null);
+
+  const [isPinPromptOpen, setIsPinPromptOpen] = useState(false);
+  const [managerPinInput, setManagerPinInput] = useState('');
+  const [pinError, setPinError] = useState('');
+  const [pendingDiscount, setPendingDiscount] = useState<{ type: 'FIXED' | 'PERCENT'; value: number } | null>(null);
+
+  // Background automatic offline sync flusher when network is restored
+  useEffect(() => {
+    const syncOfflineQueue = async () => {
+      const queued = OfflineStorageManager.getQueuedOrders();
+      if (!queued || queued.length === 0) return;
+
+      try {
+        const { synced } = await OfflineStorageManager.syncQueuedOrders(async (order) => {
+          return await processOrderMutation.mutateAsync({
+            branchId: order.branchId,
+            sessionId: order.sessionId !== "OFFLINE_SESSION" ? order.sessionId : undefined,
+            customerId: order.customerId,
+            items: order.items.map(it => ({ variantId: it.variantId, qty: it.qty })),
+            paymentMethod: order.paymentMethod,
+            appliedVouchers: order.appliedVouchers || [],
+            subtotal: order.subtotal,
+            discount: order.discount || 0,
+            total: order.total,
+            tax: 0,
+            idempotencyKey: order.idempotencyKey
+          });
+        });
+
+        if (synced > 0) {
+          console.log(`[OfflineSync] Synced ${synced} offline orders`);
+        }
+      } catch (e) {
+        console.warn("[OfflineSync] Sync attempt failed:", e);
+      }
+    };
+
+    window.addEventListener("online", syncOfflineQueue);
+    syncOfflineQueue();
+
+    return () => {
+      window.removeEventListener("online", syncOfflineQueue);
+    };
+  }, []);
 
   const subtotal = useMemo(() => {
     return cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
@@ -324,27 +370,38 @@ export default function POSPage() {
         const product = await scanBarcodeMutation.mutateAsync(barcode);
         if (product && product.variants) {
           const lowerSku = barcode.toLowerCase();
+          const scaleData = (product as any).scaleData;
           const matchingVariant = product.variants.find((v: any) => 
             v.sku?.toLowerCase() === lowerSku || 
             v.barcode?.toLowerCase() === lowerSku ||
             v.sku?.toLowerCase().startsWith(lowerSku) ||
             v.barcode?.toLowerCase().startsWith(lowerSku) ||
             v.id?.toLowerCase().startsWith(lowerSku) ||
-            product.id?.toLowerCase().startsWith(lowerSku)
-          );
+            product.id?.toLowerCase().startsWith(lowerSku) ||
+            (scaleData?.itemCode && (v.sku?.toLowerCase().includes(scaleData.itemCode) || v.barcode?.toLowerCase().includes(scaleData.itemCode)))
+          ) || (scaleData ? product.variants[0] : null);
+
           if (matchingVariant) {
             // If in SALES mode, don't allow scanning out-of-stock items
             if (posMode === 'SALES' && matchingVariant.stockStatus !== 'instock' && matchingVariant.quantity <= 0) {
               globalDialog.alert("Scanned item is out of stock.");
               return;
             }
-            addToCart(product, matchingVariant, 1);
+            const qtyToAdd = scaleData?.weightKg ? scaleData.weightKg : 1;
+            const variantToAdd = scaleData?.price ? { ...matchingVariant, price: scaleData.price } : matchingVariant;
+            addToCart(product, variantToAdd, qtyToAdd);
           } else {
             globalDialog.alert("Barcode matched a product but no specific variant SKU.");
           }
         }
       } catch (err) {
-        globalDialog.alert("Product not found or invalid barcode.");
+        // Fallback to locally cached offline inventory
+        const offlineMatch = OfflineStorageManager.findOfflineItem(barcode);
+        if (offlineMatch) {
+          addToCart(offlineMatch.product, offlineMatch.variant, 1);
+        } else {
+          globalDialog.alert("Product not found or invalid barcode.");
+        }
       }
     },
     disabled: isPaymentModalOpen || isCustomerModalOpen || isVariantModalOpen || isShiftModalOpen || shiftState === 'CLOSED' || (posMode !== 'SALES' && posMode !== 'DISPATCH')
@@ -396,6 +453,13 @@ export default function POSPage() {
     }
   }, [isIntersecting, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
+  // Cache catalog locally for offline resiliency
+  useEffect(() => {
+    if (products && products.length > 0) {
+      OfflineStorageManager.cacheCatalog(products);
+    }
+  }, [products]);
+
   const validateVoucherMutation = useValidateVoucher();
 
   const handleSearchChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -423,16 +487,21 @@ export default function POSPage() {
           const product = await scanBarcodeMutation.mutateAsync(searchTerm);
           if (product && product.variants) {
             const lowerSku = searchTerm.toLowerCase();
+            const scaleData = (product as any).scaleData;
             const matchingVariant = product.variants.find((v: any) => 
               v.sku?.toLowerCase() === lowerSku || 
               v.barcode?.toLowerCase() === lowerSku ||
               v.sku?.toLowerCase().startsWith(lowerSku) ||
               v.barcode?.toLowerCase().startsWith(lowerSku) ||
               v.id?.toLowerCase().startsWith(lowerSku) ||
-              product.id?.toLowerCase().startsWith(lowerSku)
-            );
+              product.id?.toLowerCase().startsWith(lowerSku) ||
+              (scaleData?.itemCode && (v.sku?.toLowerCase().includes(scaleData.itemCode) || v.barcode?.toLowerCase().includes(scaleData.itemCode)))
+            ) || (scaleData ? product.variants[0] : null);
+
             if (matchingVariant) {
-              addToCart(product, matchingVariant, 1);
+              const qtyToAdd = scaleData?.weightKg ? scaleData.weightKg : 1;
+              const variantToAdd = scaleData?.price ? { ...matchingVariant, price: scaleData.price } : matchingVariant;
+              addToCart(product, variantToAdd, qtyToAdd);
               setSearchTerm("");
             }
           }
@@ -1101,6 +1170,7 @@ export default function POSPage() {
                     <div className="flex items-center gap-1.5">
                       <span className="text-muted">Order Discount</span>
                       <button
+                        data-testid="pos-discount-trigger"
                         type="button"
                         onClick={() => {
                           setTempDiscountType(cartDiscount.type);
@@ -1203,7 +1273,7 @@ export default function POSPage() {
           <div className="relative w-full max-w-[500px] bg-background shadow-2xl rounded-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
             <div className="flex justify-between items-center p-4 border-b border-border bg-surface shrink-0">
               <h3 className="font-inter font-bold text-lg text-foreground">Held Carts</h3>
-              <button onClick={() => setIsHeldCartsModalOpen(false)} className="p-2 text-muted hover:text-foreground hover:bg-background rounded-full transition-colors">
+              <button data-testid="close-held-carts" onClick={() => setIsHeldCartsModalOpen(false)} className="p-2 text-muted hover:text-foreground hover:bg-background rounded-full transition-colors">
                 <X size={20} />
               </button>
             </div>
@@ -1282,6 +1352,52 @@ export default function POSPage() {
             setIsSuccessModalOpen(true);
           } catch (err: any) {
             console.error(err);
+            const isOfflineOrNetwork = (typeof navigator !== "undefined" && !navigator.onLine) || err?.isAxiosError || err?.code === "ERR_NETWORK" || !err?.response;
+            if (isOfflineOrNetwork) {
+              const queuedOrder = OfflineStorageManager.queueOfflineOrder({
+                branchId,
+                sessionId: activeSession?.id || "OFFLINE_SESSION",
+                customerId: selectedCustomer?.id,
+                items: cart.map(item => ({
+                  variantId: item.id,
+                  name: item.name,
+                  price: item.price,
+                  qty: item.qty
+                })),
+                paymentMethod: method,
+                subtotal,
+                discount: discountAmount,
+                total: totalPayable,
+                appliedVouchers: cartVouchers.map(v => v.code)
+              });
+
+              const activeBranch = activeSession?.branch || user?.branch || tenantBranches?.find((b: any) => b.id === branchId) || branches?.find((b: any) => b.id === branchId);
+
+              const offlineOrderData = {
+                orderId: queuedOrder.id,
+                orderNumber: queuedOrder.id,
+                cashierName: user?.name || "User",
+                items: cart,
+                subtotal,
+                discount: discountAmount + voucherAmount,
+                total: totalPayable,
+                paymentMethod: method,
+                tendered: totalPayable,
+                change: 0,
+                branchName: activeBranch?.name,
+                branchAddress: activeBranch?.address,
+                branchPhone: activeBranch?.phone,
+                customer: selectedCustomer
+              };
+
+              setLastOrderData(offlineOrderData);
+              clearCart();
+              setSelectedCustomer(null);
+              setIsSuccessModalOpen(true);
+              globalDialog.alert("Offline Order Saved: Server connectivity is unavailable. Sale recorded and queued for automated background synchronization.");
+              return;
+            }
+
             const serverMsg = err?.response?.data?.error?.message || err?.response?.data?.error || err?.response?.data?.message;
             globalDialog.alert(serverMsg || (err?.isAxiosError ? "Network error. Please try again." : err?.message) || "Failed to process payment. Please try again.");
           }
@@ -1337,6 +1453,7 @@ export default function POSPage() {
                 {(tempDiscountType === 'PERCENT' ? [5, 10, 15, 20] : [100, 250, 500, 1000]).map((preset) => (
                   <button
                     key={preset}
+                    data-testid={`discount-preset-${preset}`}
                     type="button"
                     onClick={() => setTempDiscountValue(preset.toString())}
                     className="py-1.5 px-2 bg-background hover:bg-surface border border-border hover:border-amber-500/50 rounded-lg text-xs font-mono font-bold text-foreground transition-colors cursor-pointer"
@@ -1388,15 +1505,100 @@ export default function POSPage() {
                 Reset
               </button>
               <button
+                data-testid="apply-discount-btn"
                 type="button"
-                onClick={() => {
+                onClick={async () => {
                   const val = Math.max(0, parseFloat(tempDiscountValue) || 0);
-                  setCartDiscount({ type: tempDiscountType, value: val });
-                  setIsDiscountModalOpen(false);
+                  const isOverLimit = tempDiscountType === 'PERCENT' ? val > 10 : (subtotal > 0 && (val / subtotal) > 0.1);
+
+                  if (isOverLimit) {
+                    setPendingDiscount({ type: tempDiscountType, value: val });
+                    setManagerPinInput('');
+                    setPinError('');
+                    setIsPinPromptOpen(true);
+                  } else {
+                    setCartDiscount({ type: tempDiscountType, value: val });
+                    setIsDiscountModalOpen(false);
+                  }
                 }}
                 className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold shadow-md shadow-amber-500/20 cursor-pointer"
               >
                 Apply Discount
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Supervisor PIN Override Modal for Discounts > 10% */}
+      {isPinPromptOpen && (
+        <div className="fixed inset-0 z-[130] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-surface border border-border rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl p-6 animate-in zoom-in-95 duration-200 space-y-4">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <h3 className="font-inter font-bold text-base text-foreground flex items-center gap-2">
+                <Lock size={18} className="text-amber-500" />
+                <span>Manager PIN Required</span>
+              </h3>
+              <button
+                onClick={() => {
+                  setIsPinPromptOpen(false);
+                  setPendingDiscount(null);
+                }}
+                className="text-muted hover:text-foreground p-1 cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <p className="text-xs text-muted">
+              Discounts exceeding 10% require supervisor authorization. Enter manager PIN to proceed.
+            </p>
+            <div>
+              <input
+                data-testid="manager-pin-input"
+                type="password"
+                maxLength={6}
+                value={managerPinInput}
+                onChange={(e) => setManagerPinInput(e.target.value)}
+                placeholder="Enter 4-6 digit PIN"
+                className="w-full h-11 px-3 text-center tracking-widest text-xl rounded-xl bg-background border border-border text-foreground font-mono font-bold focus:outline-none focus:border-amber-500"
+                autoFocus
+              />
+              {pinError && <p className="text-xs text-rose-500 mt-1 font-semibold">{pinError}</p>}
+            </div>
+            <div className="flex gap-2 pt-2 border-t border-border">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsPinPromptOpen(false);
+                  setPendingDiscount(null);
+                }}
+                className="flex-1 py-2.5 rounded-xl border border-border text-muted hover:text-foreground text-xs font-semibold cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                data-testid="manager-pin-authorize-btn"
+                type="button"
+                onClick={async () => {
+                  try {
+                    const res = await posService.verifyManagerPin(managerPinInput);
+                    if (res?.authorized) {
+                      if (pendingDiscount) {
+                        setCartDiscount(pendingDiscount);
+                      }
+                      setIsPinPromptOpen(false);
+                      setIsDiscountModalOpen(false);
+                      setPendingDiscount(null);
+                    } else {
+                      setPinError(res?.message || 'Invalid manager PIN');
+                    }
+                  } catch (e: any) {
+                    setPinError(e?.response?.data?.error || e?.message || 'Verification failed');
+                  }
+                }}
+                className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold shadow-md shadow-amber-500/20 cursor-pointer"
+              >
+                Authorize
               </button>
             </div>
           </div>

@@ -14,8 +14,34 @@ function decodeJwt(token: string) {
   }
 }
 
+function extractSubdomain(hostHeader: string | null): string | null {
+  if (!hostHeader) return null;
+  const host = hostHeader.split(':')[0].toLowerCase();
+  if (/^(\d{1,3}\.){3}\d{1,3}$/.test(host)) return null;
+  if (host === 'localhost') return null;
+
+  const parts = host.split('.');
+  if (parts.length >= 2 && parts[parts.length - 1] === 'localhost') {
+    return parts[0];
+  }
+  if (parts.length >= 3) {
+    const reserved = ['www', 'app', 'api', 'admin', 'pos', 'platform'];
+    if (!reserved.includes(parts[0])) {
+      return parts[0];
+    }
+  }
+  return null;
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const host = request.headers.get("host");
+  const tenantSlug = extractSubdomain(host);
+
+  const requestHeaders = new Headers(request.headers);
+  if (tenantSlug) {
+    requestHeaders.set("x-tenant-slug", tenantSlug);
+  }
   
   const token = request.cookies.get("laural_access_token")?.value;
   let roles: string[] = [];
@@ -69,7 +95,17 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(redirectTarget, request.url));
   }
 
-  return NextResponse.next();
+  const res = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
+
+  if (tenantSlug) {
+    res.cookies.set("x_tenant_slug", tenantSlug, { path: "/", httpOnly: false, sameSite: "lax" });
+  }
+
+  return res;
 }
 
 export const config = {

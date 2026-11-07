@@ -6,8 +6,23 @@ export const posService = {
     return res.data;
   },
 
-  async closeSession(data: { sessionId: string; actualClosing: number; closingNotes?: string }) {
+  async closeSession(data: { sessionId: string; actualClosing: number; closingNotes?: string; denominations?: Record<string, number> }) {
     const res = await api.post('/pos/sessions/close', data);
+    return res.data;
+  },
+
+  async cashIn(data: { sessionId: string; amount: number; reason?: string }) {
+    const res = await api.post('/pos/sessions/cash-in', data);
+    return res.data;
+  },
+
+  async cashDrop(data: { sessionId: string; amount: number; reason?: string }) {
+    const res = await api.post('/pos/sessions/cash-drop', data);
+    return res.data;
+  },
+
+  async verifyManagerPin(pin: string) {
+    const res = await api.post('/pos/manager-pin/verify', { pin });
     return res.data;
   },
 
@@ -52,7 +67,7 @@ export const posService = {
 
   async processPosOrder(data: {
     branchId: string;
-    sessionId: string;
+    sessionId?: string;
     customerId?: string;
     customerName?: string;
     customerPhone?: string;
@@ -64,8 +79,40 @@ export const posService = {
     discount?: number;
     total: number;
     tax: number;
+    idempotencyKey?: string;
   }) {
-    const res = await api.post('/pos/orders', data);
+    const headers = data.idempotencyKey ? { 'idempotency-key': data.idempotencyKey } : undefined;
+    const res = await api.post('/pos/orders', data, { headers });
+    return res.data;
+  },
+
+  async holdCart(data: {
+    sessionId: string;
+    branchId: string;
+    reference?: string;
+    customerName?: string;
+    customerId?: string;
+    items: any[];
+    subtotal?: number;
+    discount?: any;
+    notes?: string;
+  }) {
+    const res = await api.post('/pos/carts/hold', data);
+    return res.data;
+  },
+
+  async getHeldCarts(sessionId: string) {
+    const res = await api.get(`/pos/carts/held?sessionId=${sessionId}`);
+    return res.data;
+  },
+
+  async recallHeldCart(id: string) {
+    const res = await api.post(`/pos/carts/recall/${id}`);
+    return res.data;
+  },
+
+  async discardHeldCart(id: string) {
+    const res = await api.delete(`/pos/carts/held/${id}`);
     return res.data;
   }
 };
