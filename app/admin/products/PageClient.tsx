@@ -101,13 +101,13 @@ export default function ProductsPage() {
 
   const columns = [
     {
-      header: <input type="checkbox" checked={selectedProducts.length === products.length && products.length > 0} onChange={handleSelectAll} className="rounded text-stone-900 focus:ring-stone-900 border-stone-300" />,
-      accessor: (row: any) => <input type="checkbox" checked={selectedProducts.includes(row.id)} onChange={() => handleSelectOne(row.id)} onClick={e => e.stopPropagation()} className="rounded text-stone-900 focus:ring-stone-900 border-stone-300" />
+      header: <input type="checkbox" checked={selectedProducts.length === products.length && products.length > 0} onChange={handleSelectAll} className="rounded text-primary focus:ring-primary border-border bg-surface" />,
+      accessor: (row: any) => <input type="checkbox" checked={selectedProducts.includes(row.id)} onChange={() => handleSelectOne(row.id)} onClick={e => e.stopPropagation()} className="rounded text-primary focus:ring-primary border-border bg-surface" />
     },
     { 
       header: "SKU / Code", 
       accessor: (row: any) => row.variants?.[0]?.sku || row.sku || row.variants?.[0]?.barcode || 'N/A', 
-      className: "font-mono text-stone-500 text-xs" 
+      className: "font-mono text-muted text-xs" 
     },
     {
       header: "Product & Spec",
@@ -138,8 +138,8 @@ export default function ProductsPage() {
     },
     { 
       header: "Pack / Unit", 
-      accessor: (row: any) => row.variants?.[0]?.packUnit || <span className="text-stone-400">Unit</span>,
-      className: "text-xs text-stone-600"
+      accessor: (row: any) => row.variants?.[0]?.packUnit || <span className="text-muted">Unit</span>,
+      className: "text-xs text-muted"
     },
     { 
       header: "Cost (COGS)", 
@@ -147,7 +147,7 @@ export default function ProductsPage() {
         const cost = row.variants?.[0]?.costPrice || 0;
         return `Rs ${cost.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
       },
-      className: "text-xs text-stone-500 font-mono" 
+      className: "text-xs text-muted font-mono" 
     },
     { 
       header: "Retail Price", 
@@ -155,14 +155,14 @@ export default function ProductsPage() {
         const price = row.variants?.[0]?.price || 0;
         return `Rs ${price.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
       },
-      className: "font-semibold text-stone-900 font-mono text-sm" 
+      className: "font-semibold text-foreground font-mono text-sm" 
     },
     { 
       header: "Stock", 
       accessor: (row: any) => {
         const totalQuantity = row.variants?.reduce((sum: number, v: any) => sum + (v.quantity || 0), 0) || 0;
         return (
-          <span className={totalQuantity === 0 ? "text-red-600 font-bold" : totalQuantity <= 10 ? "text-amber-600 font-bold" : "text-stone-900 font-semibold"}>
+          <span className={totalQuantity === 0 ? "text-red-500 dark:text-red-400 font-bold" : totalQuantity <= 10 ? "text-amber-500 dark:text-amber-400 font-bold" : "text-foreground font-semibold"}>
             {totalQuantity}
           </span>
         );
