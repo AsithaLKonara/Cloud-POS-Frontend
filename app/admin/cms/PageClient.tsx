@@ -13,6 +13,7 @@ import Image from "next/image";
 
 import { useCms } from "@/hooks/useCms";
 import { HeroSlide, Banner, HomepageSection, StaticPage } from "@/services/cms.service";
+import { toast } from "@/store/toast.store";
 
 // ─── Sub-components ────────────────────────────────────────────────────────────
 
@@ -590,10 +591,11 @@ function PagesTab() {
       setEditingId(null);
       setEditData({});
       setSaved(true);
+      toast.success("Page saved successfully!");
       setTimeout(() => setSaved(false), 2000);
     } catch (err) {
       console.error("Failed to save page", err);
-      alert("Failed to save page. Please try again.");
+      toast.error("Failed to save page. Please try again.");
     }
   };
 

@@ -14,6 +14,8 @@ import {
 } from "@/services/superadmin.service";
 import { systemService, SystemErrorLogItem } from "@/services/system.service";
 import { tenantService } from "@/services/tenant.service";
+import { globalDialog } from "@/store/dialog.store";
+import { toast } from "@/store/toast.store";
 import SuperAdminSidebar from "@/components/superadmin/SuperAdminSidebar";
 import SuperAdminHeader from "@/components/superadmin/SuperAdminHeader";
 import {
@@ -244,7 +246,7 @@ export default function SuperAdminDashboard() {
       await loadData();
       setIsExpenseOpen(false);
     } catch (err: any) {
-      alert("Failed to record expense: " + err.message);
+      toast.error("Failed to record expense: " + err.message);
     } finally {
       setExpenseLoading(false);
     }
@@ -264,8 +266,9 @@ export default function SuperAdminDashboard() {
       }));
       await loadData();
       setIsPriceEditorOpen(false);
+      toast.success("Plan pricing updated successfully!");
     } catch (err: any) {
-      alert(err?.response?.data?.message || err?.message || "Failed to update plan pricing");
+      toast.error(err?.response?.data?.message || err?.message || "Failed to update plan pricing");
     } finally {
       setPriceUpdating(false);
     }
@@ -275,22 +278,32 @@ export default function SuperAdminDashboard() {
     tenantId: string,
     status: "ACTIVE" | "SUSPENDED" | "TRIAL" | "CANCELLED"
   ) => {
-    if (!confirm(`Are you sure you want to change tenant status to ${status}?`)) return;
+    const isDestructive = status === "CANCELLED" || status === "SUSPENDED";
+    const confirmed = await globalDialog.confirm(
+      `Are you sure you want to change tenant status to ${status}?`,
+      "Confirm Tenant Status",
+      {
+        variant: isDestructive ? "danger" : "default",
+        confirmText: `Set to ${status}`,
+      }
+    );
+    if (!confirmed) return;
     try {
       await superAdminService.updateTenantStatus(tenantId, status);
+      toast.success(`Tenant status changed to ${status}`);
       await loadData();
     } catch (err: any) {
-      alert(err.message || "Failed to update tenant status");
+      globalDialog.alert(err.message || "Failed to update tenant status", "Update Failed", { variant: "danger" });
     }
   };
 
   const handleExtendTrial = async (tenantId: string) => {
     try {
       await superAdminService.extendTrial(tenantId, 14);
-      alert("Free trial successfully extended by +14 days!");
+      toast.success("Free trial successfully extended by +14 days!");
       await loadData();
     } catch (err: any) {
-      alert(err.message || "Failed to extend trial");
+      globalDialog.alert(err.message || "Failed to extend trial", "Action Failed", { variant: "danger" });
     }
   };
 
@@ -328,11 +341,11 @@ export default function SuperAdminDashboard() {
         currency: tenantEditForm.currency,
         currencySymbol: tenantEditForm.currencySymbol,
       });
-      alert("Tenant settings saved successfully!");
+      toast.success("Tenant settings saved successfully!");
       setIsTenantSettingsOpen(false);
       await loadData();
     } catch (err: any) {
-      alert(err?.response?.data?.message || err?.message || "Failed to update tenant settings");
+      globalDialog.alert(err?.response?.data?.message || err?.message || "Failed to update tenant settings", "Error", { variant: "danger" });
     } finally {
       setTenantEditLoading(false);
     }
@@ -347,7 +360,7 @@ export default function SuperAdminDashboard() {
       const admins = await superAdminService.getTenantAdmins(tenant.id);
       setTenantAdminsList(admins || []);
     } catch (err: any) {
-      alert("Failed to load tenant admins: " + (err.message || err));
+      globalDialog.alert("Failed to load tenant admins: " + (err.message || err), "Load Failed", { variant: "danger" });
     } finally {
       setTenantAdminsLoading(false);
     }
@@ -366,7 +379,7 @@ export default function SuperAdminDashboard() {
       const admins = await superAdminService.getTenantAdmins(selectedTenantForAdmins.id);
       setTenantAdminsList(admins || []);
     } catch (err: any) {
-      alert(err?.response?.data?.message || err?.message || "Failed to create admin");
+      globalDialog.alert(err?.response?.data?.message || err?.message || "Failed to create admin", "Creation Failed", { variant: "danger" });
     } finally {
       setAddAdminLoading(false);
     }
@@ -375,25 +388,43 @@ export default function SuperAdminDashboard() {
   const handleToggleAdminStatus = async (adminId: string, currentStatus: string) => {
     if (!selectedTenantForAdmins) return;
     const newStatus = currentStatus === "ACTIVE" ? "SUSPENDED" : "ACTIVE";
-    if (!confirm(`Are you sure you want to change this admin's status to ${newStatus}?`)) return;
+    const confirmed = await globalDialog.confirm(
+      `Are you sure you want to change this admin's status to ${newStatus}?`,
+      "Admin Status Update",
+      {
+        variant: newStatus === "SUSPENDED" ? "danger" : "default",
+        confirmText: `Set to ${newStatus}`
+      }
+    );
+    if (!confirmed) return;
     try {
       await superAdminService.updateTenantAdminStatus(selectedTenantForAdmins.id, adminId, newStatus);
+      toast.success(`Admin status updated to ${newStatus}`);
       const admins = await superAdminService.getTenantAdmins(selectedTenantForAdmins.id);
       setTenantAdminsList(admins || []);
     } catch (err: any) {
-      alert(err?.response?.data?.message || err?.message || "Failed to update admin status");
+      globalDialog.alert(err?.response?.data?.message || err?.message || "Failed to update admin status", "Update Failed", { variant: "danger" });
     }
   };
 
   const handleResetAdminPassword = async (adminId: string, email: string) => {
     if (!selectedTenantForAdmins) return;
-    const newPassword = prompt(`Enter new password for ${email}:`, "Password@123");
+    const newPassword = await globalDialog.prompt(
+      `Enter new secure password for ${email}:`,
+      "Password@123",
+      "Reset Admin Password",
+      {
+        placeholder: "Enter new password",
+        confirmText: "Reset Password",
+        variant: "warning"
+      }
+    );
     if (!newPassword) return;
     try {
       await superAdminService.resetTenantAdminPassword(selectedTenantForAdmins.id, adminId, newPassword);
-      alert(`Password successfully reset for ${email}!`);
+      toast.success(`Password successfully reset for ${email}!`);
     } catch (err: any) {
-      alert(err?.response?.data?.message || err?.message || "Failed to reset password");
+      globalDialog.alert(err?.response?.data?.message || err?.message || "Failed to reset password", "Reset Failed", { variant: "danger" });
     }
   };
 

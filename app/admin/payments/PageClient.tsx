@@ -10,6 +10,8 @@ import { usePaymentTransactions, usePaymentKpis } from "@/hooks/usePayments";
 import { api } from "@/services/api";
 import FilterBar from "@/components/dashboard/FilterBar";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, PieChart, Pie, Cell } from "recharts";
+import { toast } from "@/store/toast.store";
+import { globalDialog } from "@/store/dialog.store";
 
 const GATEWAY_COLORS: Record<string, string> = {
   "COD": "#10b981", // Emerald
@@ -146,7 +148,7 @@ export default function PaymentsPage() {
       
       const exportData = res.data?.data || [];
       if (exportData.length === 0) {
-        alert("No data available to export for the selected filters.");
+        toast.warning("No data available to export for the selected filters.");
         return;
       }
 
@@ -174,9 +176,10 @@ export default function PaymentsPage() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      toast.success("Financial report CSV exported successfully!");
     } catch (e) {
       console.error("Export Error:", e);
-      alert('Failed to generate CSV. Please ensure the backend is running.');
+      toast.error('Failed to generate CSV. Please ensure the backend is running.');
     } finally {
       setIsExporting(false);
     }

@@ -3,6 +3,7 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { paymentService } from "@/services/payment.service";
+import { globalDialog } from "@/store/dialog.store";
 
 export default function MockGatewayClient() {
   const searchParams = useSearchParams();
@@ -25,7 +26,7 @@ export default function MockGatewayClient() {
       }
     } catch (error) {
       console.error("Mock gateway error:", error);
-      alert("Failed to reach webhook");
+      globalDialog.alert("Failed to reach webhook. Please verify that the server is online.", "Gateway Error", { variant: "danger" });
       setIsProcessing(false);
     }
   };

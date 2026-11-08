@@ -22,6 +22,8 @@ import {
   Trash2
 } from "lucide-react";
 import { erpService, ChartOfAccount, JournalEntry, TrialBalance, BalanceSheet } from "@/services/erp.service";
+import { globalDialog } from "@/store/dialog.store";
+import { toast } from "@/store/toast.store";
 
 export default function GeneralLedgerPage() {
   const [activeTab, setActiveTab] = useState<'journals' | 'trialBalance' | 'balanceSheet' | 'accounts'>('journals');
@@ -86,9 +88,10 @@ export default function GeneralLedgerPage() {
     try {
       setRefreshing(true);
       await erpService.initChartOfAccounts();
+      toast.success("Chart of Accounts initialized successfully!");
       await loadData(true);
     } catch (err: any) {
-      alert("Failed to initialize Chart of Accounts: " + err.message);
+      globalDialog.alert("Failed to initialize Chart of Accounts: " + err.message, "Initialization Error", { variant: "danger" });
       setRefreshing(false);
     }
   };
@@ -130,7 +133,11 @@ export default function GeneralLedgerPage() {
   const handlePostJournalEntry = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isJournalBalanced) {
-      alert("Journal Entry is not balanced. Total Debits must equal Total Credits.");
+      globalDialog.alert(
+        "Journal Entry is not balanced. Total Debits must equal Total Credits before posting.",
+        "Unbalanced Journal Entry",
+        { variant: "warning" }
+      );
       return;
     }
 
@@ -148,6 +155,7 @@ export default function GeneralLedgerPage() {
         }))
       });
 
+      toast.success("Journal entry posted successfully!");
       setIsModalOpen(false);
       setJeDescription("");
       setJeReference("");
@@ -157,7 +165,7 @@ export default function GeneralLedgerPage() {
       ]);
       await loadData(true);
     } catch (err: any) {
-      alert("Error posting journal entry: " + (err.response?.data?.error || err.message));
+      globalDialog.alert("Error posting journal entry: " + (err.response?.data?.error || err.message), "Posting Error", { variant: "danger" });
     } finally {
       setSubmitting(false);
     }

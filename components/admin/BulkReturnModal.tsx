@@ -15,6 +15,8 @@ interface BulkReturnModalProps {
 }
 
 import { useBulkUpdateReturns } from "@/hooks/useReturns";
+import { toast } from "@/store/toast.store";
+import { globalDialog } from "@/store/dialog.store";
 
 export default function BulkReturnModal({ selectedRMAs, onClose, onSuccess }: BulkReturnModalProps) {
   const [resolutions, setResolutions] = useState<Record<string, { condition: string, action: string }>>(
@@ -36,10 +38,11 @@ export default function BulkReturnModal({ selectedRMAs, onClose, onSuccess }: Bu
   const handleProcess = async () => {
     try {
       await bulkUpdateMutation.mutateAsync(resolutions);
+      toast.success("Bulk returns processed successfully!");
       onSuccess();
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert("Failed to process bulk returns");
+      globalDialog.alert(error?.response?.data?.message || "Failed to process bulk returns", "Error", { variant: "danger" });
     }
   };
 

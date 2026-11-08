@@ -5,6 +5,7 @@ import { X, Lock, Unlock, AlertCircle, Printer, CheckCircle2, TrendingUp, Trendi
 import { useOpenSession, useCloseSession, useExpectedClosing, useSessionSummary } from "@/hooks/usePos";
 import { useReactToPrint } from "react-to-print";
 import ZReportSlip from "./ZReportSlip";
+import { globalDialog } from "@/store/dialog.store";
 
 interface PosShiftModalProps {
   mode: "OPEN" | "CLOSE";
@@ -74,7 +75,7 @@ export default function PosShiftModal({ mode, activeSession, branchId, terminalI
       if (serverMsg.includes('already has an open session') || serverMsg.includes('already open')) {
         onSuccess(actualCash);
       } else {
-        alert(serverMsg || "Failed to update shift.");
+        globalDialog.alert(serverMsg || "Failed to update shift.", "Shift Error", { variant: "danger" });
       }
     } finally {
       setIsProcessing(false);

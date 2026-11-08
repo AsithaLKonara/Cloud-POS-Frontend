@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Poppins, Inria_Serif, Urbanist } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
+import Providers from "./providers";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -43,10 +44,6 @@ export const metadata: Metadata = {
   },
 };
 
-import Providers from "./providers";
-import GlobalDialog from "@/components/ui/GlobalDialog";
-import GlobalToast from "@/components/ui/GlobalToast";
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -57,11 +54,7 @@ export default function RootLayout({
       <body
         className={`${poppins.variable} ${orangeAvenue.variable} ${inriaSerif.variable} ${urbanist.variable} antialiased bg-background text-foreground transition-colors min-h-screen`}
       >
-        <Providers>
-          {children}
-          <GlobalDialog />
-          <GlobalToast />
-        </Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

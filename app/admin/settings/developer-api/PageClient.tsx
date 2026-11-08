@@ -27,6 +27,7 @@ import { apiKeyService, ApiKeyItem, CreateApiKeyDto } from "@/services/apiKey.se
 import { SettingsNavTabs } from "@/components/settings/SettingsNavTabs";
 import { HeadlessApiDocs } from "@/components/settings/HeadlessApiDocs";
 import { toast } from "@/store/toast.store";
+import { globalDialog } from "@/store/dialog.store";
 
 const AVAILABLE_SCOPES = [
   { id: "catalog:read", label: "Catalog Read", desc: "Read products, categories & branch stock" },
@@ -144,7 +145,15 @@ export default function DeveloperApiPageClient() {
 
   const handleRevokeKey = async (keyId: string) => {
     if (!tenant?.id) return;
-    if (!confirm("Are you sure you want to revoke this API key? Any external storefront or mobile app using it will immediately lose API access.")) {
+    const confirmed = await globalDialog.confirm(
+      "Are you sure you want to revoke this API key? Any external storefront or mobile app using it will immediately lose API access.",
+      "Revoke API Key",
+      {
+        variant: "danger",
+        confirmText: "Revoke Key",
+      }
+    );
+    if (!confirmed) {
       return;
     }
 

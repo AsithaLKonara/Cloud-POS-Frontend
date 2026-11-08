@@ -42,6 +42,8 @@ function AuthInitializer() {
 }
 
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import GlobalDialog from "@/components/ui/GlobalDialog";
+import GlobalToast from "@/components/ui/GlobalToast";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -64,6 +66,8 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         <CsrfInitializer />
         <AuthInitializer />
         {children}
+        <GlobalDialog />
+        <GlobalToast />
       </ThemeProvider>
     </QueryClientProvider>
   );

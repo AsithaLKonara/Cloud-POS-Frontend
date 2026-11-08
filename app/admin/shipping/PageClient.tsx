@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/Button';
 import ShippingLabelModal from './components/ShippingLabelModal';
 import TrackingSidePanel from './components/TrackingSidePanel';
 import { X, Search, Check, Truck, Navigation, FileText, Loader2 } from 'lucide-react';
+import { globalDialog } from '@/store/dialog.store';
+import { toast } from '@/store/toast.store';
 
 export default function ShippingDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -56,9 +58,10 @@ export default function ShippingDashboard() {
           onSuccess: () => {
             setDispatchModalOpen(false);
             setDispatchOrderId(null);
+            toast.success("Order dispatched successfully!");
           },
           onError: (error: any) => {
-            alert(error.response?.data?.error || error.message || "Failed to dispatch order.");
+            globalDialog.alert(error.response?.data?.error || error.message || "Failed to dispatch order.", "Dispatch Error", { variant: "danger" });
             setDispatchModalOpen(false);
             setDispatchOrderId(null);
           }

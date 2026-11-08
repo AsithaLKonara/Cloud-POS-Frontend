@@ -19,6 +19,8 @@ import {
   AlertTriangle
 } from "lucide-react";
 import { erpService, AgingBucket } from "@/services/erp.service";
+import { globalDialog } from "@/store/dialog.store";
+import { toast } from "@/store/toast.store";
 
 export default function ApArAgingPage() {
   const [mode, setMode] = useState<'AR' | 'AP'>('AR'); // AR = Customers, AP = Suppliers
@@ -129,9 +131,10 @@ export default function ApArAgingPage() {
         });
       }
       setPaymentModalOpen(false);
+      toast.success("Payment recorded successfully!");
       await loadData(true);
     } catch (err: any) {
-      alert("Payment recording failed: " + (err.response?.data?.error || err.message));
+      globalDialog.alert("Payment recording failed: " + (err.response?.data?.error || err.message), "Payment Failed", { variant: "danger" });
     } finally {
       setSubmittingPayment(false);
     }
@@ -160,9 +163,10 @@ export default function ApArAgingPage() {
       setCreateModalOpen(false);
       setPartyName("");
       setDocAmount(0);
+      toast.success("Record created successfully!");
       await loadData(true);
     } catch (err: any) {
-      alert("Failed to create record: " + (err.response?.data?.error || err.message));
+      globalDialog.alert("Failed to create record: " + (err.response?.data?.error || err.message), "Creation Failed", { variant: "danger" });
     } finally {
       setSubmittingDoc(false);
     }

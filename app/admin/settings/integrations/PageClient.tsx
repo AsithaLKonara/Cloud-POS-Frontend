@@ -40,9 +40,11 @@ export default function IntegrationsPageClient() {
   const [aiForm, setAiForm] = useState({
     enabled: false,
     apiKey: "",
-    model: "gemini-1.5-flash",
+    model: "auto",
   });
   const [isAiConfigured, setIsAiConfigured] = useState(false);
+  const [availableAiModels, setAvailableAiModels] = useState<Array<{ id: string; displayName: string }>>([]);
+  const [detectedAiModel, setDetectedAiModel] = useState<string | null>(null);
   const [onepayForm, setOnepayForm] = useState({
     enabled: false,
     appId: "",
@@ -201,15 +203,26 @@ export default function IntegrationsPageClient() {
 
       // Load AI Copilot (Google Gemini) configuration
       try {
-        const aiConf = await aiService.getConfig();
+        const aiConf = await aiService.getConfig(tenant?.id);
         if (aiConf) {
           setAiForm({
             enabled: !!aiConf.enabled,
             apiKey: aiConf.apiKey || "",
-            model: aiConf.model || "gemini-1.5-flash",
+            model: aiConf.model || "auto",
           });
           setIsAiConfigured(!!aiConf.isConfigured);
         }
+
+        // Pre-fetch available models if configured
+        try {
+          const modelsData = await aiService.getModels(undefined, tenant?.id);
+          if (modelsData?.models) {
+            setAvailableAiModels(modelsData.models);
+          }
+          if (modelsData?.detectedModel) {
+            setDetectedAiModel(modelsData.detectedModel);
+          }
+        } catch {}
       } catch (e) {
         // AI settings optional
       }
@@ -291,7 +304,10 @@ export default function IntegrationsPageClient() {
   const handleSaveAi = async () => {
     setSavingProvider("gemini");
     try {
-      await aiService.updateConfig(aiForm);
+      await aiService.updateConfig({
+        ...aiForm,
+        tenantId: tenant?.id,
+      });
       toast.success("Google Gemini AI Copilot credentials saved successfully");
       setIsAiConfigured(true);
       await loadData();
@@ -308,7 +324,14 @@ export default function IntegrationsPageClient() {
       const res = await aiService.testConnection({
         apiKey: aiForm.apiKey,
         model: aiForm.model,
+        tenantId: tenant?.id,
       });
+      if (res.detectedModel) {
+        setDetectedAiModel(res.detectedModel);
+      }
+      if (res.availableModels && res.availableModels.length > 0) {
+        setAvailableAiModels(res.availableModels);
+      }
       setTestResults((prev) => ({
         ...prev,
         gemini: {
@@ -1498,7 +1521,7 @@ export default function IntegrationsPageClient() {
                   <span className="text-muted font-medium">Model Engine</span>
                   <span className="font-mono font-bold text-foreground flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    {aiForm.model}
+                    {detectedAiModel ? `${detectedAiModel} (Auto)` : (aiForm.model === "auto" ? "Auto-Detecting" : aiForm.model)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
@@ -1559,18 +1582,44 @@ export default function IntegrationsPageClient() {
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-bold text-muted uppercase tracking-wider block mb-1">
-                    Gemini Model Variant
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[11px] font-bold text-muted uppercase tracking-wider block">
+                      Gemini Model Variant
+                    </label>
+                    {detectedAiModel && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-500 font-semibold font-mono">
+                        Active: {detectedAiModel}
+                      </span>
+                    )}
+                  </div>
                   <select
                     value={aiForm.model}
                     onChange={(e) => setAiForm({ ...aiForm, model: e.target.value })}
                     className="w-full h-10 px-3 rounded-xl bg-background border border-border text-xs font-inter text-foreground focus:outline-none focus:border-amber-500/80 transition-colors"
                   >
-                    <option value="gemini-1.5-flash">Gemini 1.5 Flash (Recommended: Ultra-fast sub-second latency)</option>
-                    <option value="gemini-2.0-flash">Gemini 2.0 Flash (Next-Gen low latency)</option>
-                    <option value="gemini-1.5-pro">Gemini 1.5 Pro (Deep complex business reasoning)</option>
+                    <option value="auto">✨ Auto-Detect from API Key (Recommended: Detects latest supported model)</option>
+                    {availableAiModels && availableAiModels.length > 0 ? (
+                      availableAiModels
+                        .filter(m => m.id !== 'auto')
+                        .map(m => (
+                          <option key={m.id} value={m.id}>
+                            {m.displayName}
+                          </option>
+                        ))
+                    ) : (
+                      <>
+                        <option value="gemini-3.5-flash">Gemini 3.5 Flash (Recommended: Ultra-fast & high quota)</option>
+                        <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite (High Speed)</option>
+                        <option value="gemini-3.8-flash">Gemini 3.8 Flash (Latest Preview)</option>
+                        <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                        <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                        <option value="gemini-1.5-pro">Gemini 1.5 Pro (Deep complex business reasoning)</option>
+                      </>
+                    )}
                   </select>
+                  <p className="text-[10px] text-muted mt-1">
+                    When set to &quot;Auto-Detect&quot;, the system queries your API key directly for active models and auto-migrates if Google updates or deprecates an older model.
+                  </p>
                 </div>
               </div>
             </div>

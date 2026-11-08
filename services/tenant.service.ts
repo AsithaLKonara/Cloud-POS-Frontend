@@ -147,6 +147,14 @@ export const tenantService = {
    */
   async getCurrentTenant() {
     const { data } = await api.get<{ success: boolean; data: TenantSummary }>('/tenants/current');
+    if (data?.data?.id && typeof window !== 'undefined') {
+      localStorage.setItem('laural_tenant_id', data.data.id);
+      localStorage.setItem('active_tenant_id', data.data.id);
+      if (data.data.slug) {
+        localStorage.setItem('laural_tenant_slug', data.data.slug);
+        localStorage.setItem('active_tenant_slug', data.data.slug);
+      }
+    }
     return data.data;
   },
 

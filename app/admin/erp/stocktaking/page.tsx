@@ -23,6 +23,8 @@ import {
 } from "lucide-react";
 import { erpService, StocktakeSession, StocktakeItem } from "@/services/erp.service";
 import { useBranches } from "@/hooks/useInventory";
+import { globalDialog } from "@/store/dialog.store";
+import { toast } from "@/store/toast.store";
 
 export default function StocktakingPage() {
   const [sessions, setSessions] = useState<StocktakeSession[]>([]);
@@ -93,7 +95,7 @@ export default function StocktakingPage() {
       });
       setCountsBuffer(buffer);
     } catch (err: any) {
-      alert("Failed to load session details: " + err.message);
+      globalDialog.alert("Failed to load session details: " + err.message, "Load Failed", { variant: "danger" });
     } finally {
       setSessionLoading(false);
     }
@@ -110,13 +112,14 @@ export default function StocktakingPage() {
         title: sessionTitle,
         notes: sessionNotes || undefined
       });
+      toast.success("Stocktaking session started!");
       setStartModalOpen(false);
       setSessionTitle("");
       setSessionNotes("");
       await loadSessions(true);
       await openSessionDetail(newSession.id);
     } catch (err: any) {
-      alert("Failed to start stocktake: " + (err.response?.data?.error || err.message));
+      globalDialog.alert("Failed to start stocktake: " + (err.response?.data?.error || err.message), "Error", { variant: "danger" });
     } finally {
       setStartingSession(false);
     }
@@ -158,15 +161,15 @@ export default function StocktakingPage() {
         }));
 
       if (payload.length === 0) {
-        alert("No counts entered to save.");
+        toast.warning("No counts entered to save.");
         return;
       }
 
       await erpService.recordCounts(activeSession.id, payload);
       await openSessionDetail(activeSession.id);
-      alert("Counts saved successfully.");
+      toast.success("Counts saved successfully.");
     } catch (err: any) {
-      alert("Failed to save counts: " + (err.response?.data?.error || err.message));
+      globalDialog.alert("Failed to save counts: " + (err.response?.data?.error || err.message), "Save Error", { variant: "danger" });
     } finally {
       setSavingCounts(false);
     }
@@ -193,9 +196,9 @@ export default function StocktakingPage() {
       setActiveSession(updated);
       setReconcileModalOpen(false);
       await loadSessions(true);
-      alert("Stocktake successfully reconciled! Inventory updated and GL entries posted.");
+      globalDialog.alert("Stocktake successfully reconciled! Inventory updated and GL entries posted.", "Reconciliation Complete", { variant: "success" });
     } catch (err: any) {
-      alert("Reconciliation failed: " + (err.response?.data?.error || err.message));
+      globalDialog.alert("Reconciliation failed: " + (err.response?.data?.error || err.message), "Reconciliation Failed", { variant: "danger" });
     } finally {
       setReconciling(false);
     }

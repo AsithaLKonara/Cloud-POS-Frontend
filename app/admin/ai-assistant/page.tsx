@@ -20,6 +20,8 @@ import {
 } from "lucide-react";
 import { aiService, ChatMessage, ChatResponseSource, KnowledgeDocument } from "@/services/ai.service";
 import MarkdownView from "@/components/ai/MarkdownView";
+import { globalDialog } from "@/store/dialog.store";
+import { toast } from "@/store/toast.store";
 
 interface DisplayMessage {
   id: string;
@@ -155,21 +157,31 @@ Try asking:
       setDocTitle("");
       setDocContent("");
       setDocTags("");
+      toast.success("Knowledge document saved successfully!");
       await loadKnowledge();
     } catch (err: any) {
-      alert("Failed to save knowledge document: " + err.message);
+      toast.error("Failed to save knowledge document: " + err.message);
     } finally {
       setSavingDoc(false);
     }
   };
 
   const handleDeleteDoc = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this custom knowledge document?")) return;
+    const confirmed = await globalDialog.confirm(
+      "Are you sure you want to delete this custom knowledge document?",
+      "Delete Knowledge Document",
+      {
+        variant: "danger",
+        confirmText: "Delete",
+      }
+    );
+    if (!confirmed) return;
     try {
       await aiService.deleteKnowledge(id);
+      toast.success("Document deleted successfully");
       await loadKnowledge();
     } catch (err: any) {
-      alert("Failed to delete document: " + err.message);
+      globalDialog.alert("Failed to delete document: " + err.message, "Delete Failed", { variant: "danger" });
     }
   };
 

@@ -5,6 +5,7 @@ import { X, User, CreditCard, Truck, RefreshCw } from 'lucide-react';
 import { OrderStatusBadge, PaymentGatewayBadge } from "@/components/dashboard/Badges";
 import OrderDispatchButtons from "@/components/admin/OrderDispatchButtons";
 import { useOrderById, useUpdateOrderStatus, useRefundOrder } from "@/hooks/useOrders";
+import { globalDialog } from "@/store/dialog.store";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -95,8 +96,16 @@ export default function OrderSidePanel({ orderId, isOpen, onClose }: OrderSidePa
             
             {order.status !== 'CANCELLED' && order.paymentStatus !== 'REFUNDED' && (
               <button 
-                onClick={() => {
-                  if (confirm("Are you sure you want to refund and cancel this order? This action cannot be undone and will restore stock.")) {
+                onClick={async () => {
+                  const confirmed = await globalDialog.confirm(
+                    "Are you sure you want to refund and cancel this order? This action cannot be undone and will restore stock.",
+                    "Refund & Cancel Order",
+                    {
+                      variant: "danger",
+                      confirmText: "Refund Order",
+                    }
+                  );
+                  if (confirmed) {
                     refundOrder(order.id);
                   }
                 }}

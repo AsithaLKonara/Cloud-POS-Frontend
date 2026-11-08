@@ -95,12 +95,22 @@ export default function Sidebar({ isOpen, setIsOpen, session }: { isOpen?: boole
     return name.split(" ").map((n) => n[0]).join("").substring(0, 2).toUpperCase();
   };
 
+  const isBranchUser = effectiveUser?.roles?.some((r: string) => {
+    const norm = r.toUpperCase().replace(/[\s_]/g, "");
+    return norm === "BRANCHADMIN" || norm === "BRANCHMANAGER" || norm === "CASHIER";
+  }) && !isSuperAdmin() && !isAdmin() && !isTenantAdmin() && !effectiveUser?.roles?.some((r: string) => {
+    const norm = r.toUpperCase().replace(/[\s_]/g, "");
+    return norm === "SUPERADMIN" || norm === "SUPERPLATFORMADMIN" || norm === "PLATFORMADMIN" || norm === "SYSTEMOWNER" || norm === "ADMIN" || norm === "TENANTADMIN" || norm === "STOREOWNER";
+  });
+
   const navGroups: { label: string; items: NavItem[] }[] = [
     {
       label: "Overview",
       items: [
-        { name: "Branch Dashboard", icon: LayoutDashboard, href: "/branch-admin", permission: "pos:sales_mode" },
-        { name: "Executive Dashboard", icon: LayoutDashboard, href: "/admin", permission: "reports:view_financial" },
+        ...(isBranchUser
+          ? [{ name: "Branch Dashboard", icon: LayoutDashboard, href: "/branch-admin", permission: "pos:sales_mode" }]
+          : [{ name: "Executive Dashboard", icon: LayoutDashboard, href: "/admin", permission: "reports:view_financial" }]
+        ),
         { name: "Executive P&L Statement", icon: BarChart3, href: "/admin/reports/pnl", permission: "reports:view_financial" },
         { name: "Analytics & Reports", icon: FileText, href: "/admin/reports", permission: ["reports:view_dashboard", "reports:view_financial"] },
         { name: "AI Support Copilot", icon: Sparkles, href: "/admin/ai-assistant", permission: ["reports:view_dashboard", "system:platform_settings"] },
@@ -118,7 +128,10 @@ export default function Sidebar({ isOpen, setIsOpen, session }: { isOpen?: boole
       label: "Retail & POS",
       items: [
         { name: "POS Terminal", icon: MonitorSmartphone, href: "/pos", permission: "pos:sales_mode" },
-        { name: "Branch Operations", icon: Store, href: "/branch-admin", permission: "pos:sales_mode" },
+        ...(!isBranchUser
+          ? [{ name: "Branch Operations", icon: Store, href: "/branch-admin", permission: "pos:sales_mode" }]
+          : []
+        ),
         { name: "POS Sales & Orders", icon: ShoppingCart, href: "/admin/orders", permission: "orders:view" },
         { name: "Returns & Exchanges", icon: RotateCcw, href: "/admin/returns", permission: "returns:view" },
         { name: "Cash & Payments", icon: CreditCard, href: "/admin/payments", permission: "payments:view_transactions" },
@@ -157,14 +170,6 @@ export default function Sidebar({ isOpen, setIsOpen, session }: { isOpen?: boole
     },
   ];
 
-  const isBranchUser = effectiveUser?.roles?.some((r: string) => {
-    const norm = r.toUpperCase().replace(/[\s_]/g, "");
-    return norm === "BRANCHADMIN" || norm === "BRANCHMANAGER" || norm === "CASHIER";
-  }) && !isSuperAdmin() && !isAdmin() && !isTenantAdmin() && !effectiveUser?.roles?.some((r: string) => {
-    const norm = r.toUpperCase().replace(/[\s_]/g, "");
-    return norm === "SUPERADMIN" || norm === "SUPERPLATFORMADMIN" || norm === "PLATFORMADMIN" || norm === "SYSTEMOWNER" || norm === "ADMIN" || norm === "TENANTADMIN" || norm === "STOREOWNER";
-  });
-
   const checkPermission = (perm?: string | string[], href?: string) => {
     if (!mounted) return true;
     
@@ -202,7 +207,7 @@ export default function Sidebar({ isOpen, setIsOpen, session }: { isOpen?: boole
 
   // Compute the single best-matching active navigation item
   const allNavItems = React.useMemo(() => visibleGroups.flatMap((group) => group.items), [visibleGroups]);
-  const activeHref = React.useMemo(() => {
+  const activeItemKey = React.useMemo(() => {
     if (!pathname) return null;
     const cleanPath = pathname.endsWith("/") && pathname !== "/" ? pathname.slice(0, -1) : pathname;
 
@@ -215,8 +220,18 @@ export default function Sidebar({ isOpen, setIsOpen, session }: { isOpen?: boole
     });
 
     if (matchingItems.length === 0) return null;
+
+    // Exact match takes precedence
+    const exactMatch = matchingItems.find((item) => {
+      const cleanHref = item.href.endsWith("/") && item.href !== "/" ? item.href.slice(0, -1) : item.href;
+      return cleanPath === cleanHref;
+    });
+    if (exactMatch) {
+      return `${exactMatch.name}::${exactMatch.href}`;
+    }
+
     matchingItems.sort((a, b) => b.href.length - a.href.length);
-    return matchingItems[0].href;
+    return `${matchingItems[0].name}::${matchingItems[0].href}`;
   }, [pathname, allNavItems]);
 
   const primaryRole = effectiveUser?.roles?.[0] || effectiveUser?.role || (isSuperAdmin() ? "Super Admin" : "Staff User");
@@ -300,7 +315,8 @@ export default function Sidebar({ isOpen, setIsOpen, session }: { isOpen?: boole
               <div className="flex flex-col gap-0.5">
                 {group.items.map((item) => {
                   const Icon = item.icon;
-                  const isActive = activeHref === item.href;
+                  const itemKey = `${item.name}::${item.href}`;
+                  const isActive = activeItemKey === itemKey;
                   const tierUnlocked = isTierMet(currentTier, item.requiredTier);
 
                   return (

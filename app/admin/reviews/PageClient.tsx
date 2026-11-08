@@ -4,6 +4,7 @@ import { useState, useEffect, Fragment } from "react";
 import { Search, Star, Check, X, Flag, MessageSquare, Eye, AlertTriangle } from "lucide-react";
 import PageHeader from "@/components/admin/PageHeader";
 import { useAllReviews, useUpdateReviewStatus, useReviewStats, useAddReviewReply } from "@/hooks/useReviews";
+import { toast } from "@/store/toast.store";
 
 // Mock data removed in favor of real API
 
@@ -98,9 +99,10 @@ export default function AdminReviewsPage() {
       a.href = url;
       a.download = `reviews_export_${new Date().getTime()}.csv`;
       a.click();
+      toast.success("Reviews CSV exported successfully!");
     } catch (err) {
       console.error(err);
-      alert("Failed to export CSV");
+      toast.error("Failed to export CSV");
     }
   };
 

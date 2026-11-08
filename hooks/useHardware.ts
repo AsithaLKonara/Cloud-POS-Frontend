@@ -6,6 +6,7 @@ import {
   ScaleReading,
   CustomerDisplayState,
 } from '@/services/hardware.service';
+import { globalDialog } from '@/store/dialog.store';
 
 export function useHardware() {
   const [bridgeStatus, setBridgeStatus] = useState<{
@@ -65,7 +66,7 @@ export function useHardware() {
   // WebSerial Weighing Scale Connection
   const connectScale = useCallback(async () => {
     if (typeof window === 'undefined' || !('serial' in navigator)) {
-      alert('WebSerial API is not supported in this browser. Please use Chrome or Edge.');
+      globalDialog.alert('WebSerial API is not supported in this browser. Please use Chrome or Edge.', 'Browser Incompatible', { variant: 'warning' });
       return;
     }
 

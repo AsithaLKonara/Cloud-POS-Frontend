@@ -83,12 +83,20 @@ export default function SettingsPage() {
   };
 
   const handleDeleteCustom = async (key: string) => {
-    if (confirm(`Are you sure you want to delete '${key}'?`)) {
+    const confirmed = await globalDialog.confirm(
+      `Are you sure you want to delete '${key}'?`,
+      "Delete Setting",
+      {
+        variant: "danger",
+        confirmText: "Delete",
+      }
+    );
+    if (confirmed) {
       try {
         await deleteSetting.mutateAsync(key);
         globalDialog.alert("Setting deleted successfully!");
       } catch (err: any) {
-        globalDialog.alert(err?.response?.data?.message || "Failed to delete setting.");
+        globalDialog.alert(err?.response?.data?.message || "Failed to delete setting.", "Error", { variant: "danger" });
       }
     }
   };
