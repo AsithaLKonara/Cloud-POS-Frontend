@@ -61,6 +61,10 @@ export default function Header({ onMenuClick, session }: { onMenuClick?: () => v
     if (path.includes("/users")) return "Staff Management";
     if (path.includes("/settings")) return "System Settings";
     if (path.includes("/returns")) return "Returns & Exchanges";
+    if (path.includes("/general-ledger")) return "General Ledger & Accounting";
+    if (path.includes("/aging")) return "AP & AR Aging Reports";
+    if (path.includes("/stocktaking")) return "Physical Stocktaking";
+    if (path.includes("/ai-assistant")) return "AI Support Copilot";
     if (path.includes("/payments")) return "Cash & Payments";
     return "Operations";
   };
@@ -132,6 +136,16 @@ export default function Header({ onMenuClick, session }: { onMenuClick?: () => v
         >
           <MonitorSmartphone size={15} />
           <span>Launch POS</span>
+        </Link>
+
+        {/* AI Support Copilot Shortcut */}
+        <Link
+          href="/admin/ai-assistant"
+          className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 font-semibold text-xs shadow-sm transition-all"
+          title="Open AI Support Copilot"
+        >
+          <Sparkles size={14} className="text-amber-500 animate-pulse" />
+          <span>AI Support</span>
         </Link>
 
         {/* Light / Dark Mode Toggle Button */}

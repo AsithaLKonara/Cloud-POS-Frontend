@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
+import AiChatWidget from "@/components/ai/AiChatWidget";
 
 export default function DashboardLayoutClient({ children, session }: { children: React.ReactNode, session?: any }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -19,7 +20,7 @@ export default function DashboardLayoutClient({ children, session }: { children:
       )}
 
       {/* Sidebar */}
-      <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+      <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} session={session} />
 
       {/* Main Layout Area */}
       <div className="flex-1 flex flex-col md:ml-[240px] h-screen overflow-hidden w-full transition-all bg-background text-foreground">
@@ -32,6 +33,9 @@ export default function DashboardLayoutClient({ children, session }: { children:
           {children}
         </main>
       </div>
+
+      {/* Floating Tenant AI Support Copilot */}
+      <AiChatWidget />
     </div>
   );
 }

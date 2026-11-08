@@ -11,10 +11,8 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = { user: { name: "Admin User", role: "Super Admin" } };
-
   return (
-    <DashboardLayoutClient session={session}>
+    <DashboardLayoutClient>
       {children}
     </DashboardLayoutClient>
   );

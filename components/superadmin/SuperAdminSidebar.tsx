@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -40,6 +40,11 @@ export default function SuperAdminSidebar({
 }: SuperAdminSidebarProps) {
   const { user, logout } = useAuthStore();
   const [showPromoCard, setShowPromoCard] = useState(true);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const getInitials = (name?: string | null) => {
     if (!name) return "SA";
@@ -231,15 +236,24 @@ export default function SuperAdminSidebar({
       <div className="p-3 border-t border-[#1C2025] shrink-0 bg-[#090A0C]">
         <div className="flex items-center justify-between p-2 rounded-lg hover:bg-[#131518] transition-colors">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-white font-bold text-xs shrink-0">
-              {getInitials(user?.name)}
+            <div
+              className="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-white font-bold text-xs shrink-0"
+              suppressHydrationWarning
+            >
+              {mounted ? getInitials(user?.name) : "SA"}
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="text-xs font-semibold text-white truncate leading-tight">
-                {user?.name || "Super Admin"}
+              <span
+                className="text-xs font-semibold text-white truncate leading-tight"
+                suppressHydrationWarning
+              >
+                {mounted ? (user?.name || "Super Admin") : "Super Admin"}
               </span>
-              <span className="text-[10px] text-zinc-500 truncate">
-                admin@xonit.space
+              <span
+                className="text-[10px] text-zinc-500 truncate"
+                suppressHydrationWarning
+              >
+                {mounted ? (user?.email || "admin@xonit.space") : "admin@xonit.space"}
               </span>
             </div>
           </div>

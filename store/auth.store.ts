@@ -199,10 +199,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const { user } = get();
     if (!user) return false;
 
-    // Super Admin / Admin has all permissions
+    // Platform Super Admin has all permissions across the platform
     const isSuper = user.roles?.some((r) => {
       const norm = r.toUpperCase().replace(/[\s_]/g, "");
-      return norm === "SUPERADMIN" || norm === "ADMIN" || norm === "SYSTEMOWNER";
+      return norm === "SUPERADMIN" || norm === "SUPERPLATFORMADMIN" || norm === "PLATFORMADMIN" || norm === "SYSTEMOWNER";
     });
     if (isSuper) return true;
 
@@ -223,7 +223,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     return user.roles.some((r) => {
       const norm = r.toUpperCase().replace(/[\s_]/g, "");
-      return norm === "ADMIN" || norm === "SUPERADMIN" || norm === "TENANTADMIN" || norm === "SYSTEMOWNER" || norm === "STOREOWNER";
+      return (
+        norm === "ADMIN" ||
+        norm === "SUPERADMIN" ||
+        norm === "SUPERPLATFORMADMIN" ||
+        norm === "PLATFORMADMIN" ||
+        norm === "TENANTADMIN" ||
+        norm === "SYSTEMOWNER" ||
+        norm === "STOREOWNER"
+      );
     });
   },
 
@@ -263,7 +271,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     return user.roles.some((r) => {
       const norm = r.toUpperCase().replace(/[\s_]/g, "");
-      return norm === "SUPERADMIN" || norm === "SYSTEMOWNER";
+      return (
+        norm === "SUPERADMIN" ||
+        norm === "SUPERPLATFORMADMIN" ||
+        norm === "PLATFORMADMIN" ||
+        norm === "SYSTEMOWNER"
+      );
     });
   },
 
