@@ -69,7 +69,7 @@ const isTierMet = (currentTier: string | undefined, requiredTier: string | undef
 
 export default function Sidebar({ isOpen, setIsOpen, session }: { isOpen?: boolean; setIsOpen?: (v: boolean) => void; session?: any }) {
   const pathname = usePathname();
-  const { user, hasPermission, hasRole, isSuperAdmin } = useAuthStore();
+  const { user, hasPermission, hasRole, isSuperAdmin, isAdmin, isTenantAdmin } = useAuthStore();
   const { data: tenant } = useCurrentTenant();
   const [mounted, setMounted] = useState(false);
   const [cachedUser, setCachedUser] = useState<any>(null);
@@ -160,9 +160,9 @@ export default function Sidebar({ isOpen, setIsOpen, session }: { isOpen?: boole
   const isBranchUser = effectiveUser?.roles?.some((r: string) => {
     const norm = r.toUpperCase().replace(/[\s_]/g, "");
     return norm === "BRANCHADMIN" || norm === "BRANCHMANAGER" || norm === "CASHIER";
-  }) && !isSuperAdmin() && !effectiveUser?.roles?.some((r: string) => {
+  }) && !isSuperAdmin() && !isAdmin() && !isTenantAdmin() && !effectiveUser?.roles?.some((r: string) => {
     const norm = r.toUpperCase().replace(/[\s_]/g, "");
-    return norm === "SUPERADMIN" || norm === "SUPERPLATFORMADMIN" || norm === "PLATFORMADMIN" || norm === "SYSTEMOWNER" || norm === "ADMIN";
+    return norm === "SUPERADMIN" || norm === "SUPERPLATFORMADMIN" || norm === "PLATFORMADMIN" || norm === "SYSTEMOWNER" || norm === "ADMIN" || norm === "TENANTADMIN" || norm === "STOREOWNER";
   });
 
   const checkPermission = (perm?: string | string[], href?: string) => {
@@ -184,7 +184,7 @@ export default function Sidebar({ isOpen, setIsOpen, session }: { isOpen?: boole
       if (hqOnlyHrefs.includes(href)) return false;
     }
 
-    if (!perm || isSuperAdmin()) return true;
+    if (!perm || isSuperAdmin() || isAdmin() || isTenantAdmin()) return true;
 
     const userPerms: string[] = effectiveUser?.permissions || [];
     if (Array.isArray(perm)) {

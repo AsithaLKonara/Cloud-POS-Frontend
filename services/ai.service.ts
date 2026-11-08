@@ -64,6 +64,21 @@ export const aiService = {
 
   deleteKnowledge: async (id: string): Promise<void> => {
     await api.delete(`/ai/knowledge/${id}`);
+  },
+
+  getConfig: async (): Promise<{ enabled: boolean; apiKey?: string; model?: string; isConfigured: boolean }> => {
+    const res = await api.get('/ai/config');
+    return res.data.data;
+  },
+
+  updateConfig: async (config: { enabled: boolean; apiKey?: string; model?: string }): Promise<any> => {
+    const res = await api.put('/ai/config', config);
+    return res.data;
+  },
+
+  testConnection: async (payload: { apiKey?: string; model?: string }): Promise<{ success: boolean; latencyMs: number; message: string }> => {
+    const res = await api.post('/ai/test', payload);
+    return res.data.data;
   }
 };
 

@@ -18,9 +18,11 @@ import {
   ChevronUp,
   Sparkles,
   Zap,
+  Bot,
 } from "lucide-react";
 import { useCurrentTenant } from "@/hooks/useTenantSettings";
 import { integrationService, TenantIntegrations } from "@/services/integration.service";
+import { aiService } from "@/services/ai.service";
 import { SettingsNavTabs } from "@/components/settings/SettingsNavTabs";
 import { toast } from "@/store/toast.store";
 
@@ -31,10 +33,16 @@ export default function IntegrationsPageClient() {
   const [savingProvider, setSavingProvider] = useState<string | null>(null);
   const [testingProvider, setTestingProvider] = useState<string | null>(null);
   const [testResults, setTestResults] = useState<Record<string, { success: boolean; latencyMs: number; message: string }>>({});
-  const [activeCategory, setActiveCategory] = useState<"payments" | "couriers">("payments");
+  const [activeCategory, setActiveCategory] = useState<"payments" | "couriers" | "ai">("payments");
   const [showSecret, setShowSecret] = useState<Record<string, boolean>>({});
 
   // Local editable form states
+  const [aiForm, setAiForm] = useState({
+    enabled: false,
+    apiKey: "",
+    model: "gemini-1.5-flash",
+  });
+  const [isAiConfigured, setIsAiConfigured] = useState(false);
   const [onepayForm, setOnepayForm] = useState({
     enabled: false,
     appId: "",
@@ -190,6 +198,21 @@ export default function IntegrationsPageClient() {
           });
         }
       }
+
+      // Load AI Copilot (Google Gemini) configuration
+      try {
+        const aiConf = await aiService.getConfig();
+        if (aiConf) {
+          setAiForm({
+            enabled: !!aiConf.enabled,
+            apiKey: aiConf.apiKey || "",
+            model: aiConf.model || "gemini-1.5-flash",
+          });
+          setIsAiConfigured(!!aiConf.isConfigured);
+        }
+      } catch (e) {
+        // AI settings optional
+      }
     } catch (err: any) {
       console.error("Failed to load integrations", err);
       toast.error(err?.response?.data?.message || "Failed to load integrations");
@@ -260,6 +283,52 @@ export default function IntegrationsPageClient() {
       }
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Connection test failed");
+    } finally {
+      setTestingProvider(null);
+    }
+  };
+
+  const handleSaveAi = async () => {
+    setSavingProvider("gemini");
+    try {
+      await aiService.updateConfig(aiForm);
+      toast.success("Google Gemini AI Copilot credentials saved successfully");
+      setIsAiConfigured(true);
+      await loadData();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.error || err.message || "Failed to save AI configuration");
+    } finally {
+      setSavingProvider(null);
+    }
+  };
+
+  const handleTestAi = async () => {
+    setTestingProvider("gemini");
+    try {
+      const res = await aiService.testConnection({
+        apiKey: aiForm.apiKey,
+        model: aiForm.model,
+      });
+      setTestResults((prev) => ({
+        ...prev,
+        gemini: {
+          success: res.success,
+          latencyMs: res.latencyMs,
+          message: res.message,
+        },
+      }));
+      if (res.success) {
+        toast.success(res.message);
+      } else {
+        toast.error(res.message);
+      }
+    } catch (err: any) {
+      const msg = err?.response?.data?.error || err.message || "Gemini connection test failed";
+      setTestResults((prev) => ({
+        ...prev,
+        gemini: { success: false, latencyMs: 0, message: msg },
+      }));
+      toast.error(msg);
     } finally {
       setTestingProvider(null);
     }
@@ -342,6 +411,19 @@ export default function IntegrationsPageClient() {
         >
           <Truck size={15} />
           <span>Couriers & Logistics (4)</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveCategory("ai")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-inter font-bold transition-all ${
+            activeCategory === "ai"
+              ? "bg-foreground text-background shadow-sm"
+              : "text-muted hover:text-foreground hover:bg-surface"
+          }`}
+        >
+          <Sparkles size={15} className="text-amber-500" />
+          <span>AI Copilot & Gemini (1)</span>
         </button>
       </div>
 
@@ -1371,6 +1453,195 @@ export default function IntegrationsPageClient() {
                 <Save size={13} />
                 <span>{savingProvider === "domex" ? "Encrypting..." : "Save Vault"}</span>
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI ASSISTANT & COPILOT (GEMINI) SECTION */}
+      {activeCategory === "ai" && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="p-6 rounded-2xl bg-surface border border-border flex flex-col justify-between shadow-sm relative overflow-hidden group">
+            <div className="space-y-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500/20 via-primary/10 to-amber-600/20 border border-amber-500/30 flex items-center justify-center text-amber-500 font-black font-poppins text-lg shadow-sm">
+                    <Sparkles size={24} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-bold text-base text-foreground font-poppins">Google Gemini AI Copilot</h3>
+                      <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 uppercase tracking-wide">
+                        Multimodal LLM
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted font-inter mt-0.5">
+                      Powers in-dashboard AI Copilot and RAG queries with real-time General Ledger and store metrics.
+                    </p>
+                  </div>
+                </div>
+
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={aiForm.enabled}
+                    onChange={(e) => setAiForm({ ...aiForm, enabled: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500" />
+                </label>
+              </div>
+
+              {/* Status and Diagnostics */}
+              <div className="p-3.5 rounded-xl bg-background border border-border flex flex-col gap-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted font-medium">Model Engine</span>
+                  <span className="font-mono font-bold text-foreground flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    {aiForm.model}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted font-medium">RAG Grounding</span>
+                  <span className="text-foreground font-semibold">Live Ledger + Dual-Branch Stock</span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted font-medium">Credential Status</span>
+                  <span className={`font-mono text-[11px] font-bold ${isAiConfigured ? "text-emerald-500" : "text-amber-500"}`}>
+                    {isAiConfigured ? "VAULT CONFIGURED" : "NOT CONFIGURED"}
+                  </span>
+                </div>
+
+                {testResults["gemini"] && (
+                  <div
+                    className={`mt-2 p-2.5 rounded-lg text-xs font-inter flex items-start gap-2 border ${
+                      testResults["gemini"].success
+                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                        : "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20"
+                    }`}
+                  >
+                    {testResults["gemini"].success ? <CheckCircle2 size={14} className="shrink-0 mt-0.5" /> : <AlertCircle size={14} className="shrink-0 mt-0.5" />}
+                    <div>
+                      <p className="font-semibold">{testResults["gemini"].message}</p>
+                      {testResults["gemini"].latencyMs > 0 && (
+                        <p className="text-[10px] font-mono opacity-80 mt-0.5">Latency: {testResults["gemini"].latencyMs}ms</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Form Controls */}
+              <div className="space-y-3 pt-2">
+                <div>
+                  <label className="text-[11px] font-bold text-muted uppercase tracking-wider block mb-1">
+                    Google Gemini API Key
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showSecret["geminiApiKey"] ? "text" : "password"}
+                      value={aiForm.apiKey}
+                      onChange={(e) => setAiForm({ ...aiForm, apiKey: e.target.value })}
+                      placeholder="AIzaSy..."
+                      className="w-full h-10 px-3 pr-10 rounded-xl bg-background border border-border text-xs font-mono text-foreground focus:outline-none focus:border-amber-500/80 transition-colors"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => toggleShowSecret("geminiApiKey")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-foreground"
+                    >
+                      {showSecret["geminiApiKey"] ? <EyeOff size={14} /> : <Eye size={14} />}
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-muted mt-1">
+                    Get an API key from Google AI Studio (ai.google.dev). Keys are encrypted with tenant-scoped AES-256.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-muted uppercase tracking-wider block mb-1">
+                    Gemini Model Variant
+                  </label>
+                  <select
+                    value={aiForm.model}
+                    onChange={(e) => setAiForm({ ...aiForm, model: e.target.value })}
+                    className="w-full h-10 px-3 rounded-xl bg-background border border-border text-xs font-inter text-foreground focus:outline-none focus:border-amber-500/80 transition-colors"
+                  >
+                    <option value="gemini-1.5-flash">Gemini 1.5 Flash (Recommended: Ultra-fast sub-second latency)</option>
+                    <option value="gemini-2.0-flash">Gemini 2.0 Flash (Next-Gen low latency)</option>
+                    <option value="gemini-1.5-pro">Gemini 1.5 Pro (Deep complex business reasoning)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between gap-3 pt-6 border-t border-border mt-4">
+              <button
+                type="button"
+                onClick={handleTestAi}
+                disabled={testingProvider === "gemini"}
+                className="h-8 px-3 rounded-lg border border-border text-xs font-semibold text-muted hover:text-foreground hover:bg-surface-hover flex items-center gap-1.5 transition-all disabled:opacity-50"
+              >
+                <Zap size={13} className={testingProvider === "gemini" ? "animate-spin text-amber-500" : "text-amber-500"} />
+                <span>{testingProvider === "gemini" ? "Testing API..." : "Test Connection"}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSaveAi}
+                disabled={savingProvider === "gemini"}
+                className="h-8 px-4 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs flex items-center gap-1.5 shadow-sm active:scale-95 transition-all disabled:opacity-50"
+              >
+                <Save size={13} />
+                <span>{savingProvider === "gemini" ? "Saving..." : "Save Gemini Key"}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* RAG Telemetry Architecture Info Card */}
+          <div className="p-6 rounded-2xl bg-surface border border-border flex flex-col justify-between shadow-sm relative overflow-hidden">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 font-bold">
+                  <Bot size={24} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-foreground font-poppins">RAG Telemetry & Guardrails</h3>
+                  <p className="text-xs text-muted font-inter mt-0.5">How your store data is processed by the AI</p>
+                </div>
+              </div>
+
+              <div className="space-y-3 text-xs text-muted font-inter">
+                <div className="p-3 rounded-xl bg-background border border-border">
+                  <div className="font-bold text-foreground mb-1 flex items-center gap-1.5">
+                    <ShieldCheck size={14} className="text-emerald-500" />
+                    Strict Multi-Tenant Isolation
+                  </div>
+                  <p className="text-[11px] leading-relaxed">
+                    Queries are scoped strictly to your organization ID. Prompt injection attacks and cross-tenant exfiltration are blocked at the controller layer.
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-xl bg-background border border-border">
+                  <div className="font-bold text-foreground mb-1 flex items-center gap-1.5">
+                    <Activity size={14} className="text-blue-500" />
+                    Live Financial Grounding
+                  </div>
+                  <p className="text-[11px] leading-relaxed">
+                    The assistant has real-time read access to your General Ledger balance status, today's sales totals, and Accounts Receivable / Payable aging schedules.
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-xl bg-background border border-border">
+                  <div className="font-bold text-foreground mb-1 flex items-center gap-1.5">
+                    <Sparkles size={14} className="text-amber-500" />
+                    Fallback Mechanism
+                  </div>
+                  <p className="text-[11px] leading-relaxed">
+                    If Gemini API is offline or unconfigured, the system automatically falls back to OpenAI or the built-in offline rule engine so operations are never interrupted.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
