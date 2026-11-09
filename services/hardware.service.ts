@@ -4,10 +4,21 @@
  * (127.0.0.1:18181 or local network print servers) and supports native browser print.
  */
 
+import { poleDisplayService, PoleDisplayConfig } from './pole-display.service';
+
 export interface PrintJobPayload {
   printer?: string;
   type: 'raw' | 'text';
   data: string; // Base64 ESC/POS payload
+}
+
+export interface PoleDisplayBridgePayload {
+  port?: string;
+  baudRate?: number;
+  protocol?: 'CD5220' | 'ESCPOS' | 'UTC' | 'AEDEX';
+  line1?: string;
+  line2?: string;
+  data?: string; // Base64 raw bytes
 }
 
 export class ThermalPrintBridgeClient {
@@ -48,6 +59,32 @@ export class ThermalPrintBridgeClient {
     });
     if (!res.ok) throw new Error(`Cash drawer kick failed`);
     return await res.json();
+  }
+
+  async sendPoleDisplay(payload: PoleDisplayBridgePayload): Promise<{ success: boolean; message?: string }> {
+    const res = await fetch(`${this.url}/pole-display`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(3000),
+    });
+    if (!res.ok) throw new Error(`Pole display command failed`);
+    return await res.json();
+  }
+
+  async listSerialPorts(): Promise<string[]> {
+    try {
+      const res = await fetch(`${this.url}/serial/ports`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+        signal: AbortSignal.timeout(2000),
+      });
+      if (!res.ok) return ['COM1', 'COM2', 'COM3', 'COM4'];
+      const body = await res.json();
+      return body.ports || body.data || ['COM1', 'COM2', 'COM3', 'COM4'];
+    } catch {
+      return ['COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6'];
+    }
   }
 }
 
@@ -397,19 +434,97 @@ class HardwareService {
 
   /**
    * Broadcasts active order and state to secondary Customer-Facing Display window
+   * and synchronizes with physical 2x20 VFD / LCD Character Pole Display.
    */
   updateCustomerDisplay(state: CustomerDisplayState) {
     if (this.displayChannel) {
       this.displayChannel.postMessage(state);
     }
+    poleDisplayService.syncWithCustomerDisplayState(state, this.bridgeUrl).catch((err) => {
+      console.warn('Customer pole display update notice:', err);
+    });
   }
 
   /**
-   * Opens / focuses the standalone Customer-Facing Display screen in a secondary monitor
+   * Sends custom 2-line text directly to 2x20 character pole display
    */
-  openCustomerDisplayWindow() {
-    if (typeof window !== 'undefined') {
-      window.open('/customer-display', 'XONIT_Customer_Display', 'width=1024,height=768');
+  async sendPoleDisplayText(line1: string, line2: string): Promise<boolean> {
+    return await poleDisplayService.sendLines(line1, line2, { bridgeUrl: this.bridgeUrl });
+  }
+
+  /**
+   * Clears 2x20 pole display
+   */
+  async clearPoleDisplay(): Promise<boolean> {
+    return await poleDisplayService.clearDisplay(this.bridgeUrl);
+  }
+
+  /**
+   * Get / Save Pole Display configuration
+   */
+  getPoleDisplayConfig(): PoleDisplayConfig {
+    return poleDisplayService.getConfig();
+  }
+
+  savePoleDisplayConfig(config: Partial<PoleDisplayConfig>): PoleDisplayConfig {
+    return poleDisplayService.saveConfig(config);
+  }
+
+  /**
+   * Direct Browser WebSerial connection for pole display
+   */
+  async connectPoleDisplaySerial(baudRate?: number): Promise<boolean> {
+    return await poleDisplayService.connectWebSerial(baudRate);
+  }
+
+  async disconnectPoleDisplaySerial(): Promise<void> {
+    await poleDisplayService.disconnectWebSerial();
+  }
+
+  isPoleDisplaySerialConnected(): boolean {
+    return poleDisplayService.isWebSerialConnected();
+  }
+
+  isWebSerialSupported(): boolean {
+    return poleDisplayService.isWebSerialSupported();
+  }
+
+  async listSerialPorts(): Promise<string[]> {
+    return await this.client.listSerialPorts();
+  }
+
+  /**
+   * Opens / focuses the Customer-Facing Display screen on secondary monitor.
+   * Utilizes Window Management API or coordinate offset (left = screen width).
+   */
+  async openCustomerDisplayWindow() {
+    if (typeof window === 'undefined') return;
+
+    let targetLeft = window.screen.availWidth || 1920;
+    let targetTop = 0;
+    let targetWidth = 1024;
+    let targetHeight = 768;
+
+    // Multi-Screen Window Management API (Chrome 100+ on Win 10 & Win 7 Chrome 109)
+    if ('getScreenDetails' in window) {
+      try {
+        const screenDetails = await (window as any).getScreenDetails();
+        const secondaryScreen = screenDetails.screens.find((s: any) => s !== screenDetails.currentScreen);
+        if (secondaryScreen) {
+          targetLeft = secondaryScreen.availLeft;
+          targetTop = secondaryScreen.availTop;
+          targetWidth = secondaryScreen.availWidth;
+          targetHeight = secondaryScreen.availHeight;
+        }
+      } catch (e) {
+        console.info('Window management permission not granted, using coordinate fallback.');
+      }
+    }
+
+    const windowFeatures = `left=${targetLeft},top=${targetTop},width=${targetWidth},height=${targetHeight},menubar=no,toolbar=no,location=no,status=no`;
+    const win = window.open('/customer-display', 'XONIT_Customer_Display', windowFeatures);
+    if (win) {
+      win.focus();
     }
   }
 }

@@ -9,6 +9,9 @@ import DataTable from "@/components/dashboard/DataTable";
 import { StatusBadge } from "@/components/dashboard/Badges";
 import { useCustomers } from "@/hooks/useCustomers";
 import { useDebounce } from "use-debounce";
+import { MessageSquare } from "lucide-react";
+import { customerService } from "@/services/customer.service";
+import { toast } from "@/store/toast.store";
 
 export default function CustomersPage() {
   const router = useRouter();
@@ -18,6 +21,21 @@ export default function CustomersPage() {
   const [typeFilter, setTypeFilter] = useState("");
   const [sortFilter, setSortFilter] = useState("Sort By: Newest");
   const [page, setPage] = useState(1);
+  const [sendingWaCustomerId, setSendingWaCustomerId] = useState<string | null>(null);
+  const [sentCustomerIds, setSentCustomerIds] = useState<string[]>([]);
+
+  const handleSendCustomerStatement = async (customerId: string, phone: string, name: string) => {
+    try {
+      setSendingWaCustomerId(customerId);
+      const res = await customerService.sendWhatsAppStatement(customerId, phone);
+      setSentCustomerIds(prev => [...prev, customerId]);
+      toast.success(res.message || `WhatsApp statement sent to ${name}`);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || err.message || "Failed to send WhatsApp statement");
+    } finally {
+      setSendingWaCustomerId(null);
+    }
+  };
 
   const { data: customerData, isLoading } = useCustomers({
     search: debouncedSearch || undefined,
@@ -46,6 +64,25 @@ export default function CustomersPage() {
     { header: "Orders", accessor: "orders" as const },
     { header: "Total Spent", accessor: "spent" as const },
     { header: "Last Active", accessor: "lastActive" as const },
+    {
+      header: "Action",
+      accessor: (row: any) => (
+        <button
+          type="button"
+          data-testid={`send-wa-customer-${row.id}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleSendCustomerStatement(row.id, row.phone, row.name);
+          }}
+          disabled={sendingWaCustomerId === row.id}
+          className="px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 rounded-lg text-xs font-semibold font-inter transition-colors flex items-center gap-1.5 shadow-sm disabled:opacity-50"
+          title="Send WhatsApp Statement & LankaQR"
+        >
+          <MessageSquare size={13} className={sendingWaCustomerId === row.id ? "animate-spin" : ""} />
+          <span>{sentCustomerIds.includes(row.id) ? "Sent ✓" : "WhatsApp"}</span>
+        </button>
+      ),
+    },
   ];
 
   const filters = (

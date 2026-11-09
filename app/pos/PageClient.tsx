@@ -60,6 +60,7 @@ import { globalDialog } from "@/store/dialog.store";
 import { useAuthStore } from "@/store/auth.store";
 import { OfflineStorageManager } from "@/lib/offlineSync";
 import { posService } from "@/services/pos.service";
+import { hardwareService } from "@/services/hardware.service";
 
 export default function POSPage() {
   const router = useRouter();
@@ -278,6 +279,68 @@ export default function POSPage() {
   const totalPayable = useMemo(() => {
     return Math.max(0, subtotal - voucherAmount - discountAmount);
   }, [subtotal, voucherAmount, discountAmount]);
+
+  // Synchronize Customer-Facing Display & Physical 2x20 Pole Display
+  useEffect(() => {
+    if (isSuccessModalOpen) return;
+
+    const storeName = user?.tenant?.name || activeSession?.branch?.name || "XONIT POS";
+    const cashier = user?.name || "Cashier";
+
+    if (cart.length === 0) {
+      hardwareService.updateCustomerDisplay({
+        storeName,
+        cashier,
+        itemCount: 0,
+        subtotalLkr: 0,
+        discountLkr: 0,
+        totalLkr: 0,
+        status: "IDLE",
+      });
+      return;
+    }
+
+    if (isPaymentModalOpen) {
+      hardwareService.updateCustomerDisplay({
+        storeName,
+        cashier,
+        itemCount: cart.reduce((sum, item) => sum + item.qty, 0),
+        subtotalLkr: subtotal,
+        discountLkr: discountAmount,
+        totalLkr: totalPayable,
+        status: "PAYMENT",
+      });
+      return;
+    }
+
+    const lastItem = cart[cart.length - 1];
+    hardwareService.updateCustomerDisplay({
+      storeName,
+      cashier,
+      lastScannedItem: lastItem
+        ? {
+            name: lastItem.name,
+            qty: lastItem.qty,
+            priceLkr: lastItem.price,
+          }
+        : undefined,
+      itemCount: cart.reduce((sum, item) => sum + item.qty, 0),
+      subtotalLkr: subtotal,
+      discountLkr: discountAmount,
+      totalLkr: totalPayable,
+      status: "SCANNING",
+    });
+  }, [
+    cart,
+    subtotal,
+    discountAmount,
+    totalPayable,
+    isPaymentModalOpen,
+    isSuccessModalOpen,
+    user?.tenant?.name,
+    user?.name,
+    activeSession?.branch?.name,
+  ]);
 
   const holdCurrentCart = () => {
     if (cart.length === 0) return;

@@ -16,7 +16,8 @@ import {
   TrendingDown,
   X,
   Clock,
-  AlertTriangle
+  AlertTriangle,
+  MessageSquare
 } from "lucide-react";
 import { erpService, AgingBucket } from "@/services/erp.service";
 import { globalDialog } from "@/store/dialog.store";
@@ -50,6 +51,23 @@ export default function ApArAgingPage() {
     new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0]
   );
   const [submittingDoc, setSubmittingDoc] = useState(false);
+
+  // WhatsApp Dunning Reminders
+  const [sendingWaId, setSendingWaId] = useState<string | null>(null);
+  const [sentWaIds, setSentWaIds] = useState<string[]>([]);
+
+  const handleSendWhatsAppReminder = async (item: any) => {
+    try {
+      setSendingWaId(item.id);
+      const res = await erpService.sendWhatsAppArReminder(item.id);
+      setSentWaIds(prev => [...prev, item.id]);
+      toast.success(res.message || `WhatsApp payment reminder sent for #${item.invoiceNumber}`);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.error || err.message || "Failed to dispatch WhatsApp reminder");
+    } finally {
+      setSendingWaId(null);
+    }
+  };
 
   const loadData = async (isManual = false) => {
     if (isManual) setRefreshing(true);
@@ -462,12 +480,27 @@ export default function ApArAgingPage() {
                       Rs. {item.balanceDue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </td>
                     <td className="py-3 px-4 text-center">
-                      <button
-                        onClick={() => openPaymentModal(item)}
-                        className="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-[11px] font-semibold transition-colors shadow-sm"
-                      >
-                        {mode === 'AR' ? "Collect" : "Pay Bill"}
-                      </button>
+                      <div className="flex items-center justify-center gap-1.5">
+                        {mode === 'AR' && (
+                          <button
+                            type="button"
+                            data-testid={`send-wa-aging-${item.id}`}
+                            onClick={() => handleSendWhatsAppReminder(item)}
+                            disabled={sendingWaId === item.id}
+                            title="Send WhatsApp Payment Reminder with LankaQR"
+                            className="px-2 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 rounded-lg text-[11px] font-semibold transition-colors flex items-center gap-1 disabled:opacity-50"
+                          >
+                            <MessageSquare size={12} className={sendingWaId === item.id ? "animate-spin" : ""} />
+                            <span>{sendingWaId === item.id ? "Sending..." : sentWaIds.includes(item.id) ? "Sent ✓" : "Remind"}</span>
+                          </button>
+                        )}
+                        <button
+                          onClick={() => openPaymentModal(item)}
+                          className="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-[11px] font-semibold transition-colors shadow-sm"
+                        >
+                          {mode === 'AR' ? "Collect" : "Pay Bill"}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );

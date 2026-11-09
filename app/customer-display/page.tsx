@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { CustomerDisplayState } from "@/services/hardware.service";
-import { ShoppingBag, QrCode, CheckCircle2, Store, Sparkles } from "lucide-react";
+import { ShoppingBag, QrCode, CheckCircle2, Store, Sparkles, Maximize2 } from "lucide-react";
 
 export default function CustomerDisplayPage() {
   const [state, setState] = useState<CustomerDisplayState>({
@@ -47,9 +47,26 @@ export default function CustomerDisplayPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-stone-900 border border-stone-800 text-stone-300 text-sm">
-          <Store size={16} className="text-cyan-400" />
-          <span>Active Session</span>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-stone-900 border border-stone-800 text-stone-300 text-sm">
+            <Store size={16} className="text-cyan-400" />
+            <span>Active Session</span>
+          </div>
+          <button
+            onClick={() => {
+              if (typeof document !== "undefined") {
+                if (!document.fullscreenElement) {
+                  document.documentElement.requestFullscreen().catch(() => {});
+                } else {
+                  document.exitFullscreen().catch(() => {});
+                }
+              }
+            }}
+            className="p-2 rounded-xl bg-stone-900 border border-stone-800 text-stone-400 hover:text-white transition-colors"
+            title="Toggle Fullscreen for Secondary Screen"
+          >
+            <Maximize2 size={16} />
+          </button>
         </div>
       </div>
 

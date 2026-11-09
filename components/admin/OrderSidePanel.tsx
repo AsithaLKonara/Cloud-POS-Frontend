@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useEffect } from 'react';
-import { X, User, CreditCard, Truck, RefreshCw } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { X, User, CreditCard, Truck, RefreshCw, MessageSquare, Send, CheckCircle2 } from 'lucide-react';
 import { OrderStatusBadge, PaymentGatewayBadge } from "@/components/dashboard/Badges";
 import OrderDispatchButtons from "@/components/admin/OrderDispatchButtons";
 import { useOrderById, useUpdateOrderStatus, useRefundOrder } from "@/hooks/useOrders";
+import { orderService } from "@/services/order.service";
 import { globalDialog } from "@/store/dialog.store";
+import { toast } from "@/store/toast.store";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -19,6 +21,27 @@ export default function OrderSidePanel({ orderId, isOpen, onClose }: OrderSidePa
   const { data: order, isLoading } = useOrderById(orderId || '');
   const { mutate: updateStatus, isPending: isUpdating } = useUpdateOrderStatus();
   const { mutate: refundOrder, isPending: isRefunding } = useRefundOrder();
+  const [isSendingWa, setIsSendingWa] = useState(false);
+  const [waSent, setWaSent] = useState(false);
+
+  const handleSendWhatsAppReceipt = async () => {
+    if (!order?.id) return;
+    const phone = order.customer?.phone || (order.shippingAddress as any)?.phone;
+    if (!phone) {
+      toast.error("Customer has no phone number on file.");
+      return;
+    }
+    try {
+      setIsSendingWa(true);
+      const res = await orderService.sendWhatsAppReceipt(order.id, phone);
+      setWaSent(true);
+      toast.success(res.message || `WhatsApp receipt sent to ${phone}`);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.error || err.message || "Failed to dispatch WhatsApp receipt");
+    } finally {
+      setIsSendingWa(false);
+    }
+  };
 
   // Prevent background scrolling when panel is open
   useEffect(() => {
@@ -82,6 +105,17 @@ export default function OrderSidePanel({ orderId, isOpen, onClose }: OrderSidePa
               address={address}
               phone={customerPhone}
             />
+
+            <button
+              type="button"
+              data-testid="send-drawer-whatsapp-receipt-btn"
+              onClick={handleSendWhatsAppReceipt}
+              disabled={isSendingWa}
+              className="flex items-center gap-1.5 px-3 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-semibold font-inter rounded-lg transition-colors border border-emerald-500/20 disabled:opacity-50"
+            >
+              <MessageSquare size={13} className={isSendingWa ? "animate-spin" : ""} />
+              <span>{isSendingWa ? "Dispatching..." : waSent ? "Receipt Sent ✓" : "Send WhatsApp Bill"}</span>
+            </button>
             
             {nextStatus && (
               <button 

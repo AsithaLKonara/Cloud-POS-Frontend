@@ -75,6 +75,25 @@ export interface FardarConfig {
   isSandbox?: boolean;
 }
 
+export interface WhatsAppTriggersConfig {
+  posReceipts: boolean;
+  orderTracking: boolean;
+  abandonedCart: boolean;
+  creditOverdue: boolean;
+  loyaltyAlerts: boolean;
+  catalogSync: boolean;
+}
+
+export interface WhatsAppConfig {
+  enabled: boolean;
+  wabaId: string;
+  phoneNumberId: string;
+  accessToken?: string;
+  verifyToken?: string;
+  isSandbox: boolean;
+  triggers: WhatsAppTriggersConfig;
+}
+
 export interface TenantIntegrations {
   paymentGateways: {
     onepay?: OnePayConfig;
@@ -89,6 +108,9 @@ export interface TenantIntegrations {
     promptx: PromptXConfig;
     domex: DomexConfig;
     fardar?: FardarConfig;
+  };
+  messaging?: {
+    whatsapp: WhatsAppConfig;
   };
 }
 
@@ -116,11 +138,28 @@ export const integrationService = {
     return res.data.data;
   },
 
+  async updateMessaging(
+    tenantId: string,
+    provider: 'whatsapp' | string,
+    config: any
+  ): Promise<TenantIntegrations> {
+    const res = await api.put(`/integrations/${tenantId}/messaging/${provider}`, config);
+    return res.data.data;
+  },
+
+  async sendTestWhatsAppMessage(
+    tenantId: string,
+    phone: string
+  ): Promise<{ success: boolean; message: string; data: any }> {
+    const res = await api.post(`/integrations/${tenantId}/whatsapp/test-message`, { phone });
+    return res.data;
+  },
+
   async testConnection(
     tenantId: string,
-    type: 'payment' | 'courier',
+    type: 'payment' | 'courier' | 'messaging',
     provider: string
-  ): Promise<{ success: boolean; provider: string; status: string; latencyMs: number; message: string }> {
+  ): Promise<{ success: boolean; provider: string; status: string; latencyMs: number; message: string; phoneNumberId?: string; wabaId?: string }> {
     const res = await api.post(`/integrations/${tenantId}/test`, { type, provider });
     return res.data.data;
   },

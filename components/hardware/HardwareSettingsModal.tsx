@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Printer,
   Scale,
@@ -14,8 +14,14 @@ import {
   Tag,
   Monitor,
   ExternalLink,
+  Tv,
+  Terminal,
+  Cpu,
+  Layers,
+  Sparkles,
 } from "lucide-react";
 import { useHardware } from "@/hooks/useHardware";
+import { PoleDisplayProtocol, PoleDisplayMode, PoleDisplayTransport } from "@/services/pole-display.service";
 
 interface HardwareSettingsModalProps {
   onClose: () => void;
@@ -33,12 +39,27 @@ export default function HardwareSettingsModal({ onClose }: HardwareSettingsModal
     disconnectScale,
     launchCustomerDisplay,
     generateTsplLabel,
+    poleConfig,
+    updatePoleConfig,
+    isPoleSerialConnected,
+    connectPoleSerial,
+    disconnectPoleSerial,
+    availablePorts,
+    refreshSerialPorts,
+    testPoleScreen,
+    clearPole,
+    isWebSerialSupported,
   } = useHardware();
 
   const [paperWidth, setPaperWidth] = useState<80 | 58>(80);
   const [testPrintLoading, setTestPrintLoading] = useState(false);
   const [drawerKickLoading, setDrawerKickLoading] = useState(false);
+  const [poleTestLoading, setPoleTestLoading] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    refreshSerialPorts();
+  }, [refreshSerialPorts]);
 
   const handleTestPrint = async () => {
     setTestPrintLoading(true);
@@ -246,25 +267,261 @@ export default function HardwareSettingsModal({ onClose }: HardwareSettingsModal
             </div>
           </div>
 
-          {/* Section 3: Customer-Facing Secondary Screen */}
-          <div className="p-5 rounded-2xl bg-surface border border-border flex items-center justify-between shadow-sm">
-            <div>
+          {/* Section 3: Universal Customer Pole Display & Dual-Screen Suite */}
+          <div className="p-5 rounded-2xl bg-surface border border-border space-y-5 shadow-sm">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-foreground">
-                <Monitor size={18} className="text-purple-500 dark:text-purple-400" />
-                <span className="font-semibold text-sm">Customer-Facing Display</span>
+                <Tv size={18} className="text-purple-500 dark:text-purple-400" />
+                <span className="font-semibold text-sm">Customer Display & Pole Display Suite</span>
               </div>
-              <p className="text-xs text-muted mt-1">
-                Open live secondary monitor window (HDMI / VFD) showing cart, LankaQR & subtotal.
-              </p>
+              <span className="text-xs px-2 py-0.5 rounded-full bg-surface-elevated border border-border text-muted font-mono">
+                Windows 7 & 10 • VFD • LCD • USB
+              </span>
             </div>
 
-            <button
-              onClick={launchCustomerDisplay}
-              className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center gap-2 transition-colors shadow-md shadow-purple-600/20"
-            >
-              <ExternalLink size={14} />
-              Launch Screen
-            </button>
+            {/* Hardware Mode Selector */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-muted">Display Output Mode</label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {[
+                  { id: "BOTH", label: "Both (Pole + Screen)" },
+                  { id: "VFD_2X20", label: "2x20 VFD/LCD Pole" },
+                  { id: "DUAL_SCREEN", label: "Dual Screen Only" },
+                  { id: "DISABLED", label: "Disabled" },
+                ].map((m) => (
+                  <button
+                    key={m.id}
+                    onClick={() => updatePoleConfig({ mode: m.id as PoleDisplayMode })}
+                    className={`py-2 px-3 rounded-xl text-xs font-medium border transition-all text-center ${
+                      poleConfig.mode === m.id
+                        ? "bg-primary text-white border-primary shadow-sm"
+                        : "bg-surface-elevated border-border text-muted hover:text-foreground"
+                    }`}
+                  >
+                    {m.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 2x20 VFD Character Pole Settings */}
+            {(poleConfig.mode === "VFD_2X20" || poleConfig.mode === "BOTH") && (
+              <div className="p-4 rounded-xl bg-surface-elevated border border-border space-y-4">
+                <div className="flex items-center justify-between border-b border-border pb-3">
+                  <div className="flex items-center gap-2">
+                    <Terminal size={15} className="text-cyan-500" />
+                    <span className="text-xs font-bold text-foreground">2x20 Character Pole Display (Serial / USB)</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <button
+                      onClick={() => updatePoleConfig({ transport: "BRIDGE" })}
+                      className={`px-2.5 py-1 rounded-lg font-mono text-[11px] border transition-colors ${
+                        poleConfig.transport === "BRIDGE"
+                          ? "bg-cyan-600 text-white border-cyan-500 shadow-sm"
+                          : "border-border text-muted hover:text-foreground"
+                      }`}
+                      title="Silent zero-click background bridge"
+                    >
+                      Local Bridge
+                    </button>
+                    <button
+                      onClick={() => updatePoleConfig({ transport: "WEBSERIAL" })}
+                      className={`px-2.5 py-1 rounded-lg font-mono text-[11px] border transition-colors ${
+                        poleConfig.transport === "WEBSERIAL"
+                          ? "bg-cyan-600 text-white border-cyan-500 shadow-sm"
+                          : "border-border text-muted hover:text-foreground"
+                      }`}
+                      title="Direct browser WebSerial access (Chrome 89+ / Win 7 Chrome 109)"
+                    >
+                      WebSerial
+                    </button>
+                  </div>
+                </div>
+
+                {/* Configuration Options */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                  {/* COM Port */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-muted">
+                      <span>COM Port</span>
+                      <button
+                        onClick={refreshSerialPorts}
+                        className="hover:text-foreground"
+                        title="Scan serial ports"
+                      >
+                        <RefreshCw size={11} />
+                      </button>
+                    </div>
+                    <select
+                      value={poleConfig.port}
+                      onChange={(e) => updatePoleConfig({ port: e.target.value })}
+                      className="w-full bg-surface border border-border rounded-xl px-2.5 py-1.5 text-foreground font-mono focus:outline-none focus:border-primary"
+                    >
+                      {availablePorts.map((p) => (
+                        <option key={p} value={p}>
+                          {p}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Baud Rate */}
+                  <div className="space-y-1">
+                    <span className="text-muted block">Baud Rate</span>
+                    <select
+                      value={poleConfig.baudRate}
+                      onChange={(e) => updatePoleConfig({ baudRate: parseInt(e.target.value, 10) })}
+                      className="w-full bg-surface border border-border rounded-xl px-2.5 py-1.5 text-foreground font-mono focus:outline-none focus:border-primary"
+                    >
+                      {[2400, 4800, 9600, 19200, 38400, 115200].map((b) => (
+                        <option key={b} value={b}>
+                          {b} bps
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Protocol */}
+                  <div className="space-y-1">
+                    <span className="text-muted block">Command Protocol</span>
+                    <select
+                      value={poleConfig.protocol}
+                      onChange={(e) => updatePoleConfig({ protocol: e.target.value as PoleDisplayProtocol })}
+                      className="w-full bg-surface border border-border rounded-xl px-2.5 py-1.5 text-foreground font-mono focus:outline-none focus:border-primary"
+                    >
+                      <option value="CD5220">CD5220 (Posiflex & Generic)</option>
+                      <option value="ESCPOS">ESC/POS (Epson DM-D)</option>
+                      <option value="UTC">UTC Standard / Enhanced</option>
+                      <option value="AEDEX">AEDEX Standard</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* WebSerial Connect Button (if WebSerial Transport) */}
+                {poleConfig.transport === "WEBSERIAL" && (
+                  <div className="p-3 rounded-xl bg-surface border border-border flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`w-2.5 h-2.5 rounded-full ${
+                          isPoleSerialConnected ? "bg-emerald-500 animate-pulse" : "bg-stone-500"
+                        }`}
+                      />
+                      <span className="text-muted">
+                        {isPoleSerialConnected
+                          ? "WebSerial Port Active (Direct Connection)"
+                          : "Port Not Open. Click to grant browser access."}
+                      </span>
+                    </div>
+
+                    {isPoleSerialConnected ? (
+                      <button
+                        onClick={disconnectPoleSerial}
+                        className="px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-500 border border-rose-500/30 font-medium hover:bg-rose-500/20 transition-colors"
+                      >
+                        Disconnect Port
+                      </button>
+                    ) : (
+                      <button
+                        onClick={connectPoleSerial}
+                        className="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-medium transition-colors shadow-sm"
+                      >
+                        Connect COM Port
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Diagnostics Test Grid */}
+                <div className="space-y-1.5 pt-1">
+                  <span className="text-[11px] font-semibold text-muted block">Pole Display Live Diagnostics</span>
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                    <button
+                      onClick={async () => {
+                        setPoleTestLoading(true);
+                        const ok = await testPoleScreen("welcome");
+                        setPoleTestLoading(false);
+                        setFeedbackMsg(ok ? "✅ Welcome text dispatched to pole display!" : "⚠️ Check COM port or bridge connection.");
+                      }}
+                      disabled={poleTestLoading}
+                      className="py-1.5 px-2 rounded-lg bg-surface hover:bg-surface-elevated border border-border text-[11px] text-foreground font-medium transition-colors disabled:opacity-50"
+                    >
+                      Test Welcome
+                    </button>
+                    <button
+                      onClick={async () => {
+                        setPoleTestLoading(true);
+                        const ok = await testPoleScreen("item");
+                        setPoleTestLoading(false);
+                        setFeedbackMsg(ok ? "✅ Item scan test sent to pole display!" : "⚠️ Check COM port or bridge connection.");
+                      }}
+                      disabled={poleTestLoading}
+                      className="py-1.5 px-2 rounded-lg bg-surface hover:bg-surface-elevated border border-border text-[11px] text-foreground font-medium transition-colors disabled:opacity-50"
+                    >
+                      Test Item Scan
+                    </button>
+                    <button
+                      onClick={async () => {
+                        setPoleTestLoading(true);
+                        const ok = await testPoleScreen("payment");
+                        setPoleTestLoading(false);
+                        setFeedbackMsg(ok ? "✅ Payment total sent to pole display!" : "⚠️ Check COM port or bridge connection.");
+                      }}
+                      disabled={poleTestLoading}
+                      className="py-1.5 px-2 rounded-lg bg-surface hover:bg-surface-elevated border border-border text-[11px] text-foreground font-medium transition-colors disabled:opacity-50"
+                    >
+                      Test Total Due
+                    </button>
+                    <button
+                      onClick={async () => {
+                        setPoleTestLoading(true);
+                        const ok = await testPoleScreen("completed");
+                        setPoleTestLoading(false);
+                        setFeedbackMsg(ok ? "✅ Change due screen sent to pole display!" : "⚠️ Check COM port or bridge connection.");
+                      }}
+                      disabled={poleTestLoading}
+                      className="py-1.5 px-2 rounded-lg bg-surface hover:bg-surface-elevated border border-border text-[11px] text-foreground font-medium transition-colors disabled:opacity-50"
+                    >
+                      Test Change
+                    </button>
+                    <button
+                      onClick={async () => {
+                        setPoleTestLoading(true);
+                        const ok = await clearPole();
+                        setPoleTestLoading(false);
+                        setFeedbackMsg(ok ? "✅ Pole display cleared!" : "⚠️ Failed to clear display.");
+                      }}
+                      disabled={poleTestLoading}
+                      className="py-1.5 px-2 rounded-lg bg-surface hover:bg-surface-elevated border border-border text-[11px] text-rose-500 font-medium transition-colors disabled:opacity-50 col-span-2 sm:col-span-1"
+                    >
+                      Clear Screen
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Dual-Screen Customer Monitor Section */}
+            {(poleConfig.mode === "DUAL_SCREEN" || poleConfig.mode === "BOTH") && (
+              <div className="p-4 rounded-xl bg-surface-elevated border border-border flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-2 text-foreground">
+                    <Monitor size={15} className="text-purple-500" />
+                    <span className="text-xs font-bold">Secondary Customer LCD Monitor</span>
+                  </div>
+                  <p className="text-[11px] text-muted mt-0.5">
+                    Opens full-color customer view (HDMI/VGA Display 2) with real-time cart, promo banner & LankaQR.
+                  </p>
+                </div>
+
+                <button
+                  onClick={launchCustomerDisplay}
+                  className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-md shadow-purple-600/20"
+                >
+                  <ExternalLink size={14} />
+                  Launch Secondary Screen
+                </button>
+              </div>
+            )}
           </div>
         </div>
 

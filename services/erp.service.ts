@@ -206,6 +206,11 @@ export const erpService = {
     return res.data;
   },
 
+  sendWhatsAppArReminder: async (invoiceId: string, phone?: string) => {
+    const res = await api.post(`/erp/ar/invoices/${invoiceId}/whatsapp-reminder`, { phone });
+    return res.data;
+  },
+
   // Stocktaking
   getStocktakeSessions: async (): Promise<StocktakeSession[]> => {
     const res = await api.get('/erp/stocktaking');

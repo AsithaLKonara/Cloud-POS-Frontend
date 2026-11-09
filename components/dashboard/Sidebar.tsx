@@ -156,6 +156,7 @@ export default function Sidebar({ isOpen, setIsOpen, session }: { isOpen?: boole
       label: "CRM & Accounts",
       items: [
         { name: "Customers & Accounts", icon: Users, href: "/admin/customers", permission: "customers:view" },
+        { name: "WhatsApp CRM Inbox", icon: MessageSquare, href: "/admin/crm/inbox", permission: "customers:view" },
       ],
     },
     {

@@ -19,6 +19,12 @@ import {
   Sparkles,
   Zap,
   Bot,
+  MessageSquare,
+  Send,
+  Copy,
+  Check,
+  Smartphone,
+  Radio,
 } from "lucide-react";
 import { useCurrentTenant } from "@/hooks/useTenantSettings";
 import { integrationService, TenantIntegrations } from "@/services/integration.service";
@@ -33,8 +39,30 @@ export default function IntegrationsPageClient() {
   const [savingProvider, setSavingProvider] = useState<string | null>(null);
   const [testingProvider, setTestingProvider] = useState<string | null>(null);
   const [testResults, setTestResults] = useState<Record<string, { success: boolean; latencyMs: number; message: string }>>({});
-  const [activeCategory, setActiveCategory] = useState<"payments" | "couriers" | "ai">("payments");
+  const [activeCategory, setActiveCategory] = useState<"payments" | "couriers" | "whatsapp" | "ai">("payments");
   const [showSecret, setShowSecret] = useState<Record<string, boolean>>({});
+
+  // WhatsApp Business (Meta Cloud API) local editable form state
+  const [whatsappForm, setWhatsappForm] = useState({
+    enabled: false,
+    wabaId: "",
+    phoneNumberId: "",
+    accessToken: "",
+    verifyToken: "xonit_wa_verify_secret",
+    isSandbox: true,
+    triggers: {
+      posReceipts: true,
+      orderTracking: true,
+      abandonedCart: true,
+      creditOverdue: true,
+      loyaltyAlerts: true,
+      catalogSync: false,
+    },
+  });
+  const [testPhoneModalOpen, setTestPhoneModalOpen] = useState(false);
+  const [testPhoneNumber, setTestPhoneNumber] = useState("");
+  const [sendingTestMessage, setSendingTestMessage] = useState(false);
+  const [copiedWebhookUrl, setCopiedWebhookUrl] = useState(false);
 
   // Local editable form states
   const [aiForm, setAiForm] = useState({
@@ -201,6 +229,27 @@ export default function IntegrationsPageClient() {
         }
       }
 
+      // Load WhatsApp Business (Meta Cloud API) configuration
+      if (data?.messaging?.whatsapp) {
+        const wa = data.messaging.whatsapp;
+        setWhatsappForm({
+          enabled: !!wa.enabled,
+          wabaId: wa.wabaId || "",
+          phoneNumberId: wa.phoneNumberId || "",
+          accessToken: wa.accessToken || "",
+          verifyToken: wa.verifyToken || "xonit_wa_verify_secret",
+          isSandbox: wa.isSandbox ?? true,
+          triggers: {
+            posReceipts: wa.triggers?.posReceipts ?? true,
+            orderTracking: wa.triggers?.orderTracking ?? true,
+            abandonedCart: wa.triggers?.abandonedCart ?? true,
+            creditOverdue: wa.triggers?.creditOverdue ?? true,
+            loyaltyAlerts: wa.triggers?.loyaltyAlerts ?? true,
+            catalogSync: wa.triggers?.catalogSync ?? false,
+          },
+        });
+      }
+
       // Load AI Copilot (Google Gemini) configuration
       try {
         const aiConf = await aiService.getConfig(tenant?.id);
@@ -273,6 +322,67 @@ export default function IntegrationsPageClient() {
       toast.error(err?.response?.data?.message || "Failed to save configuration");
     } finally {
       setSavingProvider(null);
+    }
+  };
+
+  const handleSaveWhatsApp = async () => {
+    if (!tenant?.id) return;
+    try {
+      setSavingProvider("whatsapp");
+      await integrationService.updateMessaging(tenant.id, "whatsapp", whatsappForm);
+      toast.success("Meta WhatsApp Cloud API credentials encrypted & saved in vault");
+      await loadData();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to save WhatsApp configuration");
+    } finally {
+      setSavingProvider(null);
+    }
+  };
+
+  const handleTestWhatsAppConnection = async () => {
+    if (!tenant?.id) return;
+    try {
+      setTestingProvider("whatsapp");
+      const res = await integrationService.testConnection(tenant.id, "messaging", "whatsapp");
+      setTestResults((prev) => ({
+        ...prev,
+        whatsapp: {
+          success: res.success,
+          latencyMs: res.latencyMs,
+          message: res.message,
+        },
+      }));
+      toast.success(`WhatsApp API: Connection verified in ${res.latencyMs}ms`);
+    } catch (err: any) {
+      const errorMsg = err?.response?.data?.message || err?.message || "WhatsApp connection test failed";
+      setTestResults((prev) => ({
+        ...prev,
+        whatsapp: {
+          success: false,
+          latencyMs: 0,
+          message: errorMsg,
+        },
+      }));
+      toast.error(errorMsg);
+    } finally {
+      setTestingProvider(null);
+    }
+  };
+
+  const handleSendTestWhatsAppMessage = async () => {
+    if (!tenant?.id || !testPhoneNumber.trim()) {
+      toast.error("Please enter a valid recipient phone number.");
+      return;
+    }
+    try {
+      setSendingTestMessage(true);
+      const res = await integrationService.sendTestWhatsAppMessage(tenant.id, testPhoneNumber.trim());
+      toast.success(res.message || "Test WhatsApp message sent successfully!");
+      setTestPhoneModalOpen(false);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || err?.message || "Failed to dispatch test message");
+    } finally {
+      setSendingTestMessage(false);
     }
   };
 
@@ -434,6 +544,23 @@ export default function IntegrationsPageClient() {
         >
           <Truck size={15} />
           <span>Couriers & Logistics (4)</span>
+        </button>
+
+        <button
+          type="button"
+          data-testid="whatsapp-category-tab"
+          onClick={() => setActiveCategory("whatsapp")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-inter font-bold transition-all ${
+            activeCategory === "whatsapp"
+              ? "bg-foreground text-background shadow-sm"
+              : "text-muted hover:text-foreground hover:bg-surface"
+          }`}
+        >
+          <MessageSquare size={15} className="text-emerald-500" />
+          <span>WhatsApp Cloud API</span>
+          {whatsappForm.enabled && (
+            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse" />
+          )}
         </button>
 
         <button
@@ -1481,6 +1608,431 @@ export default function IntegrationsPageClient() {
         </div>
       )}
 
+      {/* WHATSAPP BUSINESS (META CLOUD API) SECTION */}
+      {activeCategory === "whatsapp" && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* WhatsApp Credentials & Automation Settings */}
+          <div className="p-6 rounded-2xl bg-surface border border-border flex flex-col justify-between shadow-sm relative overflow-hidden group">
+            <div className="space-y-5">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 font-black font-poppins text-lg shadow-sm">
+                    <MessageSquare size={24} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-bold text-base text-foreground font-poppins">Meta WhatsApp Cloud API</h3>
+                      <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full uppercase tracking-wide border ${
+                        whatsappForm.isSandbox
+                          ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                          : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                      }`}>
+                        {whatsappForm.isSandbox ? "Sandbox Simulator" : "Live Meta Cloud API"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted font-inter mt-0.5">
+                      Conversational commerce, instant POS e-receipts & automated CRM reminders
+                    </p>
+                  </div>
+                </div>
+
+                <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={whatsappForm.enabled}
+                    onChange={(e) => setWhatsappForm((prev) => ({ ...prev, enabled: e.target.checked }))}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                </label>
+              </div>
+
+              {/* Form Inputs */}
+              <div className="space-y-4 pt-1">
+                <div>
+                  <label className="block text-xs font-semibold text-foreground mb-1.5 font-inter">
+                    WhatsApp Business Account ID (WABA ID)
+                  </label>
+                  <input
+                    type="text"
+                    value={whatsappForm.wabaId}
+                    onChange={(e) => setWhatsappForm((prev) => ({ ...prev, wabaId: e.target.value }))}
+                    placeholder="e.g. 1048592019482"
+                    className="w-full h-10 px-3.5 rounded-xl bg-background border border-border text-foreground text-xs font-mono focus:outline-none focus:border-emerald-500 transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-foreground mb-1.5 font-inter">
+                    Phone Number ID
+                  </label>
+                  <input
+                    type="text"
+                    value={whatsappForm.phoneNumberId}
+                    onChange={(e) => setWhatsappForm((prev) => ({ ...prev, phoneNumberId: e.target.value }))}
+                    placeholder="e.g. 1029482019482"
+                    className="w-full h-10 px-3.5 rounded-xl bg-background border border-border text-foreground text-xs font-mono focus:outline-none focus:border-emerald-500 transition-colors"
+                  />
+                  <p className="text-[10px] text-muted mt-1 font-inter">
+                    Found in Meta App Dashboard → WhatsApp → API Setup → Phone number ID.
+                  </p>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-semibold text-foreground font-inter">
+                      Meta System User Permanent Access Token
+                    </label>
+                    <span className="text-[10px] text-emerald-500 font-mono flex items-center gap-1 font-semibold">
+                      <Lock size={10} /> AES-256 Vault Encrypted
+                    </span>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type={showSecret["whatsapp_token"] ? "text" : "password"}
+                      value={whatsappForm.accessToken}
+                      onChange={(e) => setWhatsappForm((prev) => ({ ...prev, accessToken: e.target.value }))}
+                      placeholder="EAAG... (Never stored in plaintext)"
+                      className="w-full h-10 pl-3.5 pr-10 rounded-xl bg-background border border-border text-foreground text-xs font-mono focus:outline-none focus:border-emerald-500 transition-colors"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => toggleShowSecret("whatsapp_token")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-foreground"
+                    >
+                      {showSecret["whatsapp_token"] ? <EyeOff size={14} /> : <Eye size={14} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-foreground mb-1.5 font-inter">
+                    Webhook Verification Token
+                  </label>
+                  <input
+                    type="text"
+                    value={whatsappForm.verifyToken}
+                    onChange={(e) => setWhatsappForm((prev) => ({ ...prev, verifyToken: e.target.value }))}
+                    placeholder="e.g. xonit_wa_webhook_verify_secret"
+                    className="w-full h-10 px-3.5 rounded-xl bg-background border border-border text-foreground text-xs font-mono focus:outline-none focus:border-emerald-500 transition-colors"
+                  />
+                </div>
+
+                {/* Environment Mode Switch */}
+                <div>
+                  <label className="block text-xs font-semibold text-foreground mb-2 font-inter">
+                    Deployment Environment
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setWhatsappForm((prev) => ({ ...prev, isSandbox: true }))}
+                      className={`h-9 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+                        whatsappForm.isSandbox
+                          ? "bg-amber-500/10 border-amber-500 text-amber-500 shadow-sm"
+                          : "border-border text-muted hover:text-foreground hover:bg-background"
+                      }`}
+                    >
+                      <Radio size={12} className={whatsappForm.isSandbox ? "fill-amber-500" : ""} />
+                      <span>Sandbox Simulator</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setWhatsappForm((prev) => ({ ...prev, isSandbox: false }))}
+                      className={`h-9 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+                        !whatsappForm.isSandbox
+                          ? "bg-emerald-500/10 border-emerald-500 text-emerald-500 shadow-sm"
+                          : "border-border text-muted hover:text-foreground hover:bg-background"
+                      }`}
+                    >
+                      <Radio size={12} className={!whatsappForm.isSandbox ? "fill-emerald-500" : ""} />
+                      <span>Live Production API</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Automated Sales & CRM Triggers */}
+                <div className="pt-2">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-xs font-bold text-foreground font-poppins uppercase tracking-wider">
+                      Automated Sales & CRM Triggers
+                    </h4>
+                    <span className="text-[10px] text-emerald-500 font-mono font-semibold">
+                      Connected to POS & CRM
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div className="p-2.5 rounded-xl bg-background border border-border flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-semibold text-foreground">POS Digital Receipts</p>
+                        <p className="text-[10px] text-muted">Auto-send e-bill + LankaQR</p>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={whatsappForm.triggers.posReceipts}
+                        onChange={(e) =>
+                          setWhatsappForm((prev) => ({
+                            ...prev,
+                            triggers: { ...prev.triggers, posReceipts: e.target.checked },
+                          }))
+                        }
+                        className="rounded border-border text-emerald-500 focus:ring-emerald-500 h-4 w-4"
+                      />
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-background border border-border flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-semibold text-foreground">Dispatch & Tracking</p>
+                        <p className="text-[10px] text-muted">Courier & dispatch tracking</p>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={whatsappForm.triggers.orderTracking}
+                        onChange={(e) =>
+                          setWhatsappForm((prev) => ({
+                            ...prev,
+                            triggers: { ...prev.triggers, orderTracking: e.target.checked },
+                          }))
+                        }
+                        className="rounded border-border text-emerald-500 focus:ring-emerald-500 h-4 w-4"
+                      />
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-background border border-border flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-semibold text-foreground">Cart Recovery</p>
+                        <p className="text-[10px] text-muted">Unpaid quote / cart nudges</p>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={whatsappForm.triggers.abandonedCart}
+                        onChange={(e) =>
+                          setWhatsappForm((prev) => ({
+                            ...prev,
+                            triggers: { ...prev.triggers, abandonedCart: e.target.checked },
+                          }))
+                        }
+                        className="rounded border-border text-emerald-500 focus:ring-emerald-500 h-4 w-4"
+                      />
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-background border border-border flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-semibold text-foreground">Credit Overdue Alerts</p>
+                        <p className="text-[10px] text-muted">B2B ledger statements</p>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={whatsappForm.triggers.creditOverdue}
+                        onChange={(e) =>
+                          setWhatsappForm((prev) => ({
+                            ...prev,
+                            triggers: { ...prev.triggers, creditOverdue: e.target.checked },
+                          }))
+                        }
+                        className="rounded border-border text-emerald-500 focus:ring-emerald-500 h-4 w-4"
+                      />
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-background border border-border flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-semibold text-foreground">Loyalty & VIP Upgrades</p>
+                        <p className="text-[10px] text-muted">Points milestones & tier badges</p>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={whatsappForm.triggers.loyaltyAlerts}
+                        onChange={(e) =>
+                          setWhatsappForm((prev) => ({
+                            ...prev,
+                            triggers: { ...prev.triggers, loyaltyAlerts: e.target.checked },
+                          }))
+                        }
+                        className="rounded border-border text-emerald-500 focus:ring-emerald-500 h-4 w-4"
+                      />
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-background border border-border flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-semibold text-foreground">Catalog Sync</p>
+                        <p className="text-[10px] text-muted">Interactive Chat-to-Order</p>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={whatsappForm.triggers.catalogSync}
+                        onChange={(e) =>
+                          setWhatsappForm((prev) => ({
+                            ...prev,
+                            triggers: { ...prev.triggers, catalogSync: e.target.checked },
+                          }))
+                        }
+                        className="rounded border-border text-emerald-500 focus:ring-emerald-500 h-4 w-4"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Test Result Display */}
+                {testResults["whatsapp"] && (
+                  <div
+                    className={`p-3 rounded-xl text-xs flex items-center justify-between gap-2 border font-inter ${
+                      testResults["whatsapp"].success
+                        ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500"
+                        : "bg-red-500/10 border-red-500/20 text-red-500"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      {testResults["whatsapp"].success ? <CheckCircle2 size={15} /> : <AlertCircle size={15} />}
+                      <span className="font-medium">{testResults["whatsapp"].message}</span>
+                    </div>
+                    {testResults["whatsapp"].latencyMs > 0 && (
+                      <span className="font-mono text-[10px] px-2 py-0.5 rounded-md bg-background border border-border font-bold">
+                        {testResults["whatsapp"].latencyMs}ms
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center justify-between gap-2 pt-6 mt-6 border-t border-border flex-wrap">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  data-testid="test-whatsapp-btn"
+                  onClick={handleTestWhatsAppConnection}
+                  disabled={testingProvider === "whatsapp" || !whatsappForm.enabled}
+                  className="h-8 px-3.5 rounded-lg bg-background border border-border hover:bg-surface-hover text-foreground text-xs font-semibold flex items-center gap-1.5 transition-all disabled:opacity-50"
+                >
+                  <Activity size={13} className={testingProvider === "whatsapp" ? "animate-spin text-emerald-500" : "text-emerald-500"} />
+                  <span>{testingProvider === "whatsapp" ? "Testing..." : "Test Connection"}</span>
+                </button>
+
+                <button
+                  type="button"
+                  data-testid="ping-whatsapp-btn"
+                  onClick={() => setTestPhoneModalOpen(true)}
+                  disabled={!whatsappForm.enabled}
+                  className="h-8 px-3.5 rounded-lg bg-background border border-border hover:bg-surface-hover text-foreground text-xs font-semibold flex items-center gap-1.5 transition-all disabled:opacity-50"
+                >
+                  <Send size={13} className="text-emerald-500" />
+                  <span>Send Test Ping</span>
+                </button>
+              </div>
+
+              <button
+                type="button"
+                data-testid="save-whatsapp-btn"
+                onClick={handleSaveWhatsApp}
+                disabled={savingProvider === "whatsapp"}
+                className="h-8 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all disabled:opacity-50"
+              >
+                <Save size={13} />
+                <span>{savingProvider === "whatsapp" ? "Encrypting..." : "Save Settings"}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Webhook Endpoint & Setup Guide Card */}
+          <div className="p-6 rounded-2xl bg-surface border border-border flex flex-col justify-between shadow-sm relative overflow-hidden">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 font-bold">
+                  <Smartphone size={24} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-foreground font-poppins">Webhook Endpoint & Setup</h3>
+                  <p className="text-xs text-muted font-inter mt-0.5">Meta Developer Portal Configuration</p>
+                </div>
+              </div>
+
+              {/* Copyable Webhook URL */}
+              <div className="p-3.5 rounded-xl bg-background border border-border space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-foreground uppercase tracking-wider font-inter">
+                    Callback Webhook URL
+                  </span>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-bold">
+                    POST Webhook
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <code className="text-[11px] font-mono bg-surface p-2 rounded-lg border border-border text-foreground flex-1 truncate">
+                    {typeof window !== "undefined"
+                      ? `${window.location.origin}/api/v1/integrations/whatsapp/webhook`
+                      : "https://erp.xonitspace.com/api/v1/integrations/whatsapp/webhook"}
+                  </code>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const url = typeof window !== "undefined"
+                        ? `${window.location.origin}/api/v1/integrations/whatsapp/webhook`
+                        : "https://erp.xonitspace.com/api/v1/integrations/whatsapp/webhook";
+                      navigator.clipboard.writeText(url);
+                      setCopiedWebhookUrl(true);
+                      setTimeout(() => setCopiedWebhookUrl(false), 2000);
+                      toast.success("Webhook URL copied to clipboard");
+                    }}
+                    className="p-2 rounded-lg bg-surface border border-border text-muted hover:text-foreground transition-all shrink-0"
+                    title="Copy Webhook URL"
+                  >
+                    {copiedWebhookUrl ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Meta Setup Steps */}
+              <div className="space-y-3 text-xs text-muted font-inter">
+                <div className="p-3 rounded-xl bg-background border border-border">
+                  <div className="font-bold text-foreground mb-1 flex items-center gap-1.5">
+                    <span className="w-4 h-4 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center text-[10px] font-bold">1</span>
+                    Meta App Configuration
+                  </div>
+                  <p className="text-[11px] leading-relaxed">
+                    Open <span className="font-mono text-foreground font-semibold">developers.facebook.com</span>, navigate to your App → <span className="text-foreground font-semibold">WhatsApp → Configuration</span>.
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-xl bg-background border border-border">
+                  <div className="font-bold text-foreground mb-1 flex items-center gap-1.5">
+                    <span className="w-4 h-4 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center text-[10px] font-bold">2</span>
+                    Paste Webhook & Verify Token
+                  </div>
+                  <p className="text-[11px] leading-relaxed">
+                    Click <span className="text-foreground font-semibold">Edit Callback URL</span>, paste the webhook URL above, and provide your verification token: <code className="bg-surface px-1.5 py-0.5 rounded text-foreground font-mono font-bold text-[10px]">{whatsappForm.verifyToken}</code>.
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-xl bg-background border border-border">
+                  <div className="font-bold text-foreground mb-1 flex items-center gap-1.5">
+                    <span className="w-4 h-4 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center text-[10px] font-bold">3</span>
+                    Subscribe to Webhook Fields
+                  </div>
+                  <p className="text-[11px] leading-relaxed">
+                    Under Webhook Fields, subscribe to <span className="font-mono text-foreground font-semibold">messages</span> and <span className="font-mono text-foreground font-semibold">message_template_status_update</span> to receive customer chats and delivery receipts.
+                  </p>
+                </div>
+              </div>
+
+              {/* Enterprise Security Highlights */}
+              <div className="p-3.5 rounded-xl bg-emerald-500/5 border border-emerald-500/20 space-y-2">
+                <div className="font-bold text-xs text-foreground flex items-center gap-1.5">
+                  <ShieldCheck size={14} className="text-emerald-500" />
+                  Enterprise Conversational Engine
+                </div>
+                <ul className="text-[11px] text-muted space-y-1 list-disc list-inside">
+                  <li>Includes 1,000 free service conversations/month per Meta policy.</li>
+                  <li>Tokens are encrypted using AES-256-GCM envelope encryption.</li>
+                  <li>Automations run directly across POS cashiers, Customer CRM, and ERP ledgers.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* AI ASSISTANT & COPILOT (GEMINI) SECTION */}
       {activeCategory === "ai" && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1691,6 +2243,79 @@ export default function IntegrationsPageClient() {
                   </p>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Test WhatsApp Message Modal */}
+      {testPhoneModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-surface border border-border rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
+                  <Send size={18} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-foreground font-poppins">Send Test WhatsApp Ping</h3>
+                  <p className="text-[11px] text-muted font-inter">Dispatches verification greeting & interactive buttons</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setTestPhoneModalOpen(false)}
+                className="w-7 h-7 rounded-lg bg-background hover:bg-surface-hover text-muted hover:text-foreground flex items-center justify-center transition-colors text-sm font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-foreground mb-1.5 font-inter">
+                  Recipient Phone Number
+                </label>
+                <input
+                  type="text"
+                  value={testPhoneNumber}
+                  onChange={(e) => setTestPhoneNumber(e.target.value)}
+                  placeholder="e.g. 0771234567 or +94771234567"
+                  className="w-full h-10 px-3.5 rounded-xl bg-background border border-border text-foreground text-xs font-mono focus:outline-none focus:border-emerald-500 transition-colors"
+                  autoFocus
+                />
+                <p className="text-[10px] text-muted mt-1 font-inter">
+                  Mode: <span className="font-semibold text-foreground">{whatsappForm.isSandbox ? "Sandbox Simulator" : "Live Meta Cloud API"}</span>.
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-background border border-border text-[11px] text-muted space-y-1">
+                <p className="font-semibold text-foreground">Message Payload Preview:</p>
+                <p className="font-mono text-[10px] text-emerald-600 dark:text-emerald-400">
+                  👋 Greetings from {tenant?.name || "XONIT Commerce"}!<br />
+                  Your Meta WhatsApp Cloud API connection is active & verified.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setTestPhoneModalOpen(false)}
+                className="h-9 px-4 rounded-xl bg-background border border-border hover:bg-surface-hover text-foreground text-xs font-semibold transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                data-testid="send-modal-ping-btn"
+                onClick={handleSendTestWhatsAppMessage}
+                disabled={sendingTestMessage || !testPhoneNumber.trim()}
+                className="h-9 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all disabled:opacity-50"
+              >
+                <Send size={13} className={sendingTestMessage ? "animate-spin" : ""} />
+                <span>{sendingTestMessage ? "Dispatching..." : "Send Test Message"}</span>
+              </button>
             </div>
           </div>
         </div>

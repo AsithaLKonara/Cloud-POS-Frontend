@@ -155,14 +155,14 @@ export default function ProductsPage() {
         const price = row.variants?.[0]?.price || 0;
         return `Rs ${price.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
       },
-      className: "font-semibold text-foreground font-mono text-sm" 
+      className: "font-semibold text-foreground dark:text-stone-100 font-mono text-sm" 
     },
     { 
       header: "Stock", 
       accessor: (row: any) => {
         const totalQuantity = row.variants?.reduce((sum: number, v: any) => sum + (v.quantity || 0), 0) || 0;
         return (
-          <span className={totalQuantity === 0 ? "text-red-500 dark:text-red-400 font-bold" : totalQuantity <= 10 ? "text-amber-500 dark:text-amber-400 font-bold" : "text-foreground font-semibold"}>
+          <span className={totalQuantity === 0 ? "text-red-500 dark:text-red-400 font-bold" : totalQuantity <= 10 ? "text-amber-500 dark:text-amber-400 font-bold" : "text-foreground dark:text-stone-100 font-semibold"}>
             {totalQuantity}
           </span>
         );

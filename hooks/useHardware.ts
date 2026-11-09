@@ -6,6 +6,7 @@ import {
   ScaleReading,
   CustomerDisplayState,
 } from '@/services/hardware.service';
+import { PoleDisplayConfig, poleDisplayService } from '@/services/pole-display.service';
 import { globalDialog } from '@/store/dialog.store';
 
 export function useHardware() {
@@ -31,6 +32,19 @@ export function useHardware() {
   const [isScaleConnected, setIsScaleConnected] = useState(false);
   const serialPortRef = useRef<any>(null);
   const readerRef = useRef<any>(null);
+
+  // Pole Display State
+  const [poleConfig, setPoleConfig] = useState<PoleDisplayConfig>(() =>
+    hardwareService.getPoleDisplayConfig()
+  );
+  const [isPoleSerialConnected, setIsPoleSerialConnected] = useState(false);
+  const [availablePorts, setAvailablePorts] = useState<string[]>([
+    'COM1',
+    'COM2',
+    'COM3',
+    'COM4',
+    'COM5',
+  ]);
 
   // Check node-print bridge health
   const refreshBridge = useCallback(async () => {
@@ -120,7 +134,7 @@ export function useHardware() {
     }
   }, []);
 
-  // Customer Display
+  // Customer Display & Pole Display
   const broadcastDisplay = useCallback((state: CustomerDisplayState) => {
     hardwareService.updateCustomerDisplay(state);
   }, []);
@@ -128,6 +142,72 @@ export function useHardware() {
   const launchCustomerDisplay = useCallback(() => {
     hardwareService.openCustomerDisplayWindow();
   }, []);
+
+  const updatePoleConfig = useCallback((newCfg: Partial<PoleDisplayConfig>) => {
+    const updated = hardwareService.savePoleDisplayConfig(newCfg);
+    setPoleConfig(updated);
+  }, []);
+
+  const refreshSerialPorts = useCallback(async () => {
+    const ports = await hardwareService.listSerialPorts();
+    if (ports && ports.length > 0) {
+      setAvailablePorts(ports);
+    }
+  }, []);
+
+  const connectPoleSerial = useCallback(async () => {
+    try {
+      const ok = await hardwareService.connectPoleDisplaySerial(poleConfig.baudRate);
+      setIsPoleSerialConnected(ok);
+      return ok;
+    } catch (err: any) {
+      globalDialog.alert(err.message || 'Failed to connect to pole display port.', 'Serial Port Error', {
+        variant: 'danger',
+      });
+      setIsPoleSerialConnected(false);
+      return false;
+    }
+  }, [poleConfig.baudRate]);
+
+  const disconnectPoleSerial = useCallback(async () => {
+    await hardwareService.disconnectPoleDisplaySerial();
+    setIsPoleSerialConnected(false);
+  }, []);
+
+  const sendPoleText = useCallback(async (line1: string, line2: string): Promise<boolean> => {
+    return await hardwareService.sendPoleDisplayText(line1, line2);
+  }, []);
+
+  const clearPole = useCallback(async (): Promise<boolean> => {
+    return await hardwareService.clearPoleDisplay();
+  }, []);
+
+  const testPoleScreen = useCallback(
+    async (mode: 'welcome' | 'item' | 'payment' | 'completed') => {
+      switch (mode) {
+        case 'welcome': {
+          const welcome = poleDisplayService.formatIdle(
+            poleConfig.storeName || 'XONIT POS',
+            poleConfig.welcomeMessage || 'WELCOME! READY'
+          );
+          return await sendPoleText(welcome.line1, welcome.line2);
+        }
+        case 'item': {
+          const item = poleDisplayService.formatItem('Ceylon Black Tea', 750.0, 2, 1500.0);
+          return await sendPoleText(item.line1, item.line2);
+        }
+        case 'payment': {
+          const pay = poleDisplayService.formatPayment(2450, 2200);
+          return await sendPoleText(pay.line1, pay.line2);
+        }
+        case 'completed': {
+          const done = poleDisplayService.formatCompleted(5000, 2800);
+          return await sendPoleText(done.line1, done.line2);
+        }
+      }
+    },
+    [poleConfig, sendPoleText]
+  );
 
   return {
     bridgeStatus,
@@ -140,6 +220,17 @@ export function useHardware() {
     disconnectScale,
     broadcastDisplay,
     launchCustomerDisplay,
+    poleConfig,
+    updatePoleConfig,
+    isPoleSerialConnected,
+    connectPoleSerial,
+    disconnectPoleSerial,
+    availablePorts,
+    refreshSerialPorts,
+    sendPoleText,
+    clearPole,
+    testPoleScreen,
+    isWebSerialSupported: hardwareService.isWebSerialSupported(),
     generateTsplLabel: hardwareService.generateTsplLabel.bind(hardwareService),
     generateZplLabel: hardwareService.generateZplLabel.bind(hardwareService),
     buildEscPosReceipt: hardwareService.buildEscPosReceipt.bind(hardwareService),

@@ -1,12 +1,14 @@
 "use client";
 
-import { CheckCircle2, Printer, Plus, FileText, Building2, Sparkles } from "lucide-react";
-import { useRef, useEffect } from "react";
+import { CheckCircle2, Printer, Plus, FileText, Building2, Sparkles, MessageSquare, Send } from "lucide-react";
+import { useRef, useEffect, useState } from "react";
 import { useReactToPrint } from "react-to-print";
 import Receipt from "./Receipt";
 import WorkshopInvoiceA4 from "./WorkshopInvoiceA4";
 import { hardwareService } from "@/services/hardware.service";
+import { orderService } from "@/services/order.service";
 import { useAuthStore } from "@/store/auth.store";
+import { toast } from "@/store/toast.store";
 
 export default function OrderSuccessModal({ 
   onClose, 
@@ -19,6 +21,38 @@ export default function OrderSuccessModal({
   const tenantName = orderData?.tenantName || user?.tenant?.name;
   const thermalRef = useRef<HTMLDivElement>(null);
   const a4InvoiceRef = useRef<HTMLDivElement>(null);
+
+  const [waPhone, setWaPhone] = useState<string>(
+    orderData?.customer?.phone || orderData?.phone || ""
+  );
+  const [showWaInput, setShowWaInput] = useState<boolean>(!orderData?.customer?.phone && !orderData?.phone);
+  const [waSending, setWaSending] = useState<boolean>(false);
+  const [waSent, setWaSent] = useState<boolean>(false);
+
+  const handleSendWhatsAppReceipt = async () => {
+    const orderId = orderData?.id || orderData?.orderId;
+    if (!orderId) {
+      toast.error("Order ID not found to send WhatsApp receipt.");
+      return;
+    }
+
+    if (!waPhone.trim()) {
+      setShowWaInput(true);
+      toast.error("Please enter customer phone number.");
+      return;
+    }
+
+    try {
+      setWaSending(true);
+      const res = await orderService.sendWhatsAppReceipt(orderId, waPhone.trim());
+      setWaSent(true);
+      toast.success(res.message || `WhatsApp receipt sent to ${waPhone}`);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.error || err.message || "Failed to dispatch WhatsApp receipt");
+    } finally {
+      setWaSending(false);
+    }
+  };
 
   const handleBrowserPrintThermal = useReactToPrint({
     contentRef: thermalRef,
@@ -146,6 +180,58 @@ export default function OrderSuccessModal({
               </span>
             </div>
           )}
+        </div>
+
+        {/* WhatsApp Digital e-Receipt Box */}
+        <div className="w-full bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-3 mb-4 flex flex-col gap-2 text-left">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 font-inter">
+              <MessageSquare size={14} />
+              <span>WhatsApp Digital e-Receipt</span>
+            </div>
+            {waSent ? (
+              <span className="text-[11px] font-mono text-emerald-500 font-bold flex items-center gap-1">
+                <CheckCircle2 size={12} /> Sent
+              </span>
+            ) : (
+              <button
+                type="button"
+                data-testid="toggle-wa-phone-btn"
+                onClick={() => setShowWaInput(!showWaInput)}
+                className="text-[10px] text-muted hover:text-foreground font-inter underline"
+              >
+                {showWaInput ? "Hide Phone" : "Edit Phone"}
+              </button>
+            )}
+          </div>
+
+          {showWaInput && !waSent && (
+            <input
+              type="text"
+              data-testid="pos-wa-phone-input"
+              value={waPhone}
+              onChange={(e) => setWaPhone(e.target.value)}
+              placeholder="e.g. 0771234567"
+              className="w-full h-8 px-2.5 rounded-lg bg-background border border-border text-foreground text-xs font-mono focus:outline-none focus:border-emerald-500"
+            />
+          )}
+
+          <button
+            type="button"
+            data-testid="send-pos-whatsapp-btn"
+            onClick={handleSendWhatsAppReceipt}
+            disabled={waSending || waSent}
+            className="w-full py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-inter font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all disabled:opacity-60"
+          >
+            <Send size={13} className={waSending ? "animate-spin" : ""} />
+            <span>
+              {waSending
+                ? "Dispatching..."
+                : waSent
+                ? `Receipt Sent to ${waPhone} ✓`
+                : `Send to ${waPhone ? waPhone : "Customer"} WhatsApp`}
+            </span>
+          </button>
         </div>
 
         {/* Dual Format Print Buttons */}

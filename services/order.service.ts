@@ -78,5 +78,13 @@ export const orderService = {
 
   getLoyaltyPoints: (phone: string) =>
     api.get<any>(`/checkout/loyalty/${encodeURIComponent(phone)}`),
+
+  sendWhatsAppReceipt: async (orderId: string, phone?: string) => {
+    const { data } = await api.post<{ success: boolean; message: string; data: any }>(
+      `/orders/${orderId}/send-whatsapp-receipt`,
+      { phone }
+    );
+    return data;
+  },
 };
 
