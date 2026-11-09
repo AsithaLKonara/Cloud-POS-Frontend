@@ -26,6 +26,7 @@ import SuperAdminSecurityAudit from "@/components/superadmin/SuperAdminSecurityA
 import SuperAdminDunningManager from "@/components/superadmin/SuperAdminDunningManager";
 import SuperAdminAnnouncements from "@/components/superadmin/SuperAdminAnnouncements";
 import SuperAdminDisasterRecovery from "@/components/superadmin/SuperAdminDisasterRecovery";
+import SuperAdminWhatsAppHub from "@/components/superadmin/SuperAdminWhatsAppHub";
 import {
   SalesPerformanceChart,
   RevenueBreakdownChart,
@@ -1593,6 +1594,15 @@ export default function SuperAdminDashboard() {
             {activeTab === "backups" && (
               <div className="space-y-6 animate-fade-in">
                 <SuperAdminDisasterRecovery />
+              </div>
+            )}
+
+            {/* =========================================================================
+                TAB 11: WHATSAPP PLATFORM GATEWAY & SALES AUTOMATION HUB
+                ========================================================================= */}
+            {activeTab === "whatsapp-hub" && (
+              <div className="space-y-6 animate-fade-in">
+                <SuperAdminWhatsAppHub />
               </div>
             )}
           </main>

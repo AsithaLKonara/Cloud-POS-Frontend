@@ -24,6 +24,7 @@ import {
   ShieldCheck,
   AlertTriangle,
   Megaphone,
+  MessageSquare,
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth.store";
 
@@ -219,6 +220,19 @@ export default function SuperAdminSidebar({
           >
             <Megaphone size={15} className={activeTab === "announcements" ? "text-white" : "text-zinc-500"} />
             <span>Broadcast Notices</span>
+          </button>
+
+          <button
+            data-testid="tab-whatsapp-hub"
+            onClick={() => setActiveTab("whatsapp-hub")}
+            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+              activeTab === "whatsapp-hub"
+                ? "bg-[#181A1D] text-white border border-[#2B3037] shadow-sm font-semibold"
+                : "text-zinc-400 hover:text-zinc-200 hover:bg-[#131518]"
+            }`}
+          >
+            <MessageSquare size={15} className={activeTab === "whatsapp-hub" ? "text-emerald-400" : "text-zinc-500"} />
+            <span>WhatsApp CRM & Sales Hub</span>
           </button>
 
           <button

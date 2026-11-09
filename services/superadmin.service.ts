@@ -578,4 +578,62 @@ export const superAdminService = {
     const res = await api.get('/superadmin/storage/stats');
     return res.data.data;
   },
+
+  async getWhatsAppTelemetry(): Promise<any> {
+    const res = await api.get('/superadmin/whatsapp/telemetry');
+    return res.data.data;
+  },
+
+  async getWhatsAppTenants(): Promise<any> {
+    const res = await api.get('/superadmin/whatsapp/tenants');
+    return res.data.data;
+  },
+
+  async broadcastWhatsAppNotice(title: string, message: string, targetTier?: string): Promise<any> {
+    const res = await api.post('/superadmin/whatsapp/broadcast', { title, message, targetTier });
+    return res.data;
+  },
+
+  async getWhatsAppAiGovernance(): Promise<any> {
+    const res = await api.get('/superadmin/whatsapp/ai-governance');
+    return res.data.data;
+  },
+
+  async updateWhatsAppAiGovernance(data: any): Promise<any> {
+    const res = await api.put('/superadmin/whatsapp/ai-governance', data);
+    return res.data;
+  },
+
+  async simulateWhatsAppAiAgent(message: string, tenantId?: string): Promise<any> {
+    const res = await api.post('/superadmin/whatsapp/ai-simulate', { message, tenantId });
+    return res.data.data;
+  },
+
+  async getWhatsAppCampaigns(): Promise<any> {
+    const res = await api.get('/superadmin/whatsapp/campaigns');
+    return res.data.data;
+  },
+
+  async triggerWhatsAppCampaign(campaignType: string): Promise<any> {
+    const res = await api.post('/superadmin/whatsapp/campaigns/trigger', { campaignType });
+    return res.data;
+  },
+
+  async getWhatsAppThreads(tenantId?: string, search?: string): Promise<any> {
+    const params: any = {};
+    if (tenantId) params.tenantId = tenantId;
+    if (search) params.search = search;
+    const res = await api.get('/superadmin/whatsapp/threads', { params });
+    return res.data.data;
+  },
+
+  async getWhatsAppThreadDetails(tenantId: string, phone: string): Promise<any> {
+    const res = await api.get(`/superadmin/whatsapp/threads/${tenantId}/${encodeURIComponent(phone)}`);
+    return res.data.data;
+  },
+
+  async sendWhatsAppIntervention(tenantId: string, phone: string, text: string): Promise<any> {
+    const res = await api.post('/superadmin/whatsapp/threads/reply', { tenantId, phone, text });
+    return res.data;
+  },
 };
