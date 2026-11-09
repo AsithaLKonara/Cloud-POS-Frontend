@@ -4,6 +4,8 @@ import { useState } from "react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 import AiChatWidget from "@/components/ai/AiChatWidget";
+import ImpersonationBanner from "@/components/common/ImpersonationBanner";
+import PlatformBroadcastBanner from "@/components/common/PlatformBroadcastBanner";
 
 export default function DashboardLayoutClient({ children, session }: { children: React.ReactNode, session?: any }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -25,6 +27,12 @@ export default function DashboardLayoutClient({ children, session }: { children:
       {/* Main Layout Area */}
       <div className="flex-1 flex flex-col md:ml-[240px] h-screen overflow-hidden w-full transition-all bg-background text-foreground">
         
+        {/* Impersonation Banner */}
+        <ImpersonationBanner />
+
+        {/* Platform Broadcast Notice Banner */}
+        <PlatformBroadcastBanner />
+
         {/* Header */}
         <Header onMenuClick={() => setIsSidebarOpen(true)} session={session} />
 

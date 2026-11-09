@@ -33,6 +33,7 @@ export default function Header({ onMenuClick, session }: { onMenuClick?: () => v
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
 
   const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -74,7 +75,8 @@ export default function Header({ onMenuClick, session }: { onMenuClick?: () => v
     : "Multi-Branch HQ";
 
   return (
-    <header className="h-[64px] bg-surface border-b border-border flex items-center justify-between px-4 md:px-6 shrink-0 shadow-sm z-40 transition-colors">
+    <div className="flex flex-col shrink-0 w-full z-40">
+      <header className="h-[64px] bg-surface border-b border-border flex items-center justify-between px-4 md:px-6 shrink-0 shadow-sm transition-colors">
       
       {/* Left — Hamburger & Route Breadcrumbs */}
       <div className="flex items-center gap-3">
@@ -279,5 +281,6 @@ export default function Header({ onMenuClick, session }: { onMenuClick?: () => v
 
       </div>
     </header>
+    </div>
   );
 }

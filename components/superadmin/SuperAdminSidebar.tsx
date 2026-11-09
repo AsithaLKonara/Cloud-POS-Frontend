@@ -20,6 +20,10 @@ import {
   Database,
   ExternalLink,
   ChevronDown,
+  Cpu,
+  ShieldCheck,
+  AlertTriangle,
+  Megaphone,
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth.store";
 
@@ -166,6 +170,68 @@ export default function SuperAdminSidebar({
               <span>Cluster Telemetry</span>
             </div>
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          </button>
+
+          <button
+            onClick={() => setActiveTab("features")}
+            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+              activeTab === "features"
+                ? "bg-[#181A1D] text-white border border-[#2B3037] shadow-sm font-semibold"
+                : "text-zinc-400 hover:text-zinc-200 hover:bg-[#131518]"
+            }`}
+          >
+            <Cpu size={15} className={activeTab === "features" ? "text-white" : "text-zinc-500"} />
+            <span>Feature Flags & Overrides</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("audit")}
+            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+              activeTab === "audit"
+                ? "bg-[#181A1D] text-white border border-[#2B3037] shadow-sm font-semibold"
+                : "text-zinc-400 hover:text-zinc-200 hover:bg-[#131518]"
+            }`}
+          >
+            <ShieldCheck size={15} className={activeTab === "audit" ? "text-white" : "text-zinc-500"} />
+            <span>Security & Global Audit</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("dunning")}
+            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+              activeTab === "dunning"
+                ? "bg-[#181A1D] text-white border border-[#2B3037] shadow-sm font-semibold"
+                : "text-zinc-400 hover:text-zinc-200 hover:bg-[#131518]"
+            }`}
+          >
+            <AlertTriangle size={15} className={activeTab === "dunning" ? "text-white" : "text-zinc-500"} />
+            <span>Dunning & Delinquency</span>
+          </button>
+
+          <button
+            data-testid="tab-announcements"
+            onClick={() => setActiveTab("announcements")}
+            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+              activeTab === "announcements"
+                ? "bg-[#181A1D] text-white border border-[#2B3037] shadow-sm font-semibold"
+                : "text-zinc-400 hover:text-zinc-200 hover:bg-[#131518]"
+            }`}
+          >
+            <Megaphone size={15} className={activeTab === "announcements" ? "text-white" : "text-zinc-500"} />
+            <span>Broadcast Notices</span>
+          </button>
+
+          <button
+            data-testid="tab-disaster-recovery"
+            onClick={() => setActiveTab("backups")}
+            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+              activeTab === "backups"
+                ? "bg-[#181A1D] text-white border border-[#2B3037] shadow-sm font-semibold"
+                : "text-zinc-400 hover:text-zinc-200 hover:bg-[#131518]"
+            }`}
+          >
+            <Database size={15} className={activeTab === "backups" ? "text-white" : "text-zinc-500"} />
+            <span>Disaster Recovery & Storage</span>
           </button>
         </div>
 

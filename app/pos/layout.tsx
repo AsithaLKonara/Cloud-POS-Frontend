@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import PlatformBroadcastBanner from "@/components/common/PlatformBroadcastBanner";
 
 export const metadata: Metadata = {
   title: "POS Terminal | Xonit Point of Sale",
@@ -11,8 +12,11 @@ export default function POSLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="dashboard-theme flex h-screen w-full bg-background overflow-hidden select-none">
-      {children}
+    <div className="dashboard-theme flex flex-col h-screen w-full bg-background overflow-hidden select-none">
+      <PlatformBroadcastBanner />
+      <div className="flex-1 flex overflow-hidden w-full">
+        {children}
+      </div>
     </div>
   );
 }

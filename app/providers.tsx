@@ -44,6 +44,7 @@ function AuthInitializer() {
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import GlobalDialog from "@/components/ui/GlobalDialog";
 import GlobalToast from "@/components/ui/GlobalToast";
+import ImpersonationBanner from "@/components/common/ImpersonationBanner";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(

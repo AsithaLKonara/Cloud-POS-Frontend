@@ -16,8 +16,16 @@ import { systemService, SystemErrorLogItem } from "@/services/system.service";
 import { tenantService } from "@/services/tenant.service";
 import { globalDialog } from "@/store/dialog.store";
 import { toast } from "@/store/toast.store";
+import { useAuthStore } from "@/store/auth.store";
 import SuperAdminSidebar from "@/components/superadmin/SuperAdminSidebar";
 import SuperAdminHeader from "@/components/superadmin/SuperAdminHeader";
+import { SuperAdminSubscriptionPackages } from "@/components/superadmin/SuperAdminSubscriptionPackages";
+import SuperAdminFeatureFlags from "@/components/superadmin/SuperAdminFeatureFlags";
+import TenantEntitlementsModal from "@/components/superadmin/TenantEntitlementsModal";
+import SuperAdminSecurityAudit from "@/components/superadmin/SuperAdminSecurityAudit";
+import SuperAdminDunningManager from "@/components/superadmin/SuperAdminDunningManager";
+import SuperAdminAnnouncements from "@/components/superadmin/SuperAdminAnnouncements";
+import SuperAdminDisasterRecovery from "@/components/superadmin/SuperAdminDisasterRecovery";
 import {
   SalesPerformanceChart,
   RevenueBreakdownChart,
@@ -150,6 +158,7 @@ export default function SuperAdminDashboard() {
   const [isAddAdminOpen, setIsAddAdminOpen] = useState(false);
   const [addAdminLoading, setAddAdminLoading] = useState(false);
   const [adminActionMsg, setAdminActionMsg] = useState<string | null>(null);
+  const [entitlementsTenant, setEntitlementsTenant] = useState<TenantRegistryItem | null>(null);
 
   // Tenant Filters
   const [statusFilter, setStatusFilter] = useState("ALL");
@@ -294,6 +303,64 @@ export default function SuperAdminDashboard() {
       await loadData();
     } catch (err: any) {
       globalDialog.alert(err.message || "Failed to update tenant status", "Update Failed", { variant: "danger" });
+    }
+  };
+
+  const [impersonatingTenantId, setImpersonatingTenantId] = useState<string | null>(null);
+
+  const handleImpersonateTenant = async (tenant: TenantRegistryItem) => {
+    setImpersonatingTenantId(tenant.id);
+    try {
+      // 1. Read current superadmin user & token for backup
+      const currentUserStr = localStorage.getItem("laural_user");
+      const match = typeof document !== "undefined" ? document.cookie.match(/(?:^|;\s*)laural_access_token=([^;]*)/) : null;
+      const currentToken = match ? match[1] : "";
+
+      if (currentToken && currentUserStr) {
+        localStorage.setItem("xonit_impersonator_token", currentToken);
+        localStorage.setItem("xonit_impersonator_user", currentUserStr);
+      }
+
+      // 2. Call backend impersonation service
+      const res = await superAdminService.impersonateTenant(tenant.id);
+      if (!res || !res.accessToken) {
+        throw new Error("Did not receive impersonation token from server.");
+      }
+
+      // 3. Store impersonation session metadata
+      localStorage.setItem(
+        "xonit_impersonation_session",
+        JSON.stringify({
+          tenantId: tenant.id,
+          tenantName: tenant.name,
+          tenantSlug: tenant.slug,
+          userEmail: res.user?.email,
+          impersonatorEmail: res.user?.impersonator?.email,
+          startedAt: new Date().toISOString(),
+        })
+      );
+
+      // 4. Update cookies with impersonated credentials
+      document.cookie = `laural_access_token=${res.accessToken}; path=/; max-age=3600; SameSite=Lax`;
+      document.cookie = `laural_role=${res.user?.roles?.[0] || "ADMIN"}; path=/; max-age=3600; SameSite=Lax`;
+
+      // 5. Update auth store and local tenant context
+      localStorage.setItem("laural_user", JSON.stringify(res.user));
+      localStorage.setItem("laural_tenant_id", tenant.id);
+      localStorage.setItem("laural_tenant_slug", tenant.slug);
+      localStorage.setItem("active_tenant_id", tenant.id);
+      localStorage.setItem("active_tenant_slug", tenant.slug);
+
+      useAuthStore.getState().setAuth(res.user);
+
+      toast.success(`Entering ${tenant.name} workspace in Masquerade Mode...`);
+
+      // 6. Navigate to tenant admin
+      window.location.href = res.redirectTo || "/admin";
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || err?.message || "Failed to impersonate tenant");
+    } finally {
+      setImpersonatingTenantId(null);
     }
   };
 
@@ -969,6 +1036,15 @@ export default function SuperAdminDashboard() {
                               <td className="py-3.5 px-4 text-right">
                                 <div className="inline-flex items-center gap-1.5">
                                   <button
+                                    onClick={() => handleImpersonateTenant(t)}
+                                    disabled={impersonatingTenantId === t.id}
+                                    className="px-2.5 py-1 rounded bg-gradient-to-r from-amber-500/15 via-purple-500/15 to-amber-500/15 hover:from-amber-500/30 hover:to-purple-500/30 text-amber-300 text-[11px] font-semibold border border-amber-500/30 hover:border-amber-400 transition-all flex items-center gap-1 shadow-sm active:scale-95 disabled:opacity-50"
+                                    title="Masquerade Mode: Log into this tenant store with root permissions"
+                                  >
+                                    <KeyRound size={12} className={impersonatingTenantId === t.id ? "animate-spin" : "text-amber-400"} />
+                                    <span>{impersonatingTenantId === t.id ? "Entering..." : "Impersonate"}</span>
+                                  </button>
+                                  <button
                                     onClick={() => handleOpenTenantAdmins(t)}
                                     className="px-2 py-1 rounded bg-[#1C2025] hover:bg-amber-950/40 text-amber-400 text-[11px] font-medium border border-[#2B3037] hover:border-amber-500/40 transition-colors flex items-center gap-1"
                                     title="Manage Tenant Super Admins"
@@ -983,6 +1059,15 @@ export default function SuperAdminDashboard() {
                                   >
                                     <Settings size={12} />
                                     <span>Settings</span>
+                                  </button>
+                                  <button
+                                    onClick={() => setEntitlementsTenant(t)}
+                                    data-testid={`entitlements-btn-${t.slug}`}
+                                    className="px-2 py-1 rounded bg-[#1C2025] hover:bg-purple-950/40 text-purple-400 text-[11px] font-medium border border-[#2B3037] hover:border-purple-500/40 transition-colors flex items-center gap-1"
+                                    title="Manage Feature Entitlements & Overrides"
+                                  >
+                                    <SlidersHorizontal size={12} />
+                                    <span>Entitlements</span>
                                   </button>
                                   {t.status === "ACTIVE" ? (
                                     <button
@@ -1022,137 +1107,11 @@ export default function SuperAdminDashboard() {
                 TAB 3: SUBSCRIPTIONS & LKR PRICING PLANS
                 ========================================================================= */}
             {activeTab === "subscriptions" && (
-              <div className="space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div>
-                    <h2 className="text-2xl font-bold text-white tracking-tight">
-                      SaaS Subscription Tiers & Pricing
-                    </h2>
-                    <p className="text-xs text-zinc-400 mt-1">
-                      Manage platform subscription pricing in Sri Lankan Rupees (LKR)
-                    </p>
-                  </div>
-                </div>
-
-                {/* 3 Tier Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                  {[
-                    {
-                      tier: "STARTER",
-                      name: "Starter Merchant",
-                      priceLkr: planOverrides.STARTER ?? 4500,
-                      features: ["1 Branch Included", "Up to 3 Cashiers", "Core POS & Inventory", "Standard Receipts"],
-                      color: "border-blue-500/30",
-                    },
-                    {
-                      tier: "GROWTH",
-                      name: "Growth Multi-Store",
-                      priceLkr: planOverrides.GROWTH ?? 9500,
-                      features: ["Up to 3 Branches", "Up to 10 Staff", "LankaQR & PayHere APIs", "Full P&L Reports"],
-                      color: "border-emerald-500/40",
-                      badge: "Most Popular",
-                    },
-                    {
-                      tier: "ENTERPRISE",
-                      name: "Enterprise Multi-Tenant",
-                      priceLkr: planOverrides.ENTERPRISE ?? 18500,
-                      features: ["Unlimited Branches", "Unlimited Staff", "Dedicated DB Schema", "24/7 Priority SLA"],
-                      color: "border-purple-500/30",
-                    },
-                  ].map((p) => (
-                    <div
-                      key={p.tier}
-                      className={`p-6 rounded-2xl bg-[#121417] border ${p.color} flex flex-col justify-between relative group hover:border-zinc-500 transition-colors`}
-                    >
-                      {p.badge && (
-                        <span className="absolute top-4 right-4 text-[10px] font-bold font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                          {p.badge}
-                        </span>
-                      )}
-                      <div>
-                        <span className="text-xs font-mono font-bold text-zinc-400 uppercase tracking-wider">
-                          {p.tier}
-                        </span>
-                        <h3 className="text-lg font-bold text-white mt-1">{p.name}</h3>
-                        <div className="mt-4 mb-6">
-                          <span className="text-3xl font-black text-white font-mono">
-                            Rs. {p.priceLkr.toLocaleString()}
-                          </span>
-                          <span className="text-xs text-zinc-500 ml-1.5 font-medium">/ month</span>
-                        </div>
-
-                        <ul className="space-y-2.5 text-xs text-zinc-300">
-                          {p.features.map((f, i) => (
-                            <li key={i} className="flex items-center gap-2">
-                              <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
-                              <span>{f}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-
-                      <button
-                        onClick={() => {
-                          setSelectedPlanToEdit(p.tier);
-                          setNewPlanPrice(String(p.priceLkr));
-                          setIsPriceEditorOpen(true);
-                        }}
-                        className="mt-6 w-full h-9 rounded-lg bg-[#181A1D] hover:bg-[#22262C] border border-[#2B3037] text-white text-xs font-semibold transition-colors flex items-center justify-center gap-1.5"
-                      >
-                        <Settings size={13} />
-                        <span>Adjust Plan Price</span>
-                      </button>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Invoices Ledger */}
-                <div className="p-5 rounded-2xl bg-[#121417] border border-[#1E2227]">
-                  <h3 className="text-sm font-bold text-white tracking-tight mb-4">
-                    Platform Automated Invoices & LankaQR Gateway Settlements
-                  </h3>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs">
-                      <thead>
-                        <tr className="border-b border-[#1E2227] text-zinc-500 font-semibold uppercase tracking-wider text-[10px]">
-                          <th className="py-2.5 px-3">Invoice #</th>
-                          <th className="py-2.5 px-3">Tenant</th>
-                          <th className="py-2.5 px-3">Billing Cycle</th>
-                          <th className="py-2.5 px-3">Amount (LKR)</th>
-                          <th className="py-2.5 px-3">Issued Date</th>
-                          <th className="py-2.5 px-3">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-[#1A1D21]">
-                        {(financials?.recentInvoices || []).map((inv) => (
-                          <tr key={inv.id} className="hover:bg-[#16181B] transition-colors">
-                            <td className="py-3 px-3 font-mono font-bold text-zinc-300">
-                              {inv.invoiceNumber}
-                            </td>
-                            <td className="py-3 px-3 text-white font-medium">
-                              {inv.tenantName}
-                            </td>
-                            <td className="py-3 px-3 font-mono text-zinc-400">
-                              {inv.billingCycle}
-                            </td>
-                            <td className="py-3 px-3 font-mono font-bold text-white">
-                              Rs. {inv.amountLkr.toLocaleString()}
-                            </td>
-                            <td className="py-3 px-3 text-[11px] text-zinc-500 font-mono">
-                              {new Date(inv.issuedAt).toLocaleDateString()}
-                            </td>
-                            <td className="py-3 px-3">
-                              <span className="text-[10px] px-2 py-0.5 rounded-full font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                {inv.status}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
+              <SuperAdminSubscriptionPackages
+                tenants={tenants}
+                financials={financials}
+                onRefreshData={loadData}
+              />
             )}
 
             {/* =========================================================================
@@ -1553,6 +1512,87 @@ export default function SuperAdminDashboard() {
                     )}
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* =========================================================================
+                TAB 6: GLOBAL FEATURE FLAGS & MASTER KILL-SWITCHES
+                ========================================================================= */}
+            {activeTab === "features" && (
+              <div className="space-y-6 animate-fade-in">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
+                      <Cpu className="text-amber-400" size={24} />
+                      Global Feature Flags & Master Kill-Switches
+                    </h1>
+                    <p className="text-xs sm:text-sm text-zinc-400 mt-1">
+                      Manage platform-wide kill switches, emergency outages, and modular tier entitlements.
+                    </p>
+                  </div>
+                </div>
+
+                <SuperAdminFeatureFlags />
+              </div>
+            )}
+
+            {/* =========================================================================
+                TAB 7: CROSS-TENANT SECURITY & GLOBAL AUDIT LOG
+                ========================================================================= */}
+            {activeTab === "audit" && (
+              <div className="space-y-6 animate-fade-in">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
+                      <ShieldCheck className="text-emerald-400" size={24} />
+                      Cross-Tenant Security & Global Audit Trail
+                    </h1>
+                    <p className="text-xs sm:text-sm text-zinc-400 mt-1">
+                      Immutable platform security ledger: monitor masquerade sessions, feature overrides, and administrative mutations.
+                    </p>
+                  </div>
+                </div>
+
+                <SuperAdminSecurityAudit tenants={tenants} />
+              </div>
+            )}
+
+            {/* =========================================================================
+                TAB 8: AUTOMATED DUNNING & DELINQUENCY MANAGER
+                ========================================================================= */}
+            {activeTab === "dunning" && (
+              <div className="space-y-6 animate-fade-in">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
+                      <AlertTriangle className="text-amber-400" size={24} />
+                      Automated Dunning, Delinquency & Grace Period Manager
+                    </h1>
+                    <p className="text-xs sm:text-sm text-zinc-400 mt-1">
+                      Monitor overdue merchant subscriptions, manage 7-day grace periods, and execute automated suspension policies.
+                    </p>
+                  </div>
+                </div>
+
+                <SuperAdminDunningManager onRefreshData={loadData} />
+              </div>
+            )}
+
+            {/* =========================================================================
+                TAB 9: PLATFORM BROADCASTS & IN-APP ANNOUNCEMENT BANNERS
+                ========================================================================= */}
+            {activeTab === "announcements" && (
+              <div className="space-y-6 animate-fade-in">
+                <SuperAdminAnnouncements />
+              </div>
+            )}
+
+            {/* =========================================================================
+                TAB 10: DISASTER RECOVERY, DATABASE SNAPSHOTS & STORAGE MANAGER
+                ========================================================================= */}
+            {activeTab === "backups" && (
+              <div className="space-y-6 animate-fade-in">
+                <SuperAdminDisasterRecovery />
               </div>
             )}
           </main>
@@ -2348,6 +2388,17 @@ export default function SuperAdminDashboard() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* =========================================================================
+          MODAL: TENANT ENTITLEMENTS & MODULAR FEATURE OVERRIDES
+          ========================================================================= */}
+      {entitlementsTenant && (
+        <TenantEntitlementsModal
+          tenant={entitlementsTenant}
+          onClose={() => setEntitlementsTenant(null)}
+          onSuccess={() => loadData()}
+        />
       )}
     </div>
   );

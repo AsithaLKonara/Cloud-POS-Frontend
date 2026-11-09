@@ -1,5 +1,193 @@
 import { api } from './api';
 
+export interface PlanConfig {
+  key: string;
+  name: string;
+  badge?: string;
+  description?: string;
+  monthlyLkr: number;
+  quarterlyLkr: number;
+  annualLkr: number;
+  maxBranches: number;
+  maxUsers: number;
+  trialDays: number;
+  features: string[];
+  isPopular?: boolean;
+  isActive?: boolean;
+  color?: string;
+  subscriberCount?: number;
+  totalMrrLkr?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface GlobalFeatureFlag {
+  key: string;
+  name: string;
+  description: string;
+  category: string;
+  minTier: 'STARTER' | 'GROWTH' | 'ENTERPRISE';
+  defaultEnabled: boolean;
+  isGloballyEnabled: boolean;
+  settingKey: string;
+  updatedAt?: string;
+}
+
+export interface TenantEntitlementItem {
+  key: string;
+  name: string;
+  description: string;
+  category: string;
+  minTier: 'STARTER' | 'GROWTH' | 'ENTERPRISE';
+  isGloballyEnabled: boolean;
+  override: boolean | null;
+  tierIncluded: boolean;
+  effective: boolean;
+  source: 'GLOBAL_DISABLED' | 'OVERRIDE_ENABLED' | 'OVERRIDE_DISABLED' | 'TIER_INCLUDED' | 'TIER_EXCLUDED';
+  reason: string;
+}
+
+export interface TenantEntitlementsData {
+  tenant: {
+    id: string;
+    name: string;
+    slug: string;
+    subscriptionTier: string;
+  };
+  entitlements: TenantEntitlementItem[];
+  overrides: Record<string, boolean | null>;
+}
+
+export interface GlobalAuditLogItem {
+  id: string;
+  action: string;
+  entity: string;
+  entityId?: string;
+  oldData?: any;
+  newData?: any;
+  ipAddress: string;
+  userAgent: string;
+  createdAt: string;
+  user?: {
+    id: string;
+    name?: string;
+    email: string;
+  } | null;
+  tenant?: {
+    id: string;
+    name: string;
+    slug: string;
+  } | null;
+}
+
+export interface AuditStatsResponse {
+  totalEvents: number;
+  events24h: number;
+  impersonationCount: number;
+  securityEvents: number;
+}
+
+export interface GlobalAuditResponse {
+  logs: GlobalAuditLogItem[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export interface DelinquentTenantItem {
+  tenantId: string;
+  name: string;
+  slug: string;
+  businessType: string;
+  status: string;
+  subscriptionTier: string;
+  delinquencyStatus: 'IN_GRACE_PERIOD' | 'OVERDUE' | 'SUSPENDED_DELINQUENT' | 'EXEMPT' | 'HEALTHY';
+  daysOverdue: number;
+  graceExpiresAt: string | null;
+  periodEnd: string | null;
+  amountAtRiskLkr: number;
+  isExempt: boolean;
+  notes?: string;
+}
+
+export interface DunningOverviewResponse {
+  kpis: {
+    totalDelinquentCount: number;
+    atRiskMrrLkr: number;
+    inGraceCount: number;
+    overdueCount: number;
+    suspendedCount: number;
+    exemptCount: number;
+  };
+  tenants: DelinquentTenantItem[];
+}
+
+export interface BroadcastAnnouncement {
+  id: string;
+  title: string;
+  message: string;
+  type: 'INFO' | 'MAINTENANCE' | 'CRITICAL_ALERT' | 'NEW_FEATURE';
+  targetAudience: 'ALL_TENANTS' | 'TIER_SPECIFIC' | 'BUSINESS_TYPE';
+  targetTier?: 'STARTER' | 'GROWTH' | 'ENTERPRISE';
+  targetBusinessType?: string;
+  isSticky: boolean;
+  isActive: boolean;
+  actionUrl?: string;
+  actionLabel?: string;
+  startsAt: string;
+  expiresAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  createdBy?: string;
+}
+
+export interface DatabaseBackupItem {
+  filename: string;
+  filepath: string;
+  sizeBytes: number;
+  sizeFormatted: string;
+  createdAt: string;
+  checksumSha256?: string;
+  status: 'VERIFIED' | 'PENDING' | 'CORRUPTED';
+  type: 'SCHEDULED' | 'MANUAL';
+  label?: string;
+}
+
+export interface TenantStorageQuotaItem {
+  tenantId: string;
+  name: string;
+  slug: string;
+  tier: string;
+  quotaBytes: number;
+  quotaFormatted: string;
+  usedBytes: number;
+  usedFormatted: string;
+  usagePct: number;
+  totalProducts: number;
+  totalOrders: number;
+  totalMediaFiles: number;
+  status: 'NORMAL' | 'WARNING' | 'CRITICAL';
+}
+
+export interface PlatformStorageStatsResponse {
+  summary: {
+    totalBackupCount: number;
+    totalBackupSizeBytes: number;
+    totalBackupSizeFormatted: string;
+    totalMediaUploadsBytes: number;
+    totalMediaUploadsFormatted: string;
+    totalDiskUsedBytes: number;
+    totalDiskUsedFormatted: string;
+    schedulerStatus: string;
+    retentionDays: number;
+  };
+  backups: DatabaseBackupItem[];
+  tenantQuotas: TenantStorageQuotaItem[];
+}
+
 export interface PlatformKPIs {
   totalTenants: number;
   activeTenants: number;
@@ -224,6 +412,31 @@ export const superAdminService = {
     return res.data.data;
   },
 
+  async getPlans(): Promise<PlanConfig[]> {
+    const res = await api.get('/superadmin/plans');
+    return res.data.data;
+  },
+
+  async createPlan(data: Partial<PlanConfig>): Promise<PlanConfig> {
+    const res = await api.post('/superadmin/plans', data);
+    return res.data.data;
+  },
+
+  async updatePlan(planKey: string, data: Partial<PlanConfig>): Promise<PlanConfig> {
+    const res = await api.put(`/superadmin/plans/${planKey}`, data);
+    return res.data.data;
+  },
+
+  async deletePlan(planKey: string): Promise<any> {
+    const res = await api.delete(`/superadmin/plans/${planKey}`);
+    return res.data;
+  },
+
+  async assignPlanToTenant(tenantId: string, payload: { planKey: string; billingCycle?: string; customPriceLkr?: number }): Promise<any> {
+    const res = await api.post(`/superadmin/tenants/${tenantId}/assign-plan`, payload);
+    return res.data;
+  },
+
   async generateInvoice(payload: { tenantId: string; billingCycle?: string; amountLkr?: number }): Promise<any> {
     const res = await api.post('/superadmin/invoices', payload);
     return res.data.data;
@@ -251,6 +464,118 @@ export const superAdminService = {
 
   async resetTenantAdminPassword(tenantId: string, adminId: string, newPassword?: string): Promise<any> {
     const res = await api.post(`/superadmin/tenants/${tenantId}/admins/${adminId}/reset-password`, { newPassword });
+    return res.data.data;
+  },
+
+  async impersonateTenant(tenantId: string): Promise<{
+    accessToken: string;
+    user: any;
+    redirectTo: string;
+  }> {
+    const res = await api.post(`/superadmin/tenants/${tenantId}/impersonate`);
+    return res.data.data;
+  },
+
+  async getFeatureFlags(): Promise<GlobalFeatureFlag[]> {
+    const res = await api.get('/superadmin/features');
+    return res.data.data;
+  },
+
+  async updateGlobalFeatureFlag(key: string, isEnabled: boolean): Promise<GlobalFeatureFlag> {
+    const res = await api.patch(`/superadmin/features/global/${key}`, { isEnabled });
+    return res.data.data;
+  },
+
+  async getTenantEntitlements(tenantId: string): Promise<TenantEntitlementsData> {
+    const res = await api.get(`/superadmin/tenants/${tenantId}/entitlements`);
+    return res.data.data;
+  },
+
+  async updateTenantEntitlements(
+    tenantId: string,
+    overrides: Record<string, boolean | null>
+  ): Promise<TenantEntitlementsData> {
+    const res = await api.put(`/superadmin/tenants/${tenantId}/entitlements`, { overrides });
+    return res.data.data;
+  },
+
+  async getGlobalAuditLogs(params?: Record<string, any>): Promise<GlobalAuditResponse> {
+    const res = await api.get('/superadmin/audit', { params });
+    return res.data.data;
+  },
+
+  async getAuditStats(): Promise<AuditStatsResponse> {
+    const res = await api.get('/superadmin/audit/stats');
+    return res.data.data;
+  },
+
+  async getDunningOverview(): Promise<DunningOverviewResponse> {
+    const res = await api.get('/superadmin/dunning');
+    return res.data.data;
+  },
+
+  async extendGracePeriod(tenantId: string, days: number = 7): Promise<any> {
+    const res = await api.post(`/superadmin/dunning/tenants/${tenantId}/extend-grace`, { days });
+    return res.data.data;
+  },
+
+  async toggleDunningExemption(tenantId: string, isExempt: boolean): Promise<any> {
+    const res = await api.post(`/superadmin/dunning/tenants/${tenantId}/exemption`, { isExempt });
+    return res.data.data;
+  },
+
+  async triggerDunningScan(): Promise<any> {
+    const res = await api.post('/superadmin/dunning/run');
+    return res.data.data;
+  },
+
+  async getAnnouncements(): Promise<BroadcastAnnouncement[]> {
+    const res = await api.get('/superadmin/announcements');
+    return res.data.data;
+  },
+
+  async createAnnouncement(data: Partial<BroadcastAnnouncement>): Promise<BroadcastAnnouncement> {
+    const res = await api.post('/superadmin/announcements', data);
+    return res.data.data;
+  },
+
+  async updateAnnouncement(id: string, data: Partial<BroadcastAnnouncement>): Promise<BroadcastAnnouncement> {
+    const res = await api.put(`/superadmin/announcements/${id}`, data);
+    return res.data.data;
+  },
+
+  async toggleAnnouncement(id: string): Promise<BroadcastAnnouncement> {
+    const res = await api.patch(`/superadmin/announcements/${id}/toggle`);
+    return res.data.data;
+  },
+
+  async deleteAnnouncement(id: string): Promise<any> {
+    const res = await api.delete(`/superadmin/announcements/${id}`);
+    return res.data;
+  },
+
+  async getActiveBroadcasts(tenantId?: string): Promise<BroadcastAnnouncement[]> {
+    const res = await api.get('/announcements/active', { params: tenantId ? { tenantId } : undefined });
+    return res.data.data;
+  },
+
+  async getBackups(): Promise<DatabaseBackupItem[]> {
+    const res = await api.get('/superadmin/backups');
+    return res.data.data;
+  },
+
+  async createBackup(label?: string): Promise<DatabaseBackupItem> {
+    const res = await api.post('/superadmin/backups', { label });
+    return res.data.data;
+  },
+
+  async deleteBackup(filename: string): Promise<any> {
+    const res = await api.delete(`/superadmin/backups/${encodeURIComponent(filename)}`);
+    return res.data;
+  },
+
+  async getStorageStats(): Promise<PlatformStorageStatsResponse> {
+    const res = await api.get('/superadmin/storage/stats');
     return res.data.data;
   },
 };

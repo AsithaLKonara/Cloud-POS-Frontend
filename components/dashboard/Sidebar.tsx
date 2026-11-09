@@ -49,6 +49,7 @@ interface NavItem {
   href: string;
   permission?: string | string[];
   requiredTier?: "STARTER" | "GROWTH" | "ENTERPRISE";
+  featureKey?: string;
 }
 
 const TIER_ORDER: Record<string, number> = {
@@ -113,15 +114,15 @@ export default function Sidebar({ isOpen, setIsOpen, session }: { isOpen?: boole
         ),
         { name: "Executive P&L Statement", icon: BarChart3, href: "/admin/reports/pnl", permission: "reports:view_financial" },
         { name: "Analytics & Reports", icon: FileText, href: "/admin/reports", permission: ["reports:view_dashboard", "reports:view_financial"] },
-        { name: "AI Support Copilot", icon: Sparkles, href: "/admin/ai-assistant", permission: ["reports:view_dashboard", "system:platform_settings"] },
+        { name: "AI Support Copilot", icon: Sparkles, href: "/admin/ai-assistant", permission: ["reports:view_dashboard", "system:platform_settings"], featureKey: "GEMINI_AI_COPILOT" },
       ],
     },
     {
       label: "Finance & ERP",
       items: [
-        { name: "General Ledger", icon: Scale, href: "/admin/erp/general-ledger", permission: ["reports:view_financial", "reports:view_dashboard"], requiredTier: "GROWTH" },
-        { name: "AP & AR Aging", icon: Clock, href: "/admin/erp/aging", permission: ["reports:view_financial", "reports:view_dashboard"], requiredTier: "GROWTH" },
-        { name: "Stocktaking", icon: Boxes, href: "/admin/erp/stocktaking", permission: ["inventory:view_stock", "inventory:adjust_stock"], requiredTier: "GROWTH" },
+        { name: "General Ledger", icon: Scale, href: "/admin/erp/general-ledger", permission: ["reports:view_financial", "reports:view_dashboard"], requiredTier: "GROWTH", featureKey: "ERP_GENERAL_LEDGER" },
+        { name: "AP & AR Aging", icon: Clock, href: "/admin/erp/aging", permission: ["reports:view_financial", "reports:view_dashboard"], requiredTier: "GROWTH", featureKey: "ERP_GENERAL_LEDGER" },
+        { name: "Stocktaking", icon: Boxes, href: "/admin/erp/stocktaking", permission: ["inventory:view_stock", "inventory:adjust_stock"], requiredTier: "GROWTH", featureKey: "ADVANCED_STOCKTAKING" },
       ],
     },
     {
@@ -161,8 +162,8 @@ export default function Sidebar({ isOpen, setIsOpen, session }: { isOpen?: boole
       label: "System & Settings",
       items: [
         { name: "Tenant Settings", icon: Settings, href: "/admin/settings", permission: "system:platform_settings" },
-        { name: "External Integrations", icon: Cpu, href: "/admin/settings/integrations", permission: "system:platform_settings", requiredTier: "GROWTH" },
-        { name: "Headless Developer API", icon: KeyRound, href: "/admin/settings/developer-api", permission: "system:platform_settings", requiredTier: "ENTERPRISE" },
+        { name: "External Integrations", icon: Cpu, href: "/admin/settings/integrations", permission: "system:platform_settings", requiredTier: "GROWTH", featureKey: "KOKO_PAYMENT_GATEWAY" },
+        { name: "Headless Developer API", icon: KeyRound, href: "/admin/settings/developer-api", permission: "system:platform_settings", requiredTier: "ENTERPRISE", featureKey: "HEADLESS_DEVELOPER_API" },
         { name: "Access Control (RBAC)", icon: Shield, href: "/admin/system/roles", permission: ["system:manage_roles", "system:manage_users"] },
         { name: "Staff Management", icon: UserCog, href: "/admin/system/users", permission: "system:manage_users" },
         { name: "Audit Trail", icon: FileText, href: "/admin/system/audit", permission: "system:view_audit_logs" },
@@ -317,7 +318,11 @@ export default function Sidebar({ isOpen, setIsOpen, session }: { isOpen?: boole
                   const Icon = item.icon;
                   const itemKey = `${item.name}::${item.href}`;
                   const isActive = activeItemKey === itemKey;
-                  const tierUnlocked = isTierMet(currentTier, item.requiredTier);
+                  const featureOverrides = (tenant as any)?.settings?.featureOverrides || (tenant as any)?.featureOverrides;
+                  let tierUnlocked = isTierMet(currentTier, item.requiredTier);
+                  if (item.featureKey && featureOverrides && featureOverrides[item.featureKey] !== undefined) {
+                    tierUnlocked = Boolean(featureOverrides[item.featureKey]);
+                  }
 
                   return (
                     <Link
