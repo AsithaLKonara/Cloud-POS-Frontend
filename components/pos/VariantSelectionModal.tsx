@@ -285,6 +285,7 @@ export default function VariantSelectionModal({ product, onClose, onAdd, allowOu
             </button>
             <button 
               type="button"
+              data-testid="add-to-order-btn"
               disabled={!inStock && !allowOutOfStock}
               onClick={handleAdd} 
               className={`px-7 py-2.5 rounded-xl font-inter font-bold text-sm text-white transition-all shadow-md active:scale-[0.98] ${

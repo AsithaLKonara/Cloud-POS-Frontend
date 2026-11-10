@@ -272,6 +272,7 @@ export default function PaymentModal({ total, selectedCustomer, onOpenCustomerMo
               </button>
               <button 
                 type="button"
+                data-testid="complete-transaction-btn"
                 onClick={handleConfirm}
                 disabled={selectedMethod === "Cash" && numTendered < numTotal && numTendered !== 0}
                 className="px-8 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-inter font-bold text-sm rounded-xl shadow-lg transition-all flex items-center gap-2 disabled:opacity-50"

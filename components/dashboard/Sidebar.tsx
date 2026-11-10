@@ -41,6 +41,7 @@ import {
   Clock,
   Boxes,
   Lock,
+  ShieldCheck,
 } from "lucide-react";
 
 interface NavItem {
@@ -157,6 +158,7 @@ export default function Sidebar({ isOpen, setIsOpen, session }: { isOpen?: boole
       items: [
         { name: "Customers & Accounts", icon: Users, href: "/admin/customers", permission: "customers:view" },
         { name: "WhatsApp CRM Inbox", icon: MessageSquare, href: "/admin/crm/inbox", permission: "customers:view" },
+        { name: "Warranty & Repairs", icon: ShieldCheck, href: "/admin/warranty", permission: "orders:view" },
       ],
     },
     {

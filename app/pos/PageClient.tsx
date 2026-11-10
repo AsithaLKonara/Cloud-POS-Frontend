@@ -384,11 +384,19 @@ export default function POSPage() {
       price: variant.price || 0,
       color: variant.color,
       size: variant.size,
+      warrantyPeriodMonths: product.warrantyPeriodMonths || 0,
+      warrantyPolicy: product.warrantyPolicy || null,
+      hasSerialTracking: variant.hasSerialTracking || false,
+      serialNumber: '',
       image,
     } : {
       ...product,
       id: product.variants?.[0]?.id || product.id,
       price: product.variants?.[0]?.price || 0,
+      warrantyPeriodMonths: product.warrantyPeriodMonths || 0,
+      warrantyPolicy: product.warrantyPolicy || null,
+      hasSerialTracking: product.variants?.[0]?.hasSerialTracking || false,
+      serialNumber: '',
       image,
     };
 
@@ -904,6 +912,7 @@ export default function POSPage() {
                     return (
                       <button 
                         key={p.id}
+                        data-testid={`product-card-${p.id}`}
                         onClick={() => { 
                           setSelectedProduct(p); 
                           setIsVariantModalOpen(true); 
@@ -972,6 +981,7 @@ export default function POSPage() {
                     return (
                       <div
                         key={p.id}
+                        data-testid={`product-card-${p.id}`}
                         onClick={() => {
                           setSelectedProduct(p);
                           setIsVariantModalOpen(true);
@@ -1195,6 +1205,29 @@ export default function POSPage() {
                             Rs. {(item.price * item.qty).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                           </span>
                         </div>
+
+                        {/* Serial Number & Warranty Attachment */}
+                        <div className="mt-2 pt-2 border-t border-border/40 flex items-center justify-between gap-2 text-[11px]">
+                          <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                            <span className="text-[10px] text-muted font-bold shrink-0">SN:</span>
+                            <input
+                              type="text"
+                              data-testid={`cart-serial-input-${item.id}`}
+                              placeholder="Scan / Type Serial #"
+                              value={item.serialNumber || ""}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setCart(prev => prev.map(ci => ci.id === item.id ? { ...ci, serialNumber: val } : ci));
+                              }}
+                              className="px-2 py-0.5 text-[11px] font-mono bg-surface border border-border rounded w-full max-w-[170px] focus:outline-none focus:ring-1 focus:ring-primary text-foreground"
+                            />
+                          </div>
+                          {item.warrantyPeriodMonths > 0 && (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
+                              🛡️ {item.warrantyPeriodMonths}M Warranty
+                            </span>
+                          )}
+                        </div>
                       </div>
                     );
                   })
@@ -1279,6 +1312,7 @@ export default function POSPage() {
 
                 <div className="mt-2">
                   <button 
+                    data-testid="pos-charge-btn"
                     disabled={cart.length === 0}
                     onClick={() => {
                       if (!branchId) {
@@ -1380,6 +1414,7 @@ export default function POSPage() {
               items: cart.map(item => ({ 
                 variantId: item.id, 
                 qty: item.qty,
+                serialNumber: item.serialNumber || undefined,
                 dispensedVolumeLiters: (item.packUnit?.toLowerCase().includes("drum") || item.packUnit?.toLowerCase().includes("loose") || item.qty % 1 !== 0) ? item.qty : undefined
               })),
               paymentMethod: method,

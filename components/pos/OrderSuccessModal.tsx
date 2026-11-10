@@ -135,7 +135,7 @@ export default function OrderSuccessModal({
 
   return (
     <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-surface border border-border rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl flex flex-col items-center p-6 text-center animate-in zoom-in-95 duration-200">
+      <div data-testid="order-success-modal" className="bg-surface border border-border rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl flex flex-col items-center p-6 text-center animate-in zoom-in-95 duration-200">
         
         {/* Animated Success Icon */}
         <div className="w-16 h-16 rounded-full bg-emerald-500/10 border-2 border-emerald-500/20 text-emerald-500 flex items-center justify-center mb-4 shadow-sm animate-bounce">
@@ -181,6 +181,24 @@ export default function OrderSuccessModal({
             </div>
           )}
         </div>
+
+        {/* Warranty & Serial Summary */}
+        {receiptProps.items?.some((i: any) => i.serialNumber || i.warrantyPeriodMonths > 0) && (
+          <div data-testid="modal-warranty-certificate" className="w-full bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3 mb-3 text-left text-xs space-y-1">
+            <div className="flex items-center gap-1.5 font-bold text-emerald-600 dark:text-emerald-400">
+              <Sparkles size={14} />
+              <span>Official Warranty Activated</span>
+            </div>
+            {receiptProps.items.filter((i: any) => i.serialNumber || i.warrantyPeriodMonths > 0).map((i: any, idx: number) => (
+              <div key={idx} className="flex justify-between items-center text-[11px] text-foreground font-mono">
+                <span className="truncate max-w-[170px]">{i.name}</span>
+                <span className="font-bold text-emerald-500">
+                  {i.serialNumber ? `SN: ${i.serialNumber}` : `${i.warrantyPeriodMonths}M`}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* WhatsApp Digital e-Receipt Box */}
         <div className="w-full bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-3 mb-4 flex flex-col gap-2 text-left">

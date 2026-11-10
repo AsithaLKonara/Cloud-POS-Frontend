@@ -95,6 +95,8 @@ const Receipt = forwardRef<HTMLDivElement, ReceiptProps>((props, ref) => {
           const pack = item.packUnit || item.size || (item.dispensedVolumeLiters ? `${item.dispensedVolumeLiters}L Loose` : '');
           const spec = item.viscosity || item.partNumber || item.color || '';
           const subInfo = [spec, pack].filter(Boolean).join(" • ");
+          const serial = item.serialNumber || (item.notes?.startsWith("SN: ") ? item.notes.replace("SN: ", "") : null);
+          const warrantyMonths = item.warrantyPeriodMonths || item.product?.warrantyPeriodMonths || 0;
 
           return (
             <div key={idx} style={{ marginBottom: "4px" }}>
@@ -108,6 +110,16 @@ const Receipt = forwardRef<HTMLDivElement, ReceiptProps>((props, ref) => {
                 </span>
                 <span style={{ textAlign: "right", fontWeight: "bold" }}>{fmt(item.price * item.qty)}</span>
               </div>
+              {serial && (
+                <div style={{ fontSize: "8.5px", fontFamily: "monospace", color: "#111", fontWeight: "bold", marginTop: "1px" }}>
+                  S/N: {serial}
+                </div>
+              )}
+              {warrantyMonths > 0 && (
+                <div style={{ fontSize: "8px", color: "#333", marginTop: "1px" }}>
+                  🛡️ Warranty: {warrantyMonths} Months Coverage
+                </div>
+              )}
             </div>
           );
         })}
@@ -150,6 +162,19 @@ const Receipt = forwardRef<HTMLDivElement, ReceiptProps>((props, ref) => {
       </div>
 
       {divider}
+
+      {/* Official Warranty Certificate */}
+      {items.some(i => i.serialNumber || (i.warrantyPeriodMonths && i.warrantyPeriodMonths > 0) || i.product?.warrantyPeriodMonths > 0) && (
+        <>
+          <div style={{ margin: "4px 0", padding: "4px", border: "1px dashed #000", textAlign: "center", borderRadius: "3px" }}>
+            <div style={{ fontSize: "9px", fontWeight: "900", letterSpacing: "0.5px" }}>★ OFFICIAL WARRANTY CERTIFICATE ★</div>
+            <div style={{ fontSize: "8px", marginTop: "2px", lineHeight: "1.2" }}>
+              Please retain this original receipt for serial-verified claims & repairs.
+            </div>
+          </div>
+          {divider}
+        </>
+      )}
 
       {/* Footer */}
       <div style={{ textAlign: "center", fontSize: "10px", marginTop: "4px" }}>

@@ -127,6 +127,16 @@ const WorkshopInvoiceA4 = forwardRef<HTMLDivElement, WorkshopInvoiceProps>((prop
               <tr key={idx} className="hover:bg-stone-50">
                 <td className="py-3 px-3 font-semibold text-stone-900">
                   {itemName}
+                  {item.serialNumber && (
+                    <span className="block text-[11px] font-mono text-emerald-800 font-bold">
+                      S/N: {item.serialNumber}
+                    </span>
+                  )}
+                  {(item.warrantyPeriodMonths > 0 || item.product?.warrantyPeriodMonths > 0) && (
+                    <span className="block text-[10px] text-stone-500 font-normal">
+                      🛡️ Warranty: {item.warrantyPeriodMonths || item.product?.warrantyPeriodMonths} Months ({item.warrantyPolicy || item.product?.warrantyPolicy || 'Standard'})
+                    </span>
+                  )}
                   {item.brand && <span className="block text-[10px] text-stone-500 font-normal">Brand: {item.brand}</span>}
                 </td>
                 <td className="py-3 px-3 font-mono text-stone-700">{spec}</td>
