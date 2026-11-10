@@ -13,3 +13,4 @@ export default async function WarrantyClaimDetailsPage({
   const resolvedParams = await params;
   return <PageClient claimId={resolvedParams.claimId} />;
 }
+
