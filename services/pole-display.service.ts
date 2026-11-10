@@ -6,7 +6,7 @@
 
 import { CustomerDisplayState } from './hardware.service';
 
-export type PoleDisplayProtocol = 'CD5220' | 'ESCPOS' | 'UTC' | 'AEDEX';
+export type PoleDisplayProtocol = 'PRICE_DISPLAY' | 'CD5220' | 'ESCPOS' | 'UTC' | 'AEDEX';
 export type PoleDisplayTransport = 'BRIDGE' | 'WEBSERIAL';
 export type PoleDisplayMode = 'VFD_2X20' | 'DUAL_SCREEN' | 'BOTH' | 'DISABLED';
 
@@ -109,9 +109,13 @@ export class PoleDisplayService {
       this.writer = port.writable.getWriter();
       this.isConnected = true;
 
-      // Send initial welcome message
-      const welcome = this.formatIdle(this.config.storeName, this.config.welcomeMessage);
-      await this.sendLinesDirect(welcome.line1, welcome.line2);
+      // Send initial welcome message or price reset
+      if (this.config.protocol === 'PRICE_DISPLAY') {
+        await this.sendPriceDisplay('0.00', 'NONE');
+      } else {
+        const welcome = this.formatIdle(this.config.storeName, this.config.welcomeMessage);
+        await this.sendLinesDirect(welcome.line1, welcome.line2);
+      }
 
       return true;
     } catch (err: any) {
@@ -221,6 +225,49 @@ export class PoleDisplayService {
     const parts: number[] = [];
 
     switch (proto) {
+      case 'PRICE_DISPLAY': {
+        // Single-line 8-digit LED / VFD Price Display (ESC Q A protocol, e.g. LED8 / LED8N / DSP-840)
+        // Command sequence:
+        // 1. CLR (0x0C)
+        // 2. Set Status Lamp: ESC s <n> (0x1B, 0x73, 0x30 + indicator: 0=All Off, 1=Price, 2=Total, 3=Collect, 4=Change)
+        // 3. Display Data: ESC Q A <numeric digits> CR (0x1B, 0x51, 0x41, ..., 0x0D)
+        const combined = `${line1} ${line2}`;
+        const noCommas = combined.replace(/,/g, '');
+        let indicator = 0; // 0=None, 1=Price, 2=Total, 3=Collect, 4=Change
+        let amountStr = '0.00';
+
+        if (/change/i.test(noCommas)) {
+          indicator = 4; // Change lamp
+          const m = noCommas.match(/\bchange(?:\s+due)?[:\s]+(?:rs\.?\s*)?(\d+(?:\.\d+)?)/i);
+          amountStr = (m && m[1]) || (noCommas.match(/-?\d+(?:\.\d+)?/)?.[0] || '0.00');
+        } else if (/\btotal|subtotal|due/i.test(noCommas)) {
+          indicator = 2; // Total lamp
+          const m = noCommas.match(/\btotal(?:\s+due)?[:\s]+(?:rs\.?\s*)?(\d+(?:\.\d+)?)/i) ||
+                    noCommas.match(/\bsubtotal[:\s]+(?:rs\.?\s*)?(\d+(?:\.\d+)?)/i);
+          amountStr = (m && m[1]) || (noCommas.match(/-?\d+(?:\.\d+)?/)?.[0] || '0.00');
+        } else if (/paid|cash|collect/i.test(noCommas)) {
+          indicator = 3; // Collect lamp
+          const m = noCommas.match(/\b(?:paid|cash|collect)[:\s]+(?:rs\.?\s*)?(\d+(?:\.\d+)?)/i);
+          amountStr = (m && m[1]) || (noCommas.match(/-?\d+(?:\.\d+)?/)?.[0] || '0.00');
+        } else if (/qty|price|item|\d+\.\d{2}/i.test(noCommas)) {
+          indicator = 1; // Price lamp
+          const m = noCommas.match(/\b(?:price|sub)?[:\s]+(?:rs\.?\s*)?(\d+(?:\.\d+)?)/i);
+          amountStr = (m && m[1]) || (noCommas.match(/-?\d+(?:\.\d+)?/)?.[0] || '0.00');
+        } else {
+          const m = noCommas.match(/-?\d+(?:\.\d+)?/);
+          amountStr = (m && m[0]) || '0.00';
+        }
+
+        const cleanAmount = amountStr.substring(0, 10);
+
+        parts.push(0x0c);
+        parts.push(0x1b, 0x73, 0x30 + indicator);
+        parts.push(0x1b, 0x51, 0x41);
+        parts.push(...encoder.encode(cleanAmount));
+        parts.push(0x0d);
+        break;
+      }
+
       case 'CD5220': {
         // Posiflex / DSP800 / E-POS / Standard Asian generic VFD
         // ESC @ (Init)
@@ -359,14 +406,126 @@ export class PoleDisplayService {
   }
 
   /**
+   * Builds an exact Price Display binary packet:
+   * CLR (0x0C) + ESC s <indicator> + ESC Q A <amount> CR
+   */
+  buildPriceDisplayBuffer(
+    amount: number | string,
+    indicator: 'NONE' | 'PRICE' | 'TOTAL' | 'COLLECT' | 'CHANGE' = 'NONE'
+  ): Uint8Array {
+    const encoder = new TextEncoder();
+    const parts: number[] = [];
+
+    const indicatorMap: Record<string, number> = {
+      NONE: 0x30,
+      PRICE: 0x31,
+      TOTAL: 0x32,
+      COLLECT: 0x33,
+      CHANGE: 0x34,
+    };
+
+    let numStr = '0.00';
+    if (typeof amount === 'number') {
+      numStr = amount.toFixed(2);
+    } else {
+      const match = (amount || '').match(/-?\d+(?:\.\d+)?/);
+      numStr = match ? match[0] : '0.00';
+    }
+
+    // 1. CLR
+    parts.push(0x0c);
+    // 2. Set Status Light (ESC s n)
+    parts.push(0x1b, 0x73, indicatorMap[indicator] || 0x30);
+    // 3. Display Data: ESC Q A <number> CR
+    parts.push(0x1b, 0x51, 0x41);
+    parts.push(...encoder.encode(numStr.substring(0, 10)));
+    parts.push(0x0d);
+
+    return new Uint8Array(parts);
+  }
+
+  /**
+   * Direct dispatch for single-line price displays (WebSerial or Local Bridge)
+   */
+  async sendPriceDisplay(
+    amount: number | string,
+    indicator: 'NONE' | 'PRICE' | 'TOTAL' | 'COLLECT' | 'CHANGE' = 'NONE',
+    bridgeUrl?: string
+  ): Promise<boolean> {
+    if (!this.config.enabled || this.config.mode === 'DISABLED' || this.config.mode === 'DUAL_SCREEN') {
+      return true;
+    }
+
+    const bytes = this.buildPriceDisplayBuffer(amount, indicator);
+
+    if (this.config.transport === 'WEBSERIAL') {
+      if (!this.writer) return false;
+      try {
+        await this.writer.write(bytes);
+        return true;
+      } catch (e) {
+        console.warn('Failed to write Price Display to WebSerial:', e);
+        return false;
+      }
+    }
+
+    // Bridge transport
+    let binary = '';
+    for (let i = 0; i < bytes.byteLength; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    const rawBase64 = typeof btoa !== 'undefined' ? btoa(binary) : '';
+
+    try {
+      const url = bridgeUrl || 'http://127.0.0.1:18181';
+      const res = await fetch(`${url}/pole-display`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          port: this.config.port,
+          baudRate: this.config.baudRate,
+          protocol: 'PRICE_DISPLAY',
+          data: rawBase64,
+        }),
+        signal: AbortSignal.timeout(3000),
+      });
+      return res.ok;
+    } catch {
+      if (this.isWebSerialConnected() && this.writer) {
+        try {
+          await this.writer.write(bytes);
+          return true;
+        } catch {
+          return false;
+        }
+      }
+      return false;
+    }
+  }
+
+  /**
+   * Dispatches diagnostic test frame (e.g. 8888.88 for price display or Welcome for VFD)
+   */
+  async sendDiagnosticTestFrame(bridgeUrl?: string): Promise<boolean> {
+    if (this.config.protocol === 'PRICE_DISPLAY') {
+      return await this.sendPriceDisplay('8888.88', 'PRICE', bridgeUrl);
+    }
+    const welcome = this.formatIdle(this.config.storeName, 'DISPLAY TEST OK');
+    return await this.sendLines(welcome.line1, welcome.line2, { bridgeUrl });
+  }
+
+  /**
    * Clears the pole display screen.
    */
   async clearDisplay(bridgeUrl?: string): Promise<boolean> {
+    if (this.config.protocol === 'PRICE_DISPLAY') {
+      return await this.sendPriceDisplay('0.00', 'NONE', bridgeUrl);
+    }
     return await this.sendLines('                    ', '                    ', { bridgeUrl });
   }
 
   /**
-   * Synchronizes the 2x20 pole display with dynamic POS state changes.
+   * Synchronizes the pole display with dynamic POS state changes.
    */
   async syncWithCustomerDisplayState(state: CustomerDisplayState, bridgeUrl?: string): Promise<void> {
     if (this.revertTimer) {
@@ -377,6 +536,47 @@ export class PoleDisplayService {
     if (!this.config.enabled || this.config.mode === 'DISABLED' || this.config.mode === 'DUAL_SCREEN') {
       return;
     }
+
+    // Branch A: Single-Line Price Display (ESC Q A) Mode
+    if (this.config.protocol === 'PRICE_DISPLAY') {
+      switch (state.status) {
+        case 'IDLE': {
+          await this.sendPriceDisplay('0.00', 'NONE', bridgeUrl);
+          break;
+        }
+
+        case 'SCANNING': {
+          const price = state.lastScannedItem ? state.lastScannedItem.priceLkr : state.subtotalLkr;
+          await this.sendPriceDisplay(price, 'PRICE', bridgeUrl);
+          break;
+        }
+
+        case 'PAYMENT': {
+          await this.sendPriceDisplay(state.totalLkr, 'TOTAL', bridgeUrl);
+          break;
+        }
+
+        case 'COMPLETED': {
+          const change = state.changeDueLkr || 0;
+          if (change > 0) {
+            await this.sendPriceDisplay(change, 'CHANGE', bridgeUrl);
+          } else {
+            const paid = state.amountPaidLkr || state.totalLkr;
+            await this.sendPriceDisplay(paid, 'COLLECT', bridgeUrl);
+          }
+
+          // Return to IDLE 0.00 after timeout
+          const timeoutMs = (this.config.changeDisplayTimeoutSeconds || 7) * 1000;
+          this.revertTimer = setTimeout(async () => {
+            await this.sendPriceDisplay('0.00', 'NONE', bridgeUrl);
+          }, timeoutMs);
+          break;
+        }
+      }
+      return;
+    }
+
+    // Branch B: 2x20 VFD Character Display Mode
 
     switch (state.status) {
       case 'IDLE': {

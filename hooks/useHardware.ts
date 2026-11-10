@@ -182,8 +182,35 @@ export function useHardware() {
     return await hardwareService.clearPoleDisplay();
   }, []);
 
+  const sendPolePrice = useCallback(
+    async (
+      amount: number | string,
+      indicator: 'NONE' | 'PRICE' | 'TOTAL' | 'COLLECT' | 'CHANGE' = 'NONE'
+    ): Promise<boolean> => {
+      return await hardwareService.sendPolePriceDisplay(amount, indicator);
+    },
+    []
+  );
+
+  const sendDiagnosticTest = useCallback(async (): Promise<boolean> => {
+    return await hardwareService.sendPoleDiagnosticTest();
+  }, []);
+
   const testPoleScreen = useCallback(
     async (mode: 'welcome' | 'item' | 'payment' | 'completed') => {
+      if (poleConfig.protocol === 'PRICE_DISPLAY') {
+        switch (mode) {
+          case 'welcome':
+            return await sendPolePrice('8888.88', 'NONE');
+          case 'item':
+            return await sendPolePrice('750.00', 'PRICE');
+          case 'payment':
+            return await sendPolePrice('2200.00', 'TOTAL');
+          case 'completed':
+            return await sendPolePrice('2800.00', 'CHANGE');
+        }
+      }
+
       switch (mode) {
         case 'welcome': {
           const welcome = poleDisplayService.formatIdle(
@@ -206,7 +233,7 @@ export function useHardware() {
         }
       }
     },
-    [poleConfig, sendPoleText]
+    [poleConfig, sendPoleText, sendPolePrice]
   );
 
   return {
@@ -228,6 +255,8 @@ export function useHardware() {
     availablePorts,
     refreshSerialPorts,
     sendPoleText,
+    sendPolePrice,
+    sendDiagnosticTest,
     clearPole,
     testPoleScreen,
     isWebSerialSupported: hardwareService.isWebSerialSupported(),

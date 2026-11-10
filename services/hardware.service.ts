@@ -15,7 +15,7 @@ export interface PrintJobPayload {
 export interface PoleDisplayBridgePayload {
   port?: string;
   baudRate?: number;
-  protocol?: 'CD5220' | 'ESCPOS' | 'UTC' | 'AEDEX';
+  protocol?: 'PRICE_DISPLAY' | 'CD5220' | 'ESCPOS' | 'UTC' | 'AEDEX';
   line1?: string;
   line2?: string;
   data?: string; // Base64 raw bytes
@@ -450,6 +450,23 @@ class HardwareService {
    */
   async sendPoleDisplayText(line1: string, line2: string): Promise<boolean> {
     return await poleDisplayService.sendLines(line1, line2, { bridgeUrl: this.bridgeUrl });
+  }
+
+  /**
+   * Sends single-line price and indicator light to LED/VFD price display
+   */
+  async sendPolePriceDisplay(
+    amount: number | string,
+    indicator: 'NONE' | 'PRICE' | 'TOTAL' | 'COLLECT' | 'CHANGE' = 'NONE'
+  ): Promise<boolean> {
+    return await poleDisplayService.sendPriceDisplay(amount, indicator, this.bridgeUrl);
+  }
+
+  /**
+   * Sends diagnostic test frame to pole display (8888.88 or Welcome text)
+   */
+  async sendPoleDiagnosticTest(): Promise<boolean> {
+    return await poleDisplayService.sendDiagnosticTestFrame(this.bridgeUrl);
   }
 
   /**
