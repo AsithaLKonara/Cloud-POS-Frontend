@@ -42,6 +42,7 @@ import {
   Boxes,
   Lock,
   ShieldCheck,
+  LifeBuoy,
 } from "lucide-react";
 
 interface NavItem {
@@ -159,6 +160,7 @@ export default function Sidebar({ isOpen, setIsOpen, session }: { isOpen?: boole
         { name: "Customers & Accounts", icon: Users, href: "/admin/customers", permission: "customers:view" },
         { name: "WhatsApp CRM Inbox", icon: MessageSquare, href: "/admin/crm/inbox", permission: "customers:view" },
         { name: "Warranty & Repairs", icon: ShieldCheck, href: "/admin/warranty", permission: "orders:view" },
+        { name: "Support & Helpdesk", icon: LifeBuoy, href: "/admin/support" },
       ],
     },
     {

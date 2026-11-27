@@ -27,6 +27,7 @@ import SuperAdminDunningManager from "@/components/superadmin/SuperAdminDunningM
 import SuperAdminAnnouncements from "@/components/superadmin/SuperAdminAnnouncements";
 import SuperAdminDisasterRecovery from "@/components/superadmin/SuperAdminDisasterRecovery";
 import SuperAdminWhatsAppHub from "@/components/superadmin/SuperAdminWhatsAppHub";
+import SuperAdminSupportHelpdesk from "@/components/superadmin/SuperAdminSupportHelpdesk";
 import {
   SalesPerformanceChart,
   RevenueBreakdownChart,
@@ -1603,6 +1604,15 @@ export default function SuperAdminDashboard() {
             {activeTab === "whatsapp-hub" && (
               <div className="space-y-6 animate-fade-in">
                 <SuperAdminWhatsAppHub />
+              </div>
+            )}
+
+            {/* =========================================================================
+                TAB 12: MULTI-TENANT SUPPORT & HELPDESK TRIAGE
+                ========================================================================= */}
+            {activeTab === "support-tickets" && (
+              <div className="space-y-6 animate-fade-in">
+                <SuperAdminSupportHelpdesk />
               </div>
             )}
           </main>

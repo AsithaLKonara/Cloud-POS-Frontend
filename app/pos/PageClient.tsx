@@ -33,6 +33,7 @@ import {
   Sun,
   Moon,
   Percent,
+  LifeBuoy,
 } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
@@ -46,6 +47,7 @@ import PosDispatchTicket from "@/components/pos/PosDispatchTicket";
 import PosExchangeTicket from "@/components/pos/PosExchangeTicket";
 import PosShiftModal from "@/components/pos/PosShiftModal";
 import HardwareSettingsModal from "@/components/hardware/HardwareSettingsModal";
+import PosDiagnosticTicketModal from "@/components/pos/PosDiagnosticTicketModal";
 import Link from "next/link";
 import { useInfiniteProducts, useScanBarcode } from "@/hooks/useProducts";
 import { useIntersection } from "@/hooks/useIntersection";
@@ -193,6 +195,7 @@ export default function POSPage() {
   const [heldCarts, setHeldCarts] = useState<{id: string, time: string, items: any[]}[]>([]);
   const [isHeldCartsModalOpen, setIsHeldCartsModalOpen] = useState(false);
   const [isHardwareModalOpen, setIsHardwareModalOpen] = useState(false);
+  const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('posHeldCarts');
@@ -722,6 +725,14 @@ export default function POSPage() {
           >
             <Cpu size={14} />
             <span className="font-semibold text-xs">Hardware</span>
+          </button>
+          <button 
+            onClick={() => setIsSupportModalOpen(true)}
+            className="hidden sm:flex items-center gap-1 text-xs sm:text-sm font-inter text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-950/50 border border-rose-500/20 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer"
+            title="Report register, printer, pole display or checkout issue"
+          >
+            <LifeBuoy size={14} />
+            <span className="font-semibold text-xs">Help / Support</span>
           </button>
 
           {/* Light / Dark Mode Toggle Button */}
@@ -1350,6 +1361,15 @@ export default function POSPage() {
       {/* Modals */}
       {isHardwareModalOpen && (
         <HardwareSettingsModal onClose={() => setIsHardwareModalOpen(false)} />
+      )}
+      {isSupportModalOpen && (
+        <PosDiagnosticTicketModal
+          onClose={() => setIsSupportModalOpen(false)}
+          branchName={activeSession?.branch?.name || "Main Outlet"}
+          cashierName={user?.name || user?.email || "Cashier"}
+          cartCount={cart.reduce((sum, item) => sum + item.qty, 0)}
+          totalPayable={totalPayable}
+        />
       )}
       {shiftModalMode && (
         <PosShiftModal 
