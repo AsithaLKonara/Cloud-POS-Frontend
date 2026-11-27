@@ -6,7 +6,7 @@ import {
   ScaleReading,
   CustomerDisplayState,
 } from '@/services/hardware.service';
-import { PoleDisplayConfig, poleDisplayService } from '@/services/pole-display.service';
+import { PoleDisplayConfig, poleDisplayService, WebSerialPortItem } from '@/services/pole-display.service';
 import { globalDialog } from '@/store/dialog.store';
 
 export function useHardware() {
@@ -39,12 +39,12 @@ export function useHardware() {
   );
   const [isPoleSerialConnected, setIsPoleSerialConnected] = useState(false);
   const [availablePorts, setAvailablePorts] = useState<string[]>([
+    'Port 1 built-in / Bluetooth',
     'COM1',
     'COM2',
     'COM3',
-    'COM4',
-    'COM5',
   ]);
+  const [webSerialPorts, setWebSerialPorts] = useState<WebSerialPortItem[]>([]);
 
   // Check node-print bridge health
   const refreshBridge = useCallback(async () => {
@@ -63,6 +63,13 @@ export function useHardware() {
     const interval = setInterval(refreshBridge, 30000);
     return () => clearInterval(interval);
   }, [refreshBridge]);
+
+  // Silently auto-reconnect to saved pole display WebSerial port on startup
+  useEffect(() => {
+    hardwareService.autoConnectSavedPolePort().then((connected) => {
+      setIsPoleSerialConnected(connected);
+    });
+  }, []);
 
   // Zero-click thermal receipt print
   const printReceipt = useCallback(
@@ -149,30 +156,78 @@ export function useHardware() {
   }, []);
 
   const refreshSerialPorts = useCallback(async () => {
-    const ports = await hardwareService.listSerialPorts();
-    if (ports && ports.length > 0) {
-      setAvailablePorts(ports);
+    const webPorts = await hardwareService.getAvailableWebSerialPorts();
+    setWebSerialPorts(webPorts);
+
+    const bridgePorts = await hardwareService.listSerialPorts();
+    const portLabels = [
+      ...webPorts.map((p) => p.label),
+      ...bridgePorts.filter((bp) => !webPorts.some((wp) => wp.label.includes(bp))),
+    ];
+
+    if (portLabels.length > 0) {
+      setAvailablePorts(portLabels);
     }
+    setIsPoleSerialConnected(hardwareService.isPoleDisplaySerialConnected());
   }, []);
 
-  const connectPoleSerial = useCallback(async () => {
+  const addSerialPort = useCallback(async (): Promise<string | null> => {
     try {
-      const ok = await hardwareService.connectPoleDisplaySerial(poleConfig.baudRate);
-      setIsPoleSerialConnected(ok);
-      return ok;
+      const added = await hardwareService.requestNewWebSerialPort();
+      if (added) {
+        await refreshSerialPorts();
+        updatePoleConfig({ port: added.label });
+        return added.label;
+      }
+      return null;
     } catch (err: any) {
-      globalDialog.alert(err.message || 'Failed to connect to pole display port.', 'Serial Port Error', {
-        variant: 'danger',
-      });
-      setIsPoleSerialConnected(false);
-      return false;
+      console.warn('Failed to add serial port:', err);
+      return null;
     }
-  }, [poleConfig.baudRate]);
+  }, [refreshSerialPorts, updatePoleConfig]);
+
+  const connectPoleSerial = useCallback(
+    async (targetPortLabel?: string) => {
+      try {
+        const portToConnect = targetPortLabel || poleConfig.port;
+        const webPorts = await hardwareService.getAvailableWebSerialPorts();
+        const matched = webPorts.find(
+          (p) => p.label === portToConnect || p.id === portToConnect
+        );
+
+        let ok = false;
+        if (matched) {
+          ok = await hardwareService.connectToWebSerialPort(matched.port, poleConfig.baudRate);
+        } else {
+          ok = await hardwareService.connectPoleDisplaySerial(poleConfig.baudRate);
+        }
+
+        setIsPoleSerialConnected(ok);
+        return ok;
+      } catch (err: any) {
+        globalDialog.alert(
+          err.message || 'Failed to open serial port. Verify COM port is not locked by another application.',
+          'Failed to open serial port',
+          { variant: 'danger' }
+        );
+        setIsPoleSerialConnected(false);
+        return false;
+      }
+    },
+    [poleConfig.port, poleConfig.baudRate]
+  );
 
   const disconnectPoleSerial = useCallback(async () => {
     await hardwareService.disconnectPoleDisplaySerial();
     setIsPoleSerialConnected(false);
   }, []);
+
+  const autoDetectPole = useCallback(
+    async (onProgress?: (msg: string) => void) => {
+      return await hardwareService.runAutoDetect(onProgress);
+    },
+    []
+  );
 
   const sendPoleText = useCallback(async (line1: string, line2: string): Promise<boolean> => {
     return await hardwareService.sendPoleDisplayText(line1, line2);
@@ -253,7 +308,10 @@ export function useHardware() {
     connectPoleSerial,
     disconnectPoleSerial,
     availablePorts,
+    webSerialPorts,
     refreshSerialPorts,
+    addSerialPort,
+    autoDetectPole,
     sendPoleText,
     sendPolePrice,
     sendDiagnosticTest,

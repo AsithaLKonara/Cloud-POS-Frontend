@@ -19,6 +19,8 @@ import {
   Cpu,
   Layers,
   Sparkles,
+  Plug,
+  HelpCircle,
 } from "lucide-react";
 import { useHardware } from "@/hooks/useHardware";
 import { PoleDisplayConfig, PoleDisplayProtocol, PoleDisplayMode, PoleDisplayTransport } from "@/services/pole-display.service";
@@ -45,7 +47,10 @@ export default function HardwareSettingsModal({ onClose }: HardwareSettingsModal
     connectPoleSerial,
     disconnectPoleSerial,
     availablePorts,
+    webSerialPorts,
     refreshSerialPorts,
+    addSerialPort,
+    autoDetectPole,
     testPoleScreen,
     sendPolePrice,
     sendDiagnosticTest,
@@ -57,6 +62,8 @@ export default function HardwareSettingsModal({ onClose }: HardwareSettingsModal
   const [testPrintLoading, setTestPrintLoading] = useState(false);
   const [drawerKickLoading, setDrawerKickLoading] = useState(false);
   const [poleTestLoading, setPoleTestLoading] = useState(false);
+  const [autoDetecting, setAutoDetecting] = useState(false);
+  const [autoDetectMsg, setAutoDetectMsg] = useState<string | null>(null);
   const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
   const [customTestAmount, setCustomTestAmount] = useState("2750.00");
   const [showPortHelp, setShowPortHelp] = useState(false);
@@ -308,86 +315,108 @@ export default function HardwareSettingsModal({ onClose }: HardwareSettingsModal
               </div>
             </div>
 
-            {/* 2x20 VFD Character Pole Settings */}
+            {/* 2x20 VFD Character Pole Settings & Single-Line Price Display */}
             {(poleConfig.mode === "VFD_2X20" || poleConfig.mode === "BOTH") && (
-              <div className="p-4 rounded-xl bg-surface-elevated border border-border space-y-4">
-                <div className="flex items-center justify-between border-b border-border pb-3">
-                  <div className="flex items-center gap-2">
-                    <Terminal size={15} className="text-cyan-500" />
-                    <span className="text-xs font-bold text-foreground">2x20 Character Pole Display (Serial / USB)</span>
+              <div className="p-4 rounded-xl bg-surface-elevated border border-border space-y-4 shadow-sm">
+                
+                {/* 1. Auto-detect Header Banner (1:1 with reference) */}
+                <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/25 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-1.5 font-bold text-xs text-blue-600 dark:text-blue-400">
+                      <Sparkles size={14} className="text-blue-500" />
+                      <span>Don&apos;t know which port? Auto-detect</span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      Sends a test frame to every port at every speed. Watch the display when something appears, pick that line below.
+                    </p>
+                    {autoDetectMsg && (
+                      <p className="text-[11px] font-mono text-blue-500 font-semibold animate-pulse">
+                        {autoDetectMsg}
+                      </p>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2 text-xs">
-                    <button
-                      onClick={() => updatePoleConfig({ transport: "BRIDGE" })}
-                      className={`px-2.5 py-1 rounded-lg font-mono text-[11px] border transition-colors ${
-                        poleConfig.transport === "BRIDGE"
-                          ? "bg-cyan-600 text-white border-cyan-500 shadow-sm"
-                          : "border-border text-muted hover:text-foreground"
-                      }`}
-                      title="Silent zero-click background bridge"
-                    >
-                      Local Bridge
-                    </button>
-                    <button
-                      onClick={() => updatePoleConfig({ transport: "WEBSERIAL" })}
-                      className={`px-2.5 py-1 rounded-lg font-mono text-[11px] border transition-colors ${
-                        poleConfig.transport === "WEBSERIAL"
-                          ? "bg-cyan-600 text-white border-cyan-500 shadow-sm"
-                          : "border-border text-muted hover:text-foreground"
-                      }`}
-                      title="Direct browser WebSerial access (Chrome 89+ / Win 7 Chrome 109)"
-                    >
-                      WebSerial
-                    </button>
-                  </div>
+                  <button
+                    onClick={async () => {
+                      setAutoDetecting(true);
+                      setAutoDetectMsg("Running port scan across speeds (2400, 9600)...");
+                      try {
+                        await autoDetectPole((msg) => setAutoDetectMsg(msg));
+                      } catch (err: any) {
+                        setAutoDetectMsg(`Error: ${err.message}`);
+                      } finally {
+                        setAutoDetecting(false);
+                      }
+                    }}
+                    disabled={autoDetecting}
+                    className="px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs transition-colors shrink-0 disabled:opacity-50 shadow-sm"
+                  >
+                    {autoDetecting ? "Scanning..." : "Auto-detect"}
+                  </button>
                 </div>
 
-                {/* Configuration Options */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                  {/* COM Port */}
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between text-muted">
-                      <span>COM Port</span>
+                {/* 2. COM Port Dropdown with Refresh and Add Port (1:1 with reference) */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <label className="font-semibold text-foreground">COM port</label>
+                    <div className="flex items-center gap-3">
                       <button
                         onClick={refreshSerialPorts}
-                        className="hover:text-foreground"
-                        title="Scan serial ports"
+                        className="flex items-center gap-1 text-[11px] text-blue-600 dark:text-blue-400 hover:underline transition-colors"
                       >
-                        <RefreshCw size={11} />
+                        <RefreshCw size={12} className={poleTestLoading ? "animate-spin" : ""} />
+                        <span>Refresh</span>
+                      </button>
+                      <button
+                        onClick={async () => {
+                          const added = await addSerialPort();
+                          if (added) {
+                            setFeedbackMsg(`✅ Added new serial port: ${added}`);
+                          }
+                        }}
+                        className="flex items-center gap-1 text-[11px] text-blue-600 dark:text-blue-400 hover:underline transition-colors font-medium"
+                      >
+                        <Plug size={12} />
+                        <span>Add port</span>
                       </button>
                     </div>
-                    <select
-                      value={poleConfig.port}
-                      onChange={(e) => updatePoleConfig({ port: e.target.value })}
-                      className="w-full bg-surface border border-border rounded-xl px-2.5 py-1.5 text-foreground font-mono focus:outline-none focus:border-primary"
-                    >
-                      {availablePorts.map((p) => (
-                        <option key={p} value={p}>
-                          {p}
-                        </option>
-                      ))}
-                    </select>
                   </div>
+                  <select
+                    value={poleConfig.port}
+                    onChange={(e) => updatePoleConfig({ port: e.target.value })}
+                    className="w-full bg-surface border border-border rounded-xl px-3 py-2 text-xs font-mono text-foreground focus:outline-none focus:border-blue-500 shadow-sm"
+                  >
+                    {availablePorts.map((p) => (
+                      <option key={p} value={p}>
+                        {p}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-                  {/* Baud Rate */}
+                {/* 3. Speed (baud) and Display Type (1:1 with reference) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  {/* Speed (baud) */}
                   <div className="space-y-1">
-                    <span className="text-muted block">Baud Rate</span>
+                    <label className="text-xs font-semibold text-foreground">Speed (baud)</label>
                     <select
                       value={poleConfig.baudRate}
                       onChange={(e) => updatePoleConfig({ baudRate: parseInt(e.target.value, 10) })}
-                      className="w-full bg-surface border border-border rounded-xl px-2.5 py-1.5 text-foreground font-mono focus:outline-none focus:border-primary"
+                      className="w-full bg-surface border border-border rounded-xl px-3 py-2 text-xs font-mono text-foreground focus:outline-none focus:border-blue-500 shadow-sm"
                     >
                       {[2400, 4800, 9600, 19200, 38400, 115200].map((b) => (
                         <option key={b} value={b}>
-                          {b} bps
+                          {b}
                         </option>
                       ))}
                     </select>
+                    <span className="text-[11px] text-blue-600/80 dark:text-blue-400/80 block mt-0.5">
+                      Most common for single-line price displays
+                    </span>
                   </div>
 
-                  {/* Protocol */}
+                  {/* Display Type */}
                   <div className="space-y-1">
-                    <span className="text-muted block">Command Protocol</span>
+                    <label className="text-xs font-semibold text-foreground">Display type</label>
                     <select
                       value={poleConfig.protocol}
                       onChange={(e) => {
@@ -398,9 +427,9 @@ export default function HardwareSettingsModal({ onClose }: HardwareSettingsModal
                         }
                         updatePoleConfig(updates);
                       }}
-                      className="w-full bg-surface border border-border rounded-xl px-2.5 py-1.5 text-foreground font-mono focus:outline-none focus:border-primary"
+                      className="w-full bg-surface border border-border rounded-xl px-3 py-2 text-xs font-mono text-foreground focus:outline-none focus:border-blue-500 shadow-sm"
                     >
-                      <option value="PRICE_DISPLAY">Price display (ESC Q A) - LED8 / Single-line</option>
+                      <option value="PRICE_DISPLAY">Price display (ESC Q A)</option>
                       <option value="CD5220">CD5220 (Posiflex & Generic 2x20)</option>
                       <option value="ESCPOS">ESC/POS (Epson DM-D 2x20)</option>
                       <option value="UTC">UTC Standard / Enhanced</option>
@@ -409,92 +438,107 @@ export default function HardwareSettingsModal({ onClose }: HardwareSettingsModal
                   </div>
                 </div>
 
-                {/* Protocol Info / Quick Auto-Config */}
-                {poleConfig.protocol === "PRICE_DISPLAY" && (
-                  <div className="p-2.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-between text-xs text-cyan-600 dark:text-cyan-400">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold">⚡ Price Display (ESC Q A):</span>
-                      <span>Single-line numeric LED/VFD. Recommended speed: 2400 baud.</span>
-                    </div>
-                    {poleConfig.baudRate !== 2400 && (
-                      <button
-                        onClick={() => updatePoleConfig({ baudRate: 2400 })}
-                        className="px-2 py-0.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-[11px] transition-colors"
-                      >
-                        Set to 2400 baud
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                {/* Auto-Detect Helper Banner */}
-                <div className="p-3 rounded-xl bg-surface border border-border flex items-center justify-between text-xs">
-                  <div>
-                    <div className="font-bold flex items-center gap-1.5 text-foreground">
-                      <span>⚡ Don't know which port? Auto-detect / Test Frame</span>
-                    </div>
-                    <p className="text-[11px] text-muted mt-0.5">
-                      Sends a test frame to the active port. Watch the display when something appears.
-                    </p>
-                  </div>
+                {/* 4. Action Buttons: Connect, Send test, Disconnect (1:1 with reference) */}
+                <div className="flex flex-wrap items-center gap-3 pt-1">
                   <button
                     onClick={async () => {
                       setPoleTestLoading(true);
-                      const ok = await sendDiagnosticTest();
-                      setPoleTestLoading(false);
-                      setFeedbackMsg(ok ? "✅ Test frame sent! Check display screen." : "⚠️ Send failed. Connect port first.");
+                      setFeedbackMsg(null);
+                      try {
+                        const ok = await connectPoleSerial(poleConfig.port);
+                        if (ok) {
+                          setFeedbackMsg(`✅ Connected to ${poleConfig.port} @ ${poleConfig.baudRate} bps!`);
+                        }
+                      } finally {
+                        setPoleTestLoading(false);
+                      }
                     }}
                     disabled={poleTestLoading}
-                    className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs transition-colors disabled:opacity-50 shadow-sm"
+                    className={`px-6 py-2 rounded-xl font-semibold text-xs transition-colors shadow-sm ${
+                      isPoleSerialConnected
+                        ? "bg-emerald-600 hover:bg-emerald-500 text-white"
+                        : "bg-blue-600 hover:bg-blue-500 text-white"
+                    } disabled:opacity-50`}
                   >
-                    {poleTestLoading ? "Sending..." : "Send Test Frame"}
+                    {isPoleSerialConnected ? "Connected" : "Connect"}
                   </button>
+
+                  <button
+                    onClick={async () => {
+                      setPoleTestLoading(true);
+                      setFeedbackMsg(null);
+                      try {
+                        let ok = false;
+                        if (poleConfig.protocol === "PRICE_DISPLAY") {
+                          ok = await sendPolePrice("8888.88", "PRICE");
+                        } else {
+                          ok = await sendDiagnosticTest();
+                        }
+                        setFeedbackMsg(ok ? "✅ Test frame sent! (Check display for 8888.88)" : "⚠️ Send failed. Connect port first.");
+                      } finally {
+                        setPoleTestLoading(false);
+                      }
+                    }}
+                    disabled={poleTestLoading}
+                    className="px-4 py-2 rounded-xl bg-surface hover:bg-surface-elevated border border-border text-foreground text-xs font-medium transition-colors disabled:opacity-50"
+                  >
+                    Send test
+                  </button>
+
+                  <button
+                    onClick={async () => {
+                      await disconnectPoleSerial();
+                      setFeedbackMsg("Disconnected from serial port.");
+                    }}
+                    disabled={!isPoleSerialConnected}
+                    className="px-4 py-2 rounded-xl bg-surface hover:bg-surface-elevated border border-border text-muted hover:text-foreground text-xs font-medium transition-colors disabled:opacity-40"
+                  >
+                    Disconnect
+                  </button>
+
+                  <div className="ml-auto flex items-center gap-2">
+                    <span
+                      className={`w-2.5 h-2.5 rounded-full ${
+                        isPoleSerialConnected ? "bg-emerald-500 animate-pulse" : "bg-stone-500"
+                      }`}
+                    />
+                    <span className="text-[11px] font-mono text-muted">
+                      {isPoleSerialConnected ? `Port Open (${poleConfig.baudRate} bps)` : "Port Closed"}
+                    </span>
+                  </div>
                 </div>
 
-                {/* WebSerial Connect Button (if WebSerial Transport) */}
-                {poleConfig.transport === "WEBSERIAL" && (
-                  <div className="p-3 rounded-xl bg-surface border border-border flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`w-2.5 h-2.5 rounded-full ${
-                          isPoleSerialConnected ? "bg-emerald-500 animate-pulse" : "bg-stone-500"
-                        }`}
-                      />
-                      <span className="text-muted">
-                        {isPoleSerialConnected
-                          ? "WebSerial Port Active (Direct Connection)"
-                          : "Port Not Open. Click to grant browser access."}
-                      </span>
+                {/* 5. Collapsible Accordion: 'Failed to open serial port' what to check (1:1 with reference) */}
+                <div className="border border-border rounded-xl overflow-hidden bg-surface mt-2">
+                  <button
+                    onClick={() => setShowPortHelp(!showPortHelp)}
+                    className="w-full px-3.5 py-2.5 text-left text-xs font-medium text-muted hover:text-foreground flex items-center justify-between"
+                  >
+                    <span className="flex items-center gap-1.5 font-semibold text-foreground">
+                      <span>▶ &ldquo;Failed to open serial port&rdquo; what to check</span>
+                    </span>
+                    <span className="text-[11px] text-blue-500">{showPortHelp ? "Collapse" : "Expand"}</span>
+                  </button>
+                  {showPortHelp && (
+                    <div className="px-4 pb-3.5 pt-2 text-[11px] text-muted space-y-2 border-t border-border bg-surface-elevated">
+                      <p>1. <strong>Close other POS software:</strong> Serial COM ports are exclusive in Windows. If another POS software, utility, or serial terminal is open, close it completely so XONIT POS can acquire the port handle.</p>
+                      <p>2. <strong>Speed:</strong> Single-line LED price displays (ESC Q A) strictly communicate at <strong>2400 baud</strong>. 2x20 VFD screens use <strong>9600 baud</strong>.</p>
+                      <p>3. <strong>Port Selection:</strong> If using a USB adapter, click <strong>&ldquo;Add port&rdquo;</strong> to authorize the device (e.g. CH340, Prolific). If using built-in motherboard serial, select <strong>&ldquo;Port 1 built-in / Bluetooth&rdquo;</strong>.</p>
+                      <p>4. <strong>Browser:</strong> WebSerial runs natively in Google Chrome and Microsoft Edge on Windows 7 (Chrome 109) and Windows 10/11.</p>
                     </div>
+                  )}
+                </div>
 
-                    {isPoleSerialConnected ? (
-                      <button
-                        onClick={disconnectPoleSerial}
-                        className="px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-500 border border-rose-500/30 font-medium hover:bg-rose-500/20 transition-colors"
-                      >
-                        Disconnect Port
-                      </button>
-                    ) : (
-                      <button
-                        onClick={connectPoleSerial}
-                        className="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-medium transition-colors shadow-sm"
-                      >
-                        Connect COM Port
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                {/* Interactive Numeric Amount Test */}
-                <div className="p-3 rounded-xl bg-surface border border-border space-y-2">
+                {/* Direct Numeric Test Controls (Price, Total, Change) */}
+                <div className="p-3.5 rounded-xl bg-surface border border-border space-y-2 pt-3">
                   <span className="text-[11px] font-semibold text-muted block">Direct Numeric Test (ESC Q A)</span>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <input
                       type="text"
                       value={customTestAmount}
                       onChange={(e) => setCustomTestAmount(e.target.value)}
                       placeholder="e.g. 2750.00"
-                      className="w-36 bg-surface-elevated border border-border rounded-xl px-2.5 py-1.5 text-xs font-mono font-bold text-foreground focus:outline-none focus:border-primary"
+                      className="w-32 bg-surface-elevated border border-border rounded-xl px-2.5 py-1.5 text-xs font-mono font-bold text-foreground focus:outline-none focus:border-blue-500"
                     />
                     <button
                       onClick={async () => {
@@ -504,7 +548,7 @@ export default function HardwareSettingsModal({ onClose }: HardwareSettingsModal
                         setFeedbackMsg(ok ? `✅ Price Rs.${customTestAmount} sent!` : "⚠️ Send failed.");
                       }}
                       disabled={poleTestLoading}
-                      className="px-2.5 py-1.5 rounded-lg bg-surface hover:bg-surface-elevated border border-border text-[11px] font-medium text-foreground transition-colors disabled:opacity-50"
+                      className="px-2.5 py-1.5 rounded-lg bg-surface-elevated hover:bg-surface border border-border text-[11px] font-medium text-foreground transition-colors disabled:opacity-50"
                     >
                       Price (ESC s 1)
                     </button>
@@ -516,7 +560,7 @@ export default function HardwareSettingsModal({ onClose }: HardwareSettingsModal
                         setFeedbackMsg(ok ? `✅ Total Rs.${customTestAmount} sent!` : "⚠️ Send failed.");
                       }}
                       disabled={poleTestLoading}
-                      className="px-2.5 py-1.5 rounded-lg bg-surface hover:bg-surface-elevated border border-border text-[11px] font-medium text-foreground transition-colors disabled:opacity-50"
+                      className="px-2.5 py-1.5 rounded-lg bg-surface-elevated hover:bg-surface border border-border text-[11px] font-medium text-foreground transition-colors disabled:opacity-50"
                     >
                       Total (ESC s 2)
                     </button>
@@ -528,9 +572,21 @@ export default function HardwareSettingsModal({ onClose }: HardwareSettingsModal
                         setFeedbackMsg(ok ? `✅ Change Rs.${customTestAmount} sent!` : "⚠️ Send failed.");
                       }}
                       disabled={poleTestLoading}
-                      className="px-2.5 py-1.5 rounded-lg bg-surface hover:bg-surface-elevated border border-border text-[11px] font-medium text-foreground transition-colors disabled:opacity-50"
+                      className="px-2.5 py-1.5 rounded-lg bg-surface-elevated hover:bg-surface border border-border text-[11px] font-medium text-foreground transition-colors disabled:opacity-50"
                     >
                       Change (ESC s 4)
+                    </button>
+                    <button
+                      onClick={async () => {
+                        setPoleTestLoading(true);
+                        const ok = await clearPole();
+                        setPoleTestLoading(false);
+                        setFeedbackMsg(ok ? "✅ Pole display cleared!" : "⚠️ Failed to clear display.");
+                      }}
+                      disabled={poleTestLoading}
+                      className="px-2.5 py-1.5 rounded-lg bg-surface-elevated hover:bg-surface border border-border text-[11px] text-rose-500 font-medium transition-colors disabled:opacity-50 ml-auto"
+                    >
+                      Clear Screen
                     </button>
                   </div>
                 </div>
@@ -602,24 +658,6 @@ export default function HardwareSettingsModal({ onClose }: HardwareSettingsModal
                   </div>
                 </div>
 
-                {/* Troubleshooting Accordion */}
-                <div className="border border-border rounded-xl overflow-hidden bg-surface">
-                  <button
-                    onClick={() => setShowPortHelp(!showPortHelp)}
-                    className="w-full px-3 py-2 text-left text-xs font-semibold text-muted hover:text-foreground flex items-center justify-between"
-                  >
-                    <span>▶ "Failed to open serial port" what to check</span>
-                    <span className="text-[10px] text-primary">{showPortHelp ? "Hide" : "Show Help"}</span>
-                  </button>
-                  {showPortHelp && (
-                    <div className="px-3 pb-3 pt-1 text-[11px] text-muted space-y-1.5 border-t border-border bg-surface-elevated">
-                      <p>1. <strong>Close other POS software:</strong> Serial COM ports are exclusive — if another software or utility is open, Windows blocks XONIT POS from accessing it.</p>
-                      <p>2. <strong>Baud Rate:</strong> Single-line price displays almost always run at <strong>2400 baud</strong>. 2x20 VFD displays typically use <strong>9600 baud</strong>.</p>
-                      <p>3. <strong>Device Manager:</strong> Check Windows Device Manager under <em>Ports (COM & LPT)</em> to confirm your port number (e.g. COM1 or COM3).</p>
-                      <p>4. <strong>Browser:</strong> WebSerial requires Google Chrome or Microsoft Edge running on HTTPS or localhost.</p>
-                    </div>
-                  )}
-                </div>
               </div>
             )}
 

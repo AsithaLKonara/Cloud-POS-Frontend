@@ -4,7 +4,7 @@
  * (127.0.0.1:18181 or local network print servers) and supports native browser print.
  */
 
-import { poleDisplayService, PoleDisplayConfig } from './pole-display.service';
+import { poleDisplayService, PoleDisplayConfig, WebSerialPortItem } from './pole-display.service';
 
 export interface PrintJobPayload {
   printer?: string;
@@ -233,10 +233,10 @@ class HardwareService {
     parts.push(
       ...encoder.encode(
         'ITEM'.padEnd(colNameWidth) +
-          'QTY'.padStart(colQtyWidth) +
-          'PRICE'.padStart(colPriceWidth) +
-          'TOTAL'.padStart(colTotalWidth) +
-          '\n'
+        'QTY'.padStart(colQtyWidth) +
+        'PRICE'.padStart(colPriceWidth) +
+        'TOTAL'.padStart(colTotalWidth) +
+        '\n'
       )
     );
     parts.push(...encoder.encode('-'.repeat(charsPerLine) + '\n'));
@@ -504,6 +504,26 @@ class HardwareService {
 
   isWebSerialSupported(): boolean {
     return poleDisplayService.isWebSerialSupported();
+  }
+
+  async getAvailableWebSerialPorts(): Promise<WebSerialPortItem[]> {
+    return await poleDisplayService.getAvailableWebSerialPorts();
+  }
+
+  async requestNewWebSerialPort(): Promise<WebSerialPortItem | null> {
+    return await poleDisplayService.requestNewWebSerialPort();
+  }
+
+  async connectToWebSerialPort(portInstance: any, baudRate?: number): Promise<boolean> {
+    return await poleDisplayService.connectToWebSerialPort(portInstance, baudRate);
+  }
+
+  async runAutoDetect(onProgress?: (msg: string) => void): Promise<{ portLabel: string; baudRate: number } | null> {
+    return await poleDisplayService.runAutoDetect(onProgress);
+  }
+
+  async autoConnectSavedPolePort(): Promise<boolean> {
+    return await poleDisplayService.autoConnectSavedPort();
   }
 
   async listSerialPorts(): Promise<string[]> {
